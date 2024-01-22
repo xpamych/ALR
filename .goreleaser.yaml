@@ -1,0 +1,99 @@
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - id: lure
+    env:
+      - CGO_ENABLED=0
+    binary: lure
+    ldflags:
+      - -X go.elara.ws/lure/internal/config.Version={{.Version}}
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - 386
+      - arm64
+      - arm
+      - riscv64
+archives:
+  - name_template: >-
+      {{- .ProjectName}}-
+      {{- .Version}}-
+      {{- .Os}}-
+      {{- if .Arch | eq "amd64"}}x86_64
+      {{- else if .Arch | eq "386"}}i386
+      {{- else if .Arch | eq "arm64"}}aarch64
+      {{- else }}{{ .Arch }}{{ end -}}
+    files:
+      - scripts/completion/*
+nfpms:
+  - id: lure
+    package_name: linux-user-repository
+    file_name_template: >-
+      {{- .PackageName}}-
+      {{- .Version}}-
+      {{- .Os}}-
+      {{- if .Arch | eq "amd64"}}x86_64
+      {{- else if .Arch | eq "386"}}i386
+      {{- else if .Arch | eq "arm64"}}aarch64
+      {{- else }}{{ .Arch }}{{ end -}}
+    description: "Linux User REpository"
+    homepage: 'https://lure.sh'
+    maintainer: 'Elara Musayelyan <elara@elara.ws>'
+    license: GPLv3
+    formats:
+      - apk
+      - deb
+      - rpm
+      - archlinux
+    provides:
+      - linux-user-repository
+    conflicts:
+      - linux-user-repository
+    recommends:
+      - aria2
+    contents:
+      - src: scripts/completion/bash
+        dst: /usr/share/bash-completion/completions/lure
+      - src: scripts/completion/zsh
+        dst: /usr/share/zsh/site-functions/_lure
+aurs:
+  - name: linux-user-repository-bin
+    homepage: 'https://lure.sh'
+    description: "Linux User REpository"
+    maintainers:
+      - 'Elara Musayelyan <elara@elara.ws>'
+    license: GPLv3
+    private_key: '{{ .Env.AUR_KEY }}'
+    git_url: 'ssh://aur@aur.archlinux.org/linux-user-repository-bin.git'
+    provides:
+      - linux-user-repository
+    conflicts:
+      - linux-user-repository
+    depends:
+      - sudo
+      - pacman
+    optdepends:
+      - 'aria2: for downloading torrent sources'
+    package: |-
+      # binaries
+      install -Dm755 ./lure "${pkgdir}/usr/bin/lure"
+
+      # completions
+      install -Dm755 ./scripts/completion/bash ${pkgdir}/usr/share/bash-completion/completions/lure
+      install -Dm755 ./scripts/completion/zsh ${pkgdir}/usr/share/zsh/site-functions/_lure
+release:
+  gitea:
+    owner: lure
+    name: lure
+gitea_urls:
+  api: 'https://gitea.elara.ws/api/v1/'
+  download: 'https://gitea.elara.ws'
+  skip_tls_verify: false
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
