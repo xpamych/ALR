@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,8 @@ import (
 	"sync"
 
 	"github.com/pelletier/go-toml/v2"
-	"lure.sh/lure/internal/types"
-	"lure.sh/lure/pkg/loggerctx"
+	"plemya-x.ru/alr/internal/types"
+	"plemya-x.ru/alr/pkg/loggerctx"
 )
 
 var defaultConfig = &types.Config{
@@ -35,7 +35,7 @@ var defaultConfig = &types.Config{
 	Repos: []types.Repo{
 		{
 			Name: "default",
-			URL:  "https://github.com/lure-sh/lure-repo.git",
+			URL:  "https://gitflic.ru/project/xpamych/xpamych-alr-repo.git",
 		},
 	},
 }
@@ -45,7 +45,7 @@ var (
 	config    *types.Config
 )
 
-// Config returns a LURE configuration struct.
+// Config returns a ALR configuration struct.
 // The first time it's called, it'll load the config from a file.
 // Subsequent calls will just return the same value.
 func Config(ctx context.Context) *types.Config {

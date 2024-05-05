@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# LURE - Linux User REpository
-# Copyright (C) 2023 Elara Musayelyan
+# ALR - Any Linux Repository
+# Copyright (C) 2024 Евгений Храмов
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ installPkg() {
   elif command -v sudo &>/dev/null; then
     rootCmd="sudo"
   else
-    warn "No privilege elevation command (e.g. sudo, doas) detected"
+    warn "Команда повышения привилегий (например, sudo, do as) не обнаружена"
   fi
   
   case $1 in
@@ -48,52 +48,53 @@ installPkg() {
 }
 
 if ! command -v curl &>/dev/null; then
-  error "This script requires the curl command. Please install it and run again."
+  error "Для этого скрипта требуется команда curl. Пожалуйста, установите его и запустите снова."
 fi
 
 pkgFormat=""
 pkgMgr=""
 if command -v pacman &>/dev/null; then
-  info "Detected pacman"
+  info "Обнаружен pacman"
   pkgFormat="pkg.tar.zst"
   pkgMgr="pacman"
 elif command -v apt &>/dev/null; then
-  info "Detected apt"
+  info "Обнаружен apt"
   pkgFormat="deb"
   pkgMgr="apt"
 elif command -v dnf &>/dev/null; then
-  info "Detected dnf"
+  info "Обнаружен dnf"
   pkgFormat="rpm"
   pkgMgr="dnf"
 elif command -v yum &>/dev/null; then
-  info "Detected yum"
+  info "Обнаружен yum"
   pkgFormat="rpm"
   pkgMgr="yum"
 elif command -v zypper &>/dev/null; then
-  info "Detected zypper"
+  info "Обнаружен zypper"
   pkgFormat="rpm"
   pkgMgr="zypper"
 elif command -v apk &>/dev/null; then
-  info "Detected apk"
+  info "Обнаружен apk"
   pkgFormat="apk"
   pkgMgr="apk"
 else
-  error "No supported package manager detected!"
+  error "Не обнаружен поддерживаемый пакетный менеджер!"
 fi
 
-latestVersion=$(curl -sI 'https://gitea.elara.ws/lure/lure/releases/latest' | grep -io 'location: .*' | rev | cut -d '/' -f1 | rev | tr -d '[:space:]')
-info "Found latest LURE version:" $latestVersion
+latestVersion=$(curl -sI 'https://gitflic.ru/project/xpamych/alr/release/latest' | grep -io 'location: .*' | rev | cut -d '/' -f1 | rev | tr -d '[:space:]')
+info "Найдена последняя версия ALR:" $latestVersion
 
-fname="$(mktemp -u -p /tmp "lure.XXXXXXXXXX").${pkgFormat}"
-url="https://gitea.elara.ws/lure/lure/releases/download/${latestVersion}/linux-user-repository-${latestVersion#v}-linux-$(uname -m).${pkgFormat}"
+fname="$(mktemp -u -p /tmp "alr.XXXXXXXXXX").${pkgFormat}"
+url="https://registry.gitflic.ru/project/xpamych/alr/package/-/generic/alr-linux-x86-64/{version}/{file}"
+https://gitflic.ru/project/xpamych/alr/releases/download/${latestVersion}/linux-user-repository-${latestVersion#v}-linux-$(uname -m).${pkgFormat}"
 
-info "Downloading LURE package" 
+info "Скачивается пакет ALR"
 curl -L $url -o $fname
 
-info "Installing LURE package"
+info "Устанавливается ALR"
 installPkg $pkgMgr $fname
 
-info "Cleaning up"
+info "Очистка"
 rm $fname
 
-info "Done!"
+info "Готово!"

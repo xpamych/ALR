@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,11 +39,11 @@ import (
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/blake2s"
 	"golang.org/x/exp/slices"
-	"lure.sh/lure/internal/dlcache"
-	"lure.sh/lure/pkg/loggerctx"
+	"plemya-x.ru/alr/internal/dlcache"
+	"plemya-x.ru/alr/pkg/loggerctx"
 )
 
-const manifestFileName = ".lure_cache_manifest"
+const manifestFileName = ".alr_cache_manifest"
 
 // ErrChecksumMismatch occurs when the checksum of a downloaded file
 // does not match the expected checksum provided in the Options struct.

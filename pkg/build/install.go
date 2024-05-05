@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,15 +22,15 @@ import (
 	"context"
 	"path/filepath"
 
-	"lure.sh/lure/internal/config"
-	"lure.sh/lure/internal/db"
-	"lure.sh/lure/internal/types"
-	"lure.sh/lure/pkg/loggerctx"
+	"plemya-x.ru/alr/internal/config"
+	"plemya-x.ru/alr/internal/db"
+	"plemya-x.ru/alr/internal/types"
+	"plemya-x.ru/alr/pkg/loggerctx"
 )
 
 // InstallPkgs installs native packages via the package manager,
-// then builds and installs the LURE packages
-func InstallPkgs(ctx context.Context, lurePkgs []db.Package, nativePkgs []string, opts types.BuildOpts) {
+// then builds and installs the ALR packages
+func InstallPkgs(ctx context.Context, alrPkgs []db.Package, nativePkgs []string, opts types.BuildOpts) {
 	log := loggerctx.From(ctx)
 
 	if len(nativePkgs) > 0 {
@@ -40,7 +40,7 @@ func InstallPkgs(ctx context.Context, lurePkgs []db.Package, nativePkgs []string
 		}
 	}
 
-	InstallScripts(ctx, GetScriptPaths(ctx, lurePkgs), opts)
+	InstallScripts(ctx, GetScriptPaths(ctx, alrPkgs), opts)
 }
 
 // GetScriptPaths returns a slice of script paths corresponding to the
@@ -48,13 +48,13 @@ func InstallPkgs(ctx context.Context, lurePkgs []db.Package, nativePkgs []string
 func GetScriptPaths(ctx context.Context, pkgs []db.Package) []string {
 	var scripts []string
 	for _, pkg := range pkgs {
-		scriptPath := filepath.Join(config.GetPaths(ctx).RepoDir, pkg.Repository, pkg.Name, "lure.sh")
+		scriptPath := filepath.Join(config.GetPaths(ctx).RepoDir, pkg.Repository, pkg.Name, "alr.sh")
 		scripts = append(scripts, scriptPath)
 	}
 	return scripts
 }
 
-// InstallScripts builds and installs the given LURE build scripts
+// InstallScripts builds and installs the given alr build scripts
 func InstallScripts(ctx context.Context, scripts []string, opts types.BuildOpts) {
 	log := loggerctx.From(ctx)
 	for _, script := range scripts {

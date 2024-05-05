@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,8 +28,8 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
-	"lure.sh/lure/internal/config"
-	"lure.sh/lure/pkg/loggerctx"
+	"plemya-x.ru/alr/internal/config"
+	"plemya-x.ru/alr/pkg/loggerctx"
 	"golang.org/x/exp/slices"
 	"modernc.org/sqlite"
 )
@@ -42,7 +42,7 @@ func init() {
 	sqlite.MustRegisterScalarFunction("json_array_contains", 2, jsonArrayContains)
 }
 
-// Package is a LURE package's database representation
+// Package is a ALR package's database representation
 type Package struct {
 	Name          string                    `sh:"name,required" db:"name"`
 	Version       string                    `sh:"version,required" db:"version"`
@@ -72,7 +72,7 @@ var (
 	closed = true
 )
 
-// DB returns the LURE database.
+// DB returns the ALR database.
 // The first time it's called, it opens the SQLite database file.
 // Subsequent calls return the same connection.
 func DB(ctx context.Context) *sqlx.DB {
@@ -147,7 +147,7 @@ func initDB(ctx context.Context, dsn string) error {
 			UNIQUE(name, repository)
 		);
 
-		CREATE TABLE IF NOT EXISTS lure_db_version (
+		CREATE TABLE IF NOT EXISTS alr_db_version (
 			version INT NOT NULL
 		);
 	`)
@@ -161,7 +161,7 @@ func initDB(ctx context.Context, dsn string) error {
 		reset(ctx)
 		return initDB(ctx, dsn)
 	} else if !ok {
-		log.Warn("Database version does not exist. Run lure fix if something isn't working.").Send()
+		log.Warn("Database version does not exist. Run alr fix if something isn't working.").Send()
 		return addVersion(ctx, CurrentVersion)
 	}
 
@@ -174,7 +174,7 @@ func reset(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = DB(ctx).ExecContext(ctx, "DROP TABLE IF EXISTS lure_db_version;")
+	_, err = DB(ctx).ExecContext(ctx, "DROP TABLE IF EXISTS alr_db_version;")
 	return err
 }
 
@@ -192,7 +192,7 @@ func IsEmpty(ctx context.Context) bool {
 // whether the database contained a version number
 func GetVersion(ctx context.Context) (int, bool) {
 	var ver version
-	err := DB(ctx).GetContext(ctx, &ver, "SELECT * FROM lure_db_version LIMIT 1;")
+	err := DB(ctx).GetContext(ctx, &ver, "SELECT * FROM alr_db_version LIMIT 1;")
 	if err != nil {
 		return 0, false
 	}
@@ -200,7 +200,7 @@ func GetVersion(ctx context.Context) (int, bool) {
 }
 
 func addVersion(ctx context.Context, ver int) error {
-	_, err := DB(ctx).ExecContext(ctx, `INSERT INTO lure_db_version(version) VALUES (?);`, ver)
+	_, err := DB(ctx).ExecContext(ctx, `INSERT INTO alr_db_version(version) VALUES (?);`, ver)
 	return err
 }
 

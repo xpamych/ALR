@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * alr - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,10 +24,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"lure.sh/lure/internal/config"
-	"lure.sh/lure/internal/db"
-	"lure.sh/lure/internal/types"
-	"lure.sh/lure/pkg/repos"
+	"plemya-x.ru/alr/internal/config"
+	"plemya-x.ru/alr/internal/db"
+	"plemya-x.ru/alr/internal/types"
+	"plemya-x.ru/alr/pkg/repos"
 )
 
 func setCfgDirs(t *testing.T) {
@@ -36,7 +36,7 @@ func setCfgDirs(t *testing.T) {
 	paths := config.GetPaths()
 
 	var err error
-	paths.CacheDir, err = os.MkdirTemp("/tmp", "lure-pull-test.*")
+	paths.CacheDir, err = os.MkdirTemp("/tmp", "alr-pull-test.*")
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}
@@ -81,7 +81,7 @@ func TestPull(t *testing.T) {
 	err = repos.Pull(ctx, []types.Repo{
 		{
 			Name: "default",
-			URL:  "https://github.com/Arsen6331/lure-repo.git",
+			URL:  "https://gitflic.ru/project/xpamych/xpamych-alr-repo.git",
 		},
 	})
 	if err != nil {

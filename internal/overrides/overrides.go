@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,9 +22,9 @@ import (
 	"reflect"
 	"strings"
 
-	"lure.sh/lure/internal/cpu"
-	"lure.sh/lure/internal/db"
-	"lure.sh/lure/pkg/distro"
+	"plemya-x.ru/alr/internal/cpu"
+	"plemya-x.ru/alr/internal/db"
+	"plemya-x.ru/alr/pkg/distro"
 	"golang.org/x/exp/slices"
 	"golang.org/x/text/language"
 )
@@ -146,7 +146,7 @@ func (o *Opts) WithLanguageTags(langs []string) *Opts {
 	return out
 }
 
-// ResolvedPackage is a LURE package after its overrides
+// ResolvedPackage is a ALR package after its overrides
 // have been resolved
 type ResolvedPackage struct {
 	Name          string   `sh:"name"`

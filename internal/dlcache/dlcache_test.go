@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,12 +27,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"lure.sh/lure/internal/config"
-	"lure.sh/lure/internal/dlcache"
+	"plemya-x.ru/alr/internal/config"
+	"plemya-x.ru/alr/internal/dlcache"
 )
 
 func init() {
-	dir, err := os.MkdirTemp("/tmp", "lure-dlcache-test.*")
+	dir, err := os.MkdirTemp("/tmp", "alr-dlcache-test.*")
 	if err != nil {
 		panic(err)
 	}

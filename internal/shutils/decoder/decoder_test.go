@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@ import (
 	"strings"
 	"testing"
 
-	"lure.sh/lure/internal/shutils/decoder"
-	"lure.sh/lure/pkg/distro"
+	"plemya-x.ru/alr/internal/shutils/decoder"
+	"plemya-x.ru/alr/pkg/distro"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 )
@@ -56,8 +56,8 @@ const testScript = `
 	release=1
 	epoch=2
 	desc="Test package"
-	homepage='https://lure.arsenm.dev'
-	maintainer='Arsen Musayelyan <arsen@arsenm.dev>'
+	homepage='https://gitflic.ru/project/xpamych/alr'
+	maintainer='Евгений Храмов <xpamych@yandex.ru>'
 	architectures=('arm64' 'amd64')
 	license=('GPL-3.0-or-later')
 	provides=('test')
@@ -87,7 +87,7 @@ var osRelease = &distro.OSRelease{
 func TestDecodeVars(t *testing.T) {
 	ctx := context.Background()
 
-	fl, err := syntax.NewParser().Parse(strings.NewReader(testScript), "lure.sh")
+	fl, err := syntax.NewParser().Parse(strings.NewReader(testScript), "alr.sh")
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}
@@ -116,7 +116,7 @@ func TestDecodeVars(t *testing.T) {
 		Release:       1,
 		Epoch:         2,
 		Description:   "Test package",
-		Homepage:      "https://lure.arsenm.dev",
+		Homepage:      "https://gitflic.ru/project/xpamych/alr",
 		Maintainer:    "Arsen Musayelyan <arsen@arsenm.dev>",
 		Architectures: []string{"arm64", "amd64"},
 		Licenses:      []string{"GPL-3.0-or-later"},
@@ -139,7 +139,7 @@ func TestDecodeVarsMissing(t *testing.T) {
 		name='test'
 		epoch=2
 		desc="Test package"
-		homepage='https://lure.arsenm.dev'
+		homepage='https://gitflic.ru/project/xpamych/alr'
 		maintainer='Arsen Musayelyan <arsen@arsenm.dev>'
 		architectures=('arm64' 'amd64')
 		license=('GPL-3.0-or-later')
@@ -162,7 +162,7 @@ func TestDecodeVarsMissing(t *testing.T) {
 		}
 	`
 
-	fl, err := syntax.NewParser().Parse(strings.NewReader(testScript), "lure.sh")
+	fl, err := syntax.NewParser().Parse(strings.NewReader(testScript), "alr.sh")
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}
@@ -191,7 +191,7 @@ func TestDecodeVarsMissing(t *testing.T) {
 func TestGetFunc(t *testing.T) {
 	ctx := context.Background()
 
-	fl, err := syntax.NewParser().Parse(strings.NewReader(testScript), "lure.sh")
+	fl, err := syntax.NewParser().Parse(strings.NewReader(testScript), "alr.sh")
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}

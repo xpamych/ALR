@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"lure.sh/lure/internal/config"
-	"lure.sh/lure/internal/db"
+	"plemya-x.ru/alr/internal/config"
+	"plemya-x.ru/alr/internal/db"
 )
 
 // Filter represents search filters.
@@ -35,7 +35,7 @@ const (
 	SortByVersion
 )
 
-// Package represents a package from LURE's database
+// Package represents a package from ALR's database
 type Package struct {
 	Name          string
 	Version       string
@@ -155,7 +155,7 @@ func GetScript(ctx context.Context, repo, name string) (io.ReadCloser, error) {
 		return nil, ErrInvalidArgument
 	}
 
-	scriptPath := filepath.Join(config.GetPaths(ctx).RepoDir, repo, name, "lure.sh")
+	scriptPath := filepath.Join(config.GetPaths(ctx).RepoDir, repo, name, "alr.sh")
 	fl, err := os.Open(scriptPath)
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil, ErrScriptNotFound

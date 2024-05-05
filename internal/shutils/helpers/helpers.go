@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"golang.org/x/exp/slices"
-	"lure.sh/lure/internal/shutils/handlers"
+	"plemya-x.ru/alr/internal/shutils/handlers"
 	"mvdan.cc/sh/v3/interp"
 )
 
@@ -186,7 +186,7 @@ var usrLibDistros = []string{
 
 // Based on CMake's GNUInstallDirs
 func getLibPrefix(hc interp.HandlerContext) string {
-	if dir, ok := os.LookupEnv("LURE_LIB_DIR"); ok {
+	if dir, ok := os.LookupEnv("ALR_LIB_DIR"); ok {
 		return dir
 	}
 

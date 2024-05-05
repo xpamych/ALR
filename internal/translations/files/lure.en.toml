@@ -120,7 +120,7 @@ value = 'Building package metadata'
 
 [[translation]]
 id = 3121791194
-value = 'Running LURE as root is forbidden as it may cause catastrophic damage to your system'
+value = 'Running ALR as root is forbidden as it may cause catastrophic damage to your system'
 
 [[translation]]
 id = 1256604213

@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,9 +24,9 @@ import (
 	"strings"
 	"testing"
 
-	"lure.sh/lure/internal/db"
-	"lure.sh/lure/internal/types"
-	"lure.sh/lure/pkg/repos"
+	"plemya-x.ru/alr/internal/db"
+	"plemya-x.ru/alr/internal/types"
+	"plemya-x.ru/alr/pkg/repos"
 )
 
 func TestFindPkgs(t *testing.T) {
@@ -44,7 +44,7 @@ func TestFindPkgs(t *testing.T) {
 	err = repos.Pull(ctx, []types.Repo{
 		{
 			Name: "default",
-			URL:  "https://github.com/Arsen6331/lure-repo.git",
+			URL:  "https://gitflic.ru/project/xpamych/xpamych-alr-repo.git",
 		},
 	})
 	if err != nil {

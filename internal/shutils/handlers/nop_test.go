@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ import (
 	"strings"
 	"testing"
 
-	"lure.sh/lure/internal/shutils/handlers"
+	"plemya-x.ru/alr/internal/shutils/handlers"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 )
@@ -33,7 +33,7 @@ import (
 func TestNopExec(t *testing.T) {
 	ctx := context.Background()
 
-	fl, err := syntax.NewParser().Parse(strings.NewReader(`/bin/echo test`), "lure.sh")
+	fl, err := syntax.NewParser().Parse(strings.NewReader(`/bin/echo test`), "alr.sh")
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}

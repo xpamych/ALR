@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"lure.sh/lure/internal/config"
+	"plemya-x.ru/alr/internal/config"
 )
 
 // BasePath returns the base path of the download cache

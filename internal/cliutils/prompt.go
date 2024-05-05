@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,11 +24,11 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
-	"lure.sh/lure/internal/config"
-	"lure.sh/lure/internal/db"
-	"lure.sh/lure/internal/pager"
-	"lure.sh/lure/internal/translations"
-	"lure.sh/lure/pkg/loggerctx"
+	"plemya-x.ru/alr/internal/config"
+	"plemya-x.ru/alr/internal/db"
+	"plemya-x.ru/alr/internal/pager"
+	"plemya-x.ru/alr/internal/translations"
+	"plemya-x.ru/alr/pkg/loggerctx"
 )
 
 // YesNoPrompt asks the user a yes or no question, using def as the default answer

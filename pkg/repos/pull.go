@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,13 +35,13 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/format/diff"
 	"github.com/pelletier/go-toml/v2"
 	"go.elara.ws/vercmp"
-	"lure.sh/lure/internal/config"
-	"lure.sh/lure/internal/db"
-	"lure.sh/lure/internal/shutils/decoder"
-	"lure.sh/lure/internal/shutils/handlers"
-	"lure.sh/lure/internal/types"
-	"lure.sh/lure/pkg/distro"
-	"lure.sh/lure/pkg/loggerctx"
+	"plemya-x.ru/alr/internal/config"
+	"plemya-x.ru/alr/internal/db"
+	"plemya-x.ru/alr/internal/shutils/decoder"
+	"plemya-x.ru/alr/internal/shutils/handlers"
+	"plemya-x.ru/alr/internal/types"
+	"plemya-x.ru/alr/pkg/distro"
+	"plemya-x.ru/alr/pkg/loggerctx"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
@@ -50,7 +50,7 @@ import (
 // Pull pulls the provided repositories. If a repo doesn't exist, it will be cloned
 // and its packages will be written to the DB. If it does exist, it will be pulled.
 // In this case, only changed packages will be processed if possible.
-// If repos is set to nil, the repos in the LURE config will be used.
+// If repos is set to nil, the repos in the ALR config will be used.
 func Pull(ctx context.Context, repos []types.Repo) error {
 	log := loggerctx.From(ctx)
 
@@ -143,9 +143,9 @@ func Pull(ctx context.Context, repos []types.Repo) error {
 			repoFS = osfs.New(repoDir)
 		}
 
-		fl, err := repoFS.Open("lure-repo.toml")
+		fl, err := repoFS.Open("alr-repo.toml")
 		if err != nil {
-			log.Warn("Git repository does not appear to be a valid LURE repo").Str("repo", repo.Name).Send()
+			log.Warn("Git repository does not appear to be a valid ALR repo").Str("repo", repo.Name).Send()
 			continue
 		}
 
@@ -161,7 +161,7 @@ func Pull(ctx context.Context, repos []types.Repo) error {
 		// to compare it to the repo version, so only compare versions with the "v".
 		if strings.HasPrefix(config.Version, "v") {
 			if vercmp.Compare(config.Version, repoCfg.Repo.MinVersion) == -1 {
-				log.Warn("LURE repo's minumum LURE version is greater than the current version. Try updating LURE if something doesn't work.").Str("repo", repo.Name).Send()
+				log.Warn("ALR repo's minumum ALR version is greater than the current version. Try updating ALR if something doesn't work.").Str("repo", repo.Name).Send()
 			}
 		}
 	}
@@ -255,7 +255,7 @@ func processRepoChanges(ctx context.Context, repo types.Repo, r *git.Repository,
 
 		switch action.Type {
 		case actionDelete:
-			if filepath.Base(action.File) != "lure.sh" {
+			if filepath.Base(action.File) != "alr.sh" {
 				continue
 			}
 
@@ -280,8 +280,8 @@ func processRepoChanges(ctx context.Context, repo types.Repo, r *git.Repository,
 				return err
 			}
 		case actionUpdate:
-			if filepath.Base(action.File) != "lure.sh" {
-				action.File = filepath.Join(filepath.Dir(action.File), "lure.sh")
+			if filepath.Base(action.File) != "alr.sh" {
+				action.File = filepath.Join(filepath.Dir(action.File), "alr.sh")
 			}
 
 			scriptFl, err := newCommit.File(action.File)
@@ -322,7 +322,7 @@ func processRepoChanges(ctx context.Context, repo types.Repo, r *git.Repository,
 
 // isValid makes sure the path of the file being updated is valid.
 // It checks to make sure the file is not within a nested directory
-// and that it is called lure.sh.
+// and that it is called alr.sh.
 func isValid(from, to diff.File) bool {
 	var path string
 	if from != nil {
@@ -337,7 +337,7 @@ func isValid(from, to diff.File) bool {
 }
 
 func processRepoFull(ctx context.Context, repo types.Repo, repoDir string) error {
-	glob := filepath.Join(repoDir, "/*/lure.sh")
+	glob := filepath.Join(repoDir, "/*/alr.sh")
 	matches, err := filepath.Glob(glob)
 	if err != nil {
 		return err
@@ -391,7 +391,7 @@ func processRepoFull(ctx context.Context, repo types.Repo, repoDir string) error
 
 func parseScript(ctx context.Context, parser *syntax.Parser, runner *interp.Runner, r io.ReadCloser, pkg *db.Package) error {
 	defer r.Close()
-	fl, err := parser.Parse(r, "lure.sh")
+	fl, err := parser.Parse(r, "alr.sh")
 	if err != nil {
 		return err
 	}

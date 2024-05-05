@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,19 +39,19 @@ import (
 
 	"github.com/goreleaser/nfpm/v2"
 	"github.com/goreleaser/nfpm/v2/files"
-	"lure.sh/lure/internal/cliutils"
-	"lure.sh/lure/internal/config"
-	"lure.sh/lure/internal/cpu"
-	"lure.sh/lure/internal/db"
-	"lure.sh/lure/internal/dl"
-	"lure.sh/lure/internal/shutils/decoder"
-	"lure.sh/lure/internal/shutils/handlers"
-	"lure.sh/lure/internal/shutils/helpers"
-	"lure.sh/lure/internal/types"
-	"lure.sh/lure/pkg/distro"
-	"lure.sh/lure/pkg/loggerctx"
-	"lure.sh/lure/pkg/manager"
-	"lure.sh/lure/pkg/repos"
+	"plemya-x.ru/alr/internal/cliutils"
+	"plemya-x.ru/alr/internal/config"
+	"plemya-x.ru/alr/internal/cpu"
+	"plemya-x.ru/alr/internal/db"
+	"plemya-x.ru/alr/internal/dl"
+	"plemya-x.ru/alr/internal/shutils/decoder"
+	"plemya-x.ru/alr/internal/shutils/handlers"
+	"plemya-x.ru/alr/internal/shutils/helpers"
+	"plemya-x.ru/alr/internal/types"
+	"plemya-x.ru/alr/pkg/distro"
+	"plemya-x.ru/alr/pkg/loggerctx"
+	"plemya-x.ru/alr/pkg/manager"
+	"plemya-x.ru/alr/pkg/repos"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
@@ -140,7 +140,7 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 		return nil, nil, err
 	}
 
-	builtPaths, builtNames, repoDeps, err := buildLUREDeps(ctx, opts, vars)
+	builtPaths, builtNames, repoDeps, err := buildALRDeps(ctx, opts, vars)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -213,7 +213,7 @@ func parseScript(info *distro.OSRelease, script string) (*syntax.File, error) {
 	}
 	defer fl.Close()
 
-	file, err := syntax.NewParser().Parse(fl, "lure.sh")
+	file, err := syntax.NewParser().Parse(fl, "alr.sh")
 	if err != nil {
 		return nil, err
 	}
@@ -373,10 +373,10 @@ func installOptDeps(ctx context.Context, vars *types.BuildVars, opts types.Build
 	return nil
 }
 
-// buildLUREDeps builds all the LURE dependencies of the package. It returns the paths and names
-// of the packages it built, as well as all the dependencies it didn't find in the LURE repo so
+// buildALRDeps builds all the ALR dependencies of the package. It returns the paths and names
+// of the packages it built, as well as all the dependencies it didn't find in the ALR repo so
 // they can be installed from the system repos.
-func buildLUREDeps(ctx context.Context, opts types.BuildOpts, vars *types.BuildVars) (builtPaths, builtNames, repoDeps []string, err error) {
+func buildALRDeps(ctx context.Context, opts types.BuildOpts, vars *types.BuildVars) (builtPaths, builtNames, repoDeps []string, err error) {
 	log := loggerctx.From(ctx)
 	if len(vars.Depends) > 0 {
 		log.Info("Installing dependencies").Send()
@@ -417,7 +417,7 @@ func buildLUREDeps(ctx context.Context, opts types.BuildOpts, vars *types.BuildV
 	return builtPaths, builtNames, repoDeps, nil
 }
 
-// executeFunctions executes the special LURE functions, such as version(), prepare(), etc.
+// executeFunctions executes the special ALR functions, such as version(), prepare(), etc.
 func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Directories, vars *types.BuildVars) (err error) {
 	log := loggerctx.From(ctx)
 	version, ok := dec.GetFunc("version")
@@ -663,10 +663,10 @@ func pkgFileName(vars *types.BuildVars, pkgFormat string) (string, error) {
 }
 
 // getPkgFormat returns the package format of the package manager,
-// or LURE_PKG_FORMAT if that's set.
+// or ALR_PKG_FORMAT if that's set.
 func getPkgFormat(mgr manager.Manager) string {
 	pkgFormat := mgr.Format()
-	if format, ok := os.LookupEnv("LURE_PKG_FORMAT"); ok {
+	if format, ok := os.LookupEnv("ALR_PKG_FORMAT"); ok {
 		pkgFormat = format
 	}
 	return pkgFormat

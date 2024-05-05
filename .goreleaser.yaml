@@ -2,12 +2,12 @@ before:
   hooks:
     - go mod tidy
 builds:
-  - id: lure
+  - id: alr
     env:
       - CGO_ENABLED=0
-    binary: lure
+    binary: alr
     ldflags:
-      - -X go.elara.ws/lure/internal/config.Version={{.Version}}
+      - -X go.elara.ws/alr/internal/config.Version={{.Version}}
     goos:
       - linux
     goarch:
@@ -28,7 +28,7 @@ archives:
     files:
       - scripts/completion/*
 nfpms:
-  - id: lure
+  - id: alr
     package_name: linux-user-repository
     file_name_template: >-
       {{- .PackageName}}-
@@ -38,9 +38,9 @@ nfpms:
       {{- else if .Arch | eq "386"}}i386
       {{- else if .Arch | eq "arm64"}}aarch64
       {{- else }}{{ .Arch }}{{ end -}}
-    description: "Linux User REpository"
-    homepage: 'https://lure.sh'
-    maintainer: 'Elara Musayelyan <elara@elara.ws>'
+    description: "Any Linux Repository"
+    homepage: 'https://gitflic.ru/project/xpamych/alr'
+    maintainer: 'Евгений Храмов <xpamych@yandex.ru>'
     license: GPLv3
     formats:
       - apk
@@ -55,15 +55,15 @@ nfpms:
       - aria2
     contents:
       - src: scripts/completion/bash
-        dst: /usr/share/bash-completion/completions/lure
+        dst: /usr/share/bash-completion/completions/alr
       - src: scripts/completion/zsh
-        dst: /usr/share/zsh/site-functions/_lure
+        dst: /usr/share/zsh/site-functions/_alr
 aurs:
   - name: linux-user-repository-bin
-    homepage: 'https://lure.sh'
-    description: "Linux User REpository"
+    homepage: 'https://gitflic.ru/project/xpamych/alr'
+    description: "Any Linux Repository"
     maintainers:
-      - 'Elara Musayelyan <elara@elara.ws>'
+      - 'Евгений Храмов <xpamych@yandex.ru>'
     license: GPLv3
     private_key: '{{ .Env.AUR_KEY }}'
     git_url: 'ssh://aur@aur.archlinux.org/linux-user-repository-bin.git'
@@ -78,15 +78,15 @@ aurs:
       - 'aria2: for downloading torrent sources'
     package: |-
       # binaries
-      install -Dm755 ./lure "${pkgdir}/usr/bin/lure"
+      install -Dm755 ./alr "${pkgdir}/usr/bin/alr"
 
       # completions
-      install -Dm755 ./scripts/completion/bash ${pkgdir}/usr/share/bash-completion/completions/lure
-      install -Dm755 ./scripts/completion/zsh ${pkgdir}/usr/share/zsh/site-functions/_lure
+      install -Dm755 ./scripts/completion/bash ${pkgdir}/usr/share/bash-completion/completions/alr
+      install -Dm755 ./scripts/completion/zsh ${pkgdir}/usr/share/zsh/site-functions/_alr
 release:
   gitea:
-    owner: lure
-    name: lure
+    owner: alr
+    name: alr
 gitea_urls:
   api: 'https://gitea.elara.ws/api/v1/'
   download: 'https://gitea.elara.ws'

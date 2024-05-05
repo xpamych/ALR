@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,8 @@ import (
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
-	"lure.sh/lure/internal/overrides"
-	"lure.sh/lure/pkg/distro"
+	"plemya-x.ru/alr/internal/overrides"
+	"plemya-x.ru/alr/pkg/distro"
 	"golang.org/x/exp/slices"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"

@@ -4,12 +4,12 @@ import (
 	"os"
 
 	"github.com/urfave/cli/v2"
-	"lure.sh/lure/pkg/gen"
+	"plemya-x.ru/alr/pkg/gen"
 )
 
 var genCmd = &cli.Command{
 	Name:    "generate",
-	Usage:   "Generate a LURE script from a template",
+	Usage:   "Generate a ALR script from a template",
 	Aliases: []string{"gen"},
 	Subcommands: []*cli.Command{
 		genPipCmd,
@@ -18,7 +18,7 @@ var genCmd = &cli.Command{
 
 var genPipCmd = &cli.Command{
 	Name:  "pip",
-	Usage: "Generate a LURE script for a pip module",
+	Usage: "Generate a ALR script for a pip module",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:     "name",

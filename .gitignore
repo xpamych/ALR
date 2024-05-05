@@ -1,6 +1,6 @@
-/lure
-/lure-api-server
-/cmd/lure-api-server/lure-api-server
+/alr
+/alr-api-server
+/cmd/alr-api-server/alr-api-server
 /dist/
 /internal/config/version.txt
 .fleet

@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@ import (
 	"reflect"
 	"testing"
 
-	"lure.sh/lure/internal/overrides"
-	"lure.sh/lure/pkg/distro"
+	"plemya-x.ru/alr/internal/overrides"
+	"plemya-x.ru/alr/pkg/distro"
 	"golang.org/x/text/language"
 )
 
@@ -90,8 +90,8 @@ func TestResolveName(t *testing.T) {
 }
 
 func TestResolveArch(t *testing.T) {
-	os.Setenv("LURE_ARCH", "arm7")
-	defer os.Setenv("LURE_ARCH", "")
+	os.Setenv("ALR_ARCH", "arm7")
+	defer os.Setenv("ALR_ARCH", "")
 
 	names, err := overrides.Resolve(info, &overrides.Opts{
 		Name:        "deps",

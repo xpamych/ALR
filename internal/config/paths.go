@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,10 +25,10 @@ import (
 	"sync"
 
 	"github.com/pelletier/go-toml/v2"
-	"lure.sh/lure/pkg/loggerctx"
+	"plemya-x.ru/alr/pkg/loggerctx"
 )
 
-// Paths contains various paths used by LURE
+// Paths contains various paths used by ALR
 type Paths struct {
 	ConfigDir  string
 	ConfigPath string
@@ -60,19 +60,19 @@ func GetPaths(ctx context.Context) *Paths {
 			log.Fatal("Unable to detect user config directory").Err(err).Send()
 		}
 
-		paths.ConfigDir = filepath.Join(cfgDir, "lure")
+		paths.ConfigDir = filepath.Join(cfgDir, "alr")
 
 		err = os.MkdirAll(paths.ConfigDir, 0o755)
 		if err != nil {
-			log.Fatal("Unable to create LURE config directory").Err(err).Send()
+			log.Fatal("Unable to create ALR config directory").Err(err).Send()
 		}
 
-		paths.ConfigPath = filepath.Join(paths.ConfigDir, "lure.toml")
+		paths.ConfigPath = filepath.Join(paths.ConfigDir, "alr.toml")
 
 		if _, err := os.Stat(paths.ConfigPath); err != nil {
 			cfgFl, err := os.Create(paths.ConfigPath)
 			if err != nil {
-				log.Fatal("Unable to create LURE config file").Err(err).Send()
+				log.Fatal("Unable to create ALR config file").Err(err).Send()
 			}
 
 			err = toml.NewEncoder(cfgFl).Encode(&defaultConfig)
@@ -88,7 +88,7 @@ func GetPaths(ctx context.Context) *Paths {
 			log.Fatal("Unable to detect cache directory").Err(err).Send()
 		}
 
-		paths.CacheDir = filepath.Join(cacheDir, "lure")
+		paths.CacheDir = filepath.Join(cacheDir, "alr")
 		paths.RepoDir = filepath.Join(paths.CacheDir, "repo")
 		paths.PkgsDir = filepath.Join(paths.CacheDir, "pkgs")
 

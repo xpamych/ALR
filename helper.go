@@ -6,17 +6,17 @@ import (
 	"strings"
 
 	"github.com/urfave/cli/v2"
-	"lure.sh/lure/internal/cpu"
-	"lure.sh/lure/internal/shutils/helpers"
-	"lure.sh/lure/pkg/distro"
-	"lure.sh/lure/pkg/loggerctx"
+	"plemya-x.ru/alr/internal/cpu"
+	"plemya-x.ru/alr/internal/shutils/helpers"
+	"plemya-x.ru/alr/pkg/distro"
+	"plemya-x.ru/alr/pkg/loggerctx"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 )
 
 var helperCmd = &cli.Command{
 	Name:        "helper",
-	Usage:       "Run a LURE helper command",
+	Usage:       "Run a ALR helper command",
 	ArgsUsage:   `<helper_name|"list">`,
 	Subcommands: []*cli.Command{helperListCmd},
 	Flags: []cli.Flag{

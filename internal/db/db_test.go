@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"github.com/jmoiron/sqlx"
-	"lure.sh/lure/internal/db"
+	"plemya-x.ru/alr/internal/db"
 )
 
 var testPkg = db.Package{
@@ -37,10 +37,10 @@ var testPkg = db.Package{
 		"ru": "Проверочный пакет",
 	}),
 	Homepage: db.NewJSON(map[string]string{
-		"en": "https://lure.sh/",
+		"en": "https://gitflic.ru/project/xpamych/alr/",
 	}),
 	Maintainer: db.NewJSON(map[string]string{
-		"en": "Elara Musayelyan <elara@elara.ws>",
+		"en": "Евгений Храмов <xpamych@yandex.ru>",
 		"ru": "Элара Мусаелян <elara@elara.ws>",
 	}),
 	Architectures: db.NewJSON([]string{"arm64", "amd64"}),

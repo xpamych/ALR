@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,16 +28,16 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/urfave/cli/v2"
 	"go.elara.ws/logger"
-	"lure.sh/lure/internal/config"
-	"lure.sh/lure/internal/db"
-	"lure.sh/lure/internal/translations"
-	"lure.sh/lure/pkg/loggerctx"
-	"lure.sh/lure/pkg/manager"
+	"plemya-x.ru/alr/internal/config"
+	"plemya-x.ru/alr/internal/db"
+	"plemya-x.ru/alr/internal/translations"
+	"plemya-x.ru/alr/pkg/loggerctx"
+	"plemya-x.ru/alr/pkg/manager"
 )
 
 var app = &cli.App{
-	Name:  "lure",
-	Usage: "Linux User REpository",
+	Name:  "alr",
+	Usage: "Any Linux Repository",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:    "pm-args",
@@ -72,7 +72,7 @@ var app = &cli.App{
 
 		cmd := c.Args().First()
 		if cmd != "helper" && !config.Config(ctx).Unsafe.AllowRunAsRoot && os.Geteuid() == 0 {
-			log.Fatal("Running LURE as root is forbidden as it may cause catastrophic damage to your system").Send()
+			log.Fatal("Running ALR as root is forbidden as it may cause catastrophic damage to your system").Send()
 		}
 
 		if trimmed := strings.TrimSpace(c.String("pm-args")); trimmed != "" {
@@ -90,7 +90,7 @@ var app = &cli.App{
 
 var versionCmd = &cli.Command{
 	Name:  "version",
-	Usage: "Print the current LURE version and exit",
+	Usage: "Print the current ALR version and exit",
 	Action: func(ctx *cli.Context) error {
 		println(config.Version)
 		return nil
@@ -102,7 +102,7 @@ func main() {
 	log := translations.NewLogger(ctx, logger.NewCLI(os.Stderr), config.Language(ctx))
 	ctx = loggerctx.With(ctx, log)
 
-	// Set the root command to the one set in the LURE config
+	// Set the root command to the one set in the ALR config
 	manager.DefaultRootCmd = config.Config(ctx).RootCmd
 
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)

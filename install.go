@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,14 +22,14 @@ import (
 	"fmt"
 
 	"github.com/urfave/cli/v2"
-	"lure.sh/lure/internal/cliutils"
-	"lure.sh/lure/internal/config"
-	"lure.sh/lure/internal/db"
-	"lure.sh/lure/internal/types"
-	"lure.sh/lure/pkg/build"
-	"lure.sh/lure/pkg/loggerctx"
-	"lure.sh/lure/pkg/manager"
-	"lure.sh/lure/pkg/repos"
+	"plemya-x.ru/alr/internal/cliutils"
+	"plemya-x.ru/alr/internal/config"
+	"plemya-x.ru/alr/internal/db"
+	"plemya-x.ru/alr/internal/types"
+	"plemya-x.ru/alr/pkg/build"
+	"plemya-x.ru/alr/pkg/loggerctx"
+	"plemya-x.ru/alr/pkg/manager"
+	"plemya-x.ru/alr/pkg/repos"
 )
 
 var installCmd = &cli.Command{

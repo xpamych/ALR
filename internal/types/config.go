@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 package types
 
-// Config represents the LURE configuration file
+// Config represents the ALR configuration file
 type Config struct {
 	RootCmd          string   `toml:"rootCmd"`
 	PagerStyle       string   `toml:"pagerStyle"`
@@ -27,7 +27,7 @@ type Config struct {
 	Unsafe           Unsafe   `toml:"unsafe"`
 }
 
-// Repo represents a LURE repo within a configuration file
+// Repo represents a ALR repo within a configuration file
 type Repo struct {
 	Name string `toml:"name"`
 	URL  string `toml:"url"`

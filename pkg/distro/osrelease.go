@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import (
 	"os"
 	"strings"
 
-	"lure.sh/lure/internal/shutils/handlers"
+	"plemya-x.ru/alr/internal/shutils/handlers"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
@@ -103,11 +103,11 @@ func ParseOSRelease(ctx context.Context) (*OSRelease, error) {
 	}
 
 	distroUpdated := false
-	if distID, ok := os.LookupEnv("LURE_DISTRO"); ok {
+	if distID, ok := os.LookupEnv("ALR_DISTRO"); ok {
 		out.ID = distID
 	}
 
-	if distLike, ok := os.LookupEnv("LURE_DISTRO_LIKE"); ok {
+	if distLike, ok := os.LookupEnv("ALR_DISTRO_LIKE"); ok {
 		out.Like = strings.Split(distLike, " ")
 	} else if runner.Vars["ID_LIKE"].IsSet() && !distroUpdated {
 		out.Like = strings.Split(runner.Vars["ID_LIKE"].Str, " ")

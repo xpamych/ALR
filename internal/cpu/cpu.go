@@ -1,6 +1,6 @@
 /*
- * LURE - Linux User REpository
- * Copyright (C) 2023 Elara Musayelyan
+ * ALR - Any Linux Repository
+ * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,10 +28,10 @@ import (
 	"golang.org/x/sys/cpu"
 )
 
-// armVariant checks which variant of ARM lure is running
+// armVariant checks which variant of ARM alr is running
 // on, by using the same detection method as Go itself
 func armVariant() string {
-	armEnv := os.Getenv("LURE_ARM_VARIANT")
+	armEnv := os.Getenv("ALR_ARM_VARIANT")
 	// ensure value has "arm" prefix, such as arm5 or arm6
 	if strings.HasPrefix(armEnv, "arm") {
 		return armEnv
@@ -48,7 +48,7 @@ func armVariant() string {
 
 // Arch returns the canonical CPU architecture of the system
 func Arch() string {
-	arch := os.Getenv("LURE_ARCH")
+	arch := os.Getenv("ALR_ARCH")
 	if arch == "" {
 		arch = runtime.GOARCH
 	}

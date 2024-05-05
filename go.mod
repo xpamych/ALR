@@ -1,4 +1,4 @@
-module lure.sh/lure
+module plemya-x.ru/alr
 
 go 1.21
 
