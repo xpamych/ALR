@@ -81,15 +81,15 @@ else
   error "Не обнаружен поддерживаемый пакетный менеджер!"
 fi
 
-latestVersion=$(curl -sI 'https://gitflic.ru/project/xpamych/alr/release/latest' | grep -io 'location: .*' | rev | cut -d '/' -f1 | rev | tr -d '[:space:]')
-info "Найдена последняя версия ALR:" $latestVersion
+# Заменить на запрос версии через api gitflic
+#latestVersion=$(curl -sI 'https://gitflic.ru/project/xpamych/alr/release/latest' | grep -io 'location: .*' | rev | cut -d '/' -f1 | rev | tr -d '[:space:]')
+#info "Найдена последняя версия ALR:" $latestVersion
 
 fname="$(mktemp -u -p /tmp "alr.XXXXXXXXXX").${pkgFormat}"
-url="https://registry.gitflic.ru/project/xpamych/alr/package/-/generic/alr-linux-x86-64/{version}/{file}"
-https://gitflic.ru/project/xpamych/alr/releases/download/${latestVersion}/linux-user-repository-${latestVersion#v}-linux-$(uname -m).${pkgFormat}"
+url="https://registry.gitflic.ru/project/xpamych/alr/package/-/generic/alr-linux-x86-64/${latestVersion}/releases-${latestVersion}.${pkgFormat}"
 
 info "Скачивается пакет ALR"
-curl -L $url -o $fname
+curl --location --request GET $url -o $fname
 
 info "Устанавливается ALR"
 installPkg $pkgMgr $fname
