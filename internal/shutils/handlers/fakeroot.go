@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"gitflic.ru/project/xpamych/fakeroot"
+	"lure.sh/fakeroot"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 )
