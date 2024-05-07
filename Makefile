@@ -2,7 +2,7 @@ PREFIX ?= /usr/local
 GIT_VERSION = $(shell git describe --tags )
 
 alr:
-	CGO_ENABLED=0 go build -ldflags="-X 'plemya-x.ru/alr/internal/config.Version=$(GIT_VERSION)'"
+	CGO_ENABLED=0 go build -ldflags="-X 'gitflic.ru/project/xpamych/alr/internal/config.Version=$(GIT_VERSION)'"
 
 clean:
 	rm -f alr

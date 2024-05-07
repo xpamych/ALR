@@ -7,7 +7,7 @@ builds:
       - CGO_ENABLED=0
     binary: alr
     ldflags:
-      - -X plemya-x.ru/alr/internal/config.Version={{.Version}}
+      - -X gitflic.ru/project/xpamych/alr/internal/config.Version={{.Version}}
     goos:
       - linux
     goarch:
@@ -68,9 +68,9 @@ aurs:
     private_key: '{{ .Env.AUR_KEY }}'
     git_url: 'ssh://aur@aur.archlinux.org/linux-user-repository-bin.git'
     provides:
-      - linux-user-repository
+      - alr
     conflicts:
-      - linux-user-repository
+      - alr
     depends:
       - sudo
       - pacman
