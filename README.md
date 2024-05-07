@@ -4,7 +4,7 @@
 
 ALR - это независимая от дистрибутива система сборки для Linux, аналогичная [AUR](https://wiki.archlinux.org/title/Arch_User_Repository). В настоящее время она находится в стадии бета-тестирования. Исправлено большинство основных ошибок и добавлено большинство важных функций. alr готов к общему использованию, но все еще может время от времени ломаться или заменяться.
 
-alr написан на чистом Go и после сборки не имеет зависимостей. Единственное, для повышения привилегий alr требуется команда area, такая как "sudo", "doas" и т.д., а также поддерживаемый менеджер пакетов. В настоящее время alr поддерживает `apt`, `pacman`, `apk`, `dnf`, `yum`, and `zypper`. Если в вашей системе существует поддерживаемый менеджер пакетов, он будет обнаружен и использован автоматически.
+ALR написан на чистом Go и после сборки не имеет зависимостей. Единственное, для повышения привилегий ALR требуется команда, такая как `sudo`, `doas` и т.д., а также поддерживаемый менеджер пакетов. В настоящее время ALR поддерживает `apt`, `pacman`, `apk`, `dnf`, `yum`, and `zypper`. Если в вашей системе существует поддерживаемый менеджер пакетов, он будет обнаружен и использован автоматически.
 
 ---
 
@@ -24,9 +24,9 @@ curl -fsSL plemya-x.ru/arl/install | bash
 
 Пакеты для дистрибутивов и двоичные архивы представлены в последней версии на Gitflic: https://gitflic.ru/project/xpamych/alr/package
 
-### Building from source
+### Сборка из исодного кода
 
-To build alr from source, you'll need Go 1.18 or newer. Once Go is installed, clone this repo and run:
+Чтобы собрать ALR из исходного кода, вам понадобится версия Go 1.18 или новее. Как только Go будет установлен, клонируйте это репозиторий и запустите:
 
 ```shell
 sudo make install
@@ -34,33 +34,27 @@ sudo make install
 
 ---
 
-## Why?
+## Почему?
 
-alr was created because packaging software for multiple Linux distros can be difficult and error-prone, and installing those packages can be a nightmare for users unless they're available in their distro's official repositories. It automates the process of building and installing unofficial packages.
-
----
-
-## Documentation
-
-The documentation for alr is in the [docs](docs) directory in this repo.
+ALR был создан потому, что упаковка программного обеспечения для нескольких дистрибутивов Linux может быть сложной и чреватой ошибками, а установка этих пакетов может стать кошмаром для пользователей, если они не доступны в официальных репозиториях их дистрибутива. Он автоматизирует процесс создания и установки неофициальных пакетов.
 
 ---
 
-## Web Interface
+## Документация
 
-alr has an open source web interface, licensed under the AGPLv3 (https://gitea.elara.ws/alr/alr-web), and it's available at https://gitflic.ru/project/xpamych/alr/.
-
----
-
-## Repositories
-
-alr's repos are git repositories that contain a directory for each package, with a `alr.sh` file inside. The `alr.sh` file tells alr how to build the package and information about it. `alr.sh` scripts are similar to the AUR's PKGBUILD scripts.
+Документация по всем этим вопросам находится в [Wiki](https://gitflic.ru/project/xpamych/alr/wiki).
 
 ---
 
-## Acknowledgements
+## Репозитории
 
-Thanks to the following projects for making alr possible:
+Репозитории alr - это git-хранилища, которые содержат каталог для каждого пакета с файлом "alr.sh` внутри. Файл `alr.sh" содержит все инструкции по сборке пакета и информацию о нем. Скрипты "alr.sh` аналогичны скриптам Aur PKGBUILD.
+
+---
+
+## Спасибы
+
+Благодарим следующие проекты за то, что они сделали все возможное:
 
 - https://github.com/mvdan/sh
 - https://github.com/go-git/go-git

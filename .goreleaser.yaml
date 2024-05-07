@@ -7,7 +7,7 @@ builds:
       - CGO_ENABLED=0
     binary: alr
     ldflags:
-      - -X go.elara.ws/alr/internal/config.Version={{.Version}}
+      - -X plemya-x.ru/alr/internal/config.Version={{.Version}}
     goos:
       - linux
     goarch:
