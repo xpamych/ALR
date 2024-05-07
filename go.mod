@@ -31,7 +31,7 @@ require (
 	golang.org/x/sys v0.12.0
 	golang.org/x/text v0.13.0
 	gopkg.in/yaml.v3 v3.0.1
-	gitflic.ru/project/xpamych/fakeroot v0.0.0-20231024000108-b130d64a68ee
+	lure.sh/fakeroot v0.0.0-20231024205152-b2da39c1be0c
 	modernc.org/sqlite v1.25.0
 	mvdan.cc/sh/v3 v3.7.0
 )
