@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"lure.sh/fakeroot"
+	"plemya-x.ru/fakeroot"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 )
