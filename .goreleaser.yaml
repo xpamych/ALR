@@ -7,7 +7,7 @@ builds:
       - CGO_ENABLED=0
     binary: alr
     ldflags:
-      - -X gitflic.ru/project/xpamych/alr/internal/config.Version={{.Version}}
+      - -X https://gitverse.ru/Xpamych/ALR/content/master/internal/config.Version={{.Version}}
     goos:
       - linux
     goarch:
@@ -39,7 +39,7 @@ nfpms:
       {{- else if .Arch | eq "arm64"}}aarch64
       {{- else }}{{ .Arch }}{{ end -}}
     description: "Any Linux Repository"
-    homepage: 'https://gitflic.ru/project/xpamych/alr'
+    homepage: 'https://gitverse.ru/Xpamych/ALR'
     maintainer: 'Евгений Храмов <xpamych@yandex.ru>'
     license: GPLv3
     formats:
@@ -60,7 +60,7 @@ nfpms:
         dst: /usr/share/zsh/site-functions/_alr
 aurs:
   - name: linux-user-repository-bin
-    homepage: 'https://gitflic.ru/project/xpamych/alr'
+    homepage: 'https://gitverse.ru/Xpamych/ALR'
     description: "Any Linux Repository"
     maintainers:
       - 'Евгений Храмов <xpamych@yandex.ru>'

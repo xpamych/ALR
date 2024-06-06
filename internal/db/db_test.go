@@ -37,7 +37,7 @@ var testPkg = db.Package{
 		"ru": "Проверочный пакет",
 	}),
 	Homepage: db.NewJSON(map[string]string{
-		"en": "https://gitflic.ru/project/xpamych/alr/",
+		"en": "https://gitverse.ru/Xpamych/ALR/",
 	}),
 	Maintainer: db.NewJSON(map[string]string{
 		"en": "Евгений Храмов <xpamych@yandex.ru>",

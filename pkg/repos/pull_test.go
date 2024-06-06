@@ -81,7 +81,7 @@ func TestPull(t *testing.T) {
 	err = repos.Pull(ctx, []types.Repo{
 		{
 			Name: "default",
-			URL:  "https://gitflic.ru/project/xpamych/xpamych-alr-repo.git",
+			URL:  "https://gitverse.ru/sc/Xpamych/xpamych-alr-repo.git",
 		},
 	})
 	if err != nil {
