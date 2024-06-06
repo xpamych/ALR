@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-git clone https://gitflic.ru/project/xpamych/alr.git /tmp/alr
+git clone https://gitverse.ru/sc/Xpamych/ALR.git /tmp/alr
 cd /tmp/alr
 sudo make install
 rm -rf /tmp/alr
