@@ -40,8 +40,8 @@ var testPkg = db.Package{
 		"en": "https://gitverse.ru/Xpamych/ALR/",
 	}),
 	Maintainer: db.NewJSON(map[string]string{
-		"en": "Евгений Храмов <xpamych@yandex.ru>",
-		"ru": "Элара Мусаелян <elara@elara.ws>",
+		"en": "Evgeniy Khramov <xpamych@yandex.ru>",
+		"ru": "Евгений Храмов <xpamych@yandex.ru>",
 	}),
 	Architectures: db.NewJSON([]string{"arm64", "amd64"}),
 	Licenses:      db.NewJSON([]string{"GPL-3.0-or-later"}),
