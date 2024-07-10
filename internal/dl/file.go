@@ -36,40 +36,47 @@ import (
 	"plemya-x.ru/alr/internal/shutils/handlers"
 )
 
-// FileDownloader downloads files using HTTP
+// FileDownloader загружает файлы с использованием HTTP
 type FileDownloader struct{}
 
-// Name always returns "file"
+// Name всегда возвращает "file"
 func (FileDownloader) Name() string {
 	return "file"
 }
 
-// MatchURL always returns true, as FileDownloader
-// is used as a fallback if nothing else matches
+// MatchURL всегда возвращает true, так как FileDownloader
+// используется как резерв, если ничего другого не соответствует
 func (FileDownloader) MatchURL(string) bool {
 	return true
 }
 
-// Download downloads a file using HTTP. If the file is
-// compressed using a supported format, it will be extracted
+// Download загружает файл с использованием HTTP. Если файл
+// сжат в поддерживаемом формате, он будет распакован
 func (FileDownloader) Download(opts Options) (Type, string, error) {
+	// Разбор URL
 	u, err := url.Parse(opts.URL)
 	if err != nil {
 		return 0, "", err
 	}
 
+	// Получение параметров запроса
 	query := u.Query()
 
+	// Получение имени файла из параметров запроса
 	name := query.Get("~name")
 	query.Del("~name")
 
+	// Получение параметра архивации
 	archive := query.Get("~archive")
 	query.Del("~archive")
 
+	// Кодирование измененных параметров запроса обратно в URL
 	u.RawQuery = query.Encode()
 
 	var r io.ReadCloser
 	var size int64
+
+	// Проверка схемы URL на "local"
 	if u.Scheme == "local" {
 		localFl, err := os.Open(filepath.Join(opts.LocalDir, u.Path))
 		if err != nil {
@@ -85,6 +92,7 @@ func (FileDownloader) Download(opts Options) (Type, string, error) {
 		}
 		r = localFl
 	} else {
+		// Выполнение HTTP GET запроса
 		res, err := http.Get(u.String())
 		if err != nil {
 			return 0, "", err
@@ -107,6 +115,7 @@ func (FileDownloader) Download(opts Options) (Type, string, error) {
 	defer fl.Close()
 
 	var bar io.WriteCloser
+	// Настройка индикатора прогресса
 	if opts.Progress != nil {
 		bar = progressbar.NewOptions64(
 			size,
@@ -134,18 +143,21 @@ func (FileDownloader) Download(opts Options) (Type, string, error) {
 	}
 
 	var w io.Writer
+	// Настройка MultiWriter для записи в файл, хеш и индикатор прогресса
 	if opts.Hash != nil {
 		w = io.MultiWriter(fl, h, bar)
 	} else {
 		w = io.MultiWriter(fl, bar)
 	}
 
+	// Копирование содержимого из источника в файл назначения
 	_, err = io.Copy(w, r)
 	if err != nil {
 		return 0, "", err
 	}
 	r.Close()
 
+	// Проверка контрольной суммы
 	if opts.Hash != nil {
 		sum := h.Sum(nil)
 		if !bytes.Equal(sum, opts.Hash) {
@@ -153,6 +165,7 @@ func (FileDownloader) Download(opts Options) (Type, string, error) {
 		}
 	}
 
+	// Проверка необходимости постобработки
 	if opts.PostprocDisabled {
 		return TypeFile, name, nil
 	}
@@ -162,6 +175,7 @@ func (FileDownloader) Download(opts Options) (Type, string, error) {
 		return 0, "", err
 	}
 
+	// Идентификация формата архива
 	format, ar, err := archiver.Identify(name, fl)
 	if err == archiver.ErrNoMatch {
 		return TypeFile, name, nil
@@ -169,21 +183,25 @@ func (FileDownloader) Download(opts Options) (Type, string, error) {
 		return 0, "", err
 	}
 
+	// Распаковка архива
 	err = extractFile(ar, format, name, opts)
 	if err != nil {
 		return 0, "", err
 	}
 
+	// Удаление исходного архива
 	err = os.Remove(path)
 	return TypeDir, "", err
 }
 
-// extractFile extracts an archive or decompresses a file
+// extractFile извлекает архив или распаковывает файл
 func extractFile(r io.Reader, format archiver.Format, name string, opts Options) (err error) {
 	fname := format.Name()
 
+	// Проверка типа формата архива
 	switch format := format.(type) {
 	case archiver.Extractor:
+		// Извлечение файлов из архива
 		err = format.Extract(context.Background(), r, nil, func(ctx context.Context, f archiver.File) error {
 			fr, err := f.Open()
 			if err != nil {
@@ -224,6 +242,7 @@ func extractFile(r io.Reader, format archiver.Format, name string, opts Options)
 			return err
 		}
 	case archiver.Decompressor:
+		// Распаковка сжатого файла
 		rc, err := format.OpenReader(r)
 		if err != nil {
 			return err
@@ -247,10 +266,9 @@ func extractFile(r io.Reader, format archiver.Format, name string, opts Options)
 	return nil
 }
 
-// getFilename attempts to parse the Content-Disposition
-// HTTP response header and extract a filename. If the
-// header does not exist, it will use the last element
-// of the path.
+// getFilename пытается разобрать заголовок Content-Disposition
+// HTTP-ответа и извлечь имя файла. Если заголовок отсутствует,
+// используется последний элемент пути.
 func getFilename(res *http.Response) (name string) {
 	_, params, err := mime.ParseMediaType(res.Header.Get("Content-Disposition"))
 	if err != nil {

@@ -1,23 +1,23 @@
 /*
- * ALR - Any Linux Repository
- * Copyright (C) 2024 Евгений Храмов
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+* ALR - Any Linux Repository
+* Copyright (C) 2024 Евгений Храмов
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
-// Package dl contains abstractions for downloadingfiles and directories
-// from various sources.
+// Пакет dl содержит абстракции для загрузки файлов и каталогов
+// из различных источников.
 package dl
 
 import (
@@ -43,31 +43,32 @@ import (
 	"plemya-x.ru/alr/pkg/loggerctx"
 )
 
+// Константа для имени файла манифеста кэша
 const manifestFileName = ".alr_cache_manifest"
 
-// ErrChecksumMismatch occurs when the checksum of a downloaded file
-// does not match the expected checksum provided in the Options struct.
+// Объявление ошибок для несоответствия контрольной суммы и отсутствия алгоритма хеширования
 var (
 	ErrChecksumMismatch = errors.New("dl: checksums did not match")
 	ErrNoSuchHashAlgo   = errors.New("dl: invalid hashing algorithm")
 )
 
-// Downloaders contains all the downloaders in the order in which
-// they should be checked
+// Массив доступных загрузчиков в порядке их проверки
 var Downloaders = []Downloader{
 	GitDownloader{},
 	TorrentDownloader{},
 	FileDownloader{},
 }
 
-// Type represents the type of download (file or directory)
+// Тип данных, представляющий тип загрузки (файл или каталог)
 type Type uint8
 
+// Объявление констант для типов загрузки
 const (
 	TypeFile Type = iota
 	TypeDir
 )
 
+// Метод для получения строки, представляющей тип загрузки
 func (t Type) String() string {
 	switch t {
 	case TypeFile:
@@ -78,8 +79,7 @@ func (t Type) String() string {
 	return "<unknown>"
 }
 
-// Options contains the options for downloading
-// files and directories
+// Структура Options содержит параметры для загрузки файлов и каталогов
 type Options struct {
 	Hash             []byte
 	HashAlgorithm    string
@@ -92,6 +92,7 @@ type Options struct {
 	LocalDir         string
 }
 
+// Метод для создания нового хеша на основе указанного алгоритма хеширования
 func (opts Options) NewHash() (hash.Hash, error) {
 	switch opts.HashAlgorithm {
 	case "", "sha256":
@@ -119,49 +120,26 @@ func (opts Options) NewHash() (hash.Hash, error) {
 	}
 }
 
-// Manifest holds information about the type and name
-// of a downloaded file or directory. It is stored inside
-// each cache directory for later use.
+// Структура Manifest хранит информацию о типе и имени загруженного файла или каталога
 type Manifest struct {
 	Type Type
 	Name string
 }
 
+// Интерфейс Downloader для реализации различных загрузчиков
 type Downloader interface {
-	// Name returns the name of the downloader
 	Name() string
-	// MatchURL checks if the given URL matches
-	// the downloader.
 	MatchURL(string) bool
-	// Download downloads the object at the URL
-	// provided in the options, to the destination
-	// given in the options. It returns a type,
-	// a name for the downloaded object (this may be empty),
-	// and an error.
 	Download(Options) (Type, string, error)
 }
 
-// UpdatingDownloader extends the Downloader interface
-// with an Update method for protocols such as git, which
-// allow for incremental updates without changing the URL.
+// Интерфейс UpdatingDownloader расширяет Downloader методом Update
 type UpdatingDownloader interface {
 	Downloader
-	// Update checks for and performs any
-	// available updates for the object
-	// described in the options. It returns
-	// true if an update was performed, or
-	// false if no update was required.
 	Update(Options) (bool, error)
 }
 
-// Download downloads a file or directory using the specified options.
-// It first gets the appropriate downloader for the URL, then checks
-// if caching is enabled. If caching is enabled, it attempts to get
-// the cache directory for the URL and update it if necessary.
-// If the source is found in the cache, it links it to the destination
-// using hard links. If the source is not found in the cache,
-// it downloads the source to a new cache directory and links it
-// to the destination.
+// Функция Download загружает файл или каталог с использованием указанных параметров
 func Download(ctx context.Context, opts Options) (err error) {
 	log := loggerctx.From(ctx)
 	normalized, err := normalizeURL(opts.URL)
@@ -216,9 +194,6 @@ func Download(ctx context.Context, opts Options) (err error) {
 				return nil
 			}
 		} else {
-			// If we cannot read the manifest,
-			// this cache entry is invalid and
-			// the source must be re-downloaded.
 			err = os.RemoveAll(cacheDir)
 			if err != nil {
 				return err
@@ -256,7 +231,7 @@ func Download(ctx context.Context, opts Options) (err error) {
 	return err
 }
 
-// writeManifest writes the manifest to the specified cache directory.
+// Функция writeManifest записывает манифест в указанный каталог кэша
 func writeManifest(cacheDir string, m Manifest) error {
 	fl, err := os.Create(filepath.Join(cacheDir, manifestFileName))
 	if err != nil {
@@ -266,7 +241,7 @@ func writeManifest(cacheDir string, m Manifest) error {
 	return msgpack.NewEncoder(fl).Encode(m)
 }
 
-// getManifest reads the manifest from the specified cache directory.
+// Функция getManifest считывает манифест из указанного каталога кэша
 func getManifest(cacheDir string) (m Manifest, err error) {
 	fl, err := os.Open(filepath.Join(cacheDir, manifestFileName))
 	if err != nil {
@@ -278,7 +253,7 @@ func getManifest(cacheDir string) (m Manifest, err error) {
 	return
 }
 
-// handleCache links the cache directory or a file within it to the destination
+// Функция handleCache создает жесткие ссылки для файлов из каталога кэша в каталог назначения
 func handleCache(cacheDir, dest, name string, t Type) (bool, error) {
 	switch t {
 	case TypeFile:
@@ -313,12 +288,7 @@ func handleCache(cacheDir, dest, name string, t Type) (bool, error) {
 	return false, nil
 }
 
-// linkDir recursively walks through a directory, creating
-// hard links for each file from the src directory to the
-// dest directory. If it encounters a directory, it will
-// create a directory with the same name and permissions
-// in the dest directory, because hard links cannot be
-// created for directories.
+// Функция linkDir рекурсивно создает жесткие ссылки для файлов из каталога src в каталог dest
 func linkDir(src, dest string) error {
 	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -328,6 +298,8 @@ func linkDir(src, dest string) error {
 		if info.Name() == manifestFileName {
 			return nil
 		}
+
+
 
 		rel, err := filepath.Rel(src, path)
 		if err != nil {
@@ -343,6 +315,7 @@ func linkDir(src, dest string) error {
 	})
 }
 
+// Функция getDownloader возвращает загрузчик, соответствующий URL
 func getDownloader(u string) Downloader {
 	for _, d := range Downloaders {
 		if d.MatchURL(u) {
@@ -352,8 +325,7 @@ func getDownloader(u string) Downloader {
 	return nil
 }
 
-// normalizeURL normalizes a URL string, so that insignificant
-// differences don't change the hash.
+// Функция normalizeURL нормализует строку URL, чтобы незначительные различия не изменяли хеш
 func normalizeURL(u string) (string, error) {
 	const normalizationFlags = purell.FlagRemoveTrailingSlash |
 		purell.FlagRemoveDefaultPort |
@@ -373,7 +345,7 @@ func normalizeURL(u string) (string, error) {
 		return "", err
 	}
 
-	// Fix magnet URLs after normalization
+	// Исправление URL-адресов magnet после нормализации
 	u = strings.Replace(u, "magnet://", "magnet:", 1)
 	return u, nil
 }
