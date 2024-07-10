@@ -1,20 +1,52 @@
-PREFIX ?= /usr/local
+NAME := alr
 GIT_VERSION = $(shell git describe --tags )
 
-alr:
-	CGO_ENABLED=0 go build -ldflags="-X 'gitverse.ru/Xpamych/ALR/internal/config.Version=$(GIT_VERSION)'"
+DESTDIR ?=
+PREFIX ?= /usr/local
+BIN := ./$(NAME)
+INSTALED_BIN := $(DESTDIR)/$(PREFIX)/bin/$(NAME)
+COMPLETIONS_DIR := ./scripts/completion
+BASH_COMPLETION := $(COMPLETIONS_DIR)/bash
+ZSH_COMPLETION := $(COMPLETIONS_DIR)/zsh
+INSTALLED_BASH_COMPLETION := $(DESTDIR)$(PREFIX)/share/bash-completion/completions/$(NAME)
+INSTALLED_ZSH_COMPLETION := $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_$(NAME)
 
-clean:
-	rm -f alr
+.PHONY: build install clean clear uninstall check-no-root
 
-install: alr installmisc
-	install -Dm755 alr $(DESTDIR)$(PREFIX)/bin/alr
+build: check-no-root $(BIN)
 
-installmisc:
-	install -Dm755 scripts/completion/bash $(DESTDIR)$(PREFIX)/share/bash-completion/completions/alr
-	install -Dm755 scripts/completion/zsh $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_alr
+export CGO_ENABLED := 0
+$(BIN):
+	go build \
+		-ldflags="-X 'gitverse.ru/Xpamych/ALR/internal/config.Version=$(GIT_VERSION)'" \
+		-o $@
+
+check-no-root:
+	@if [[ "$$(whoami)" == 'root' ]]; then \
+		echo "This target shouldn't run as root" 1>&2; \
+		exit 1; \
+	fi
+
+install: \
+	$(INSTALED_BIN) \
+	$(INSTALLED_BASH_COMPLETION) \
+	$(INSTALLED_ZSH_COMPLETION)
+	@echo "Installation done!"
+
+$(INSTALED_BIN): $(BIN)
+	install -Dm755 $< $@
+
+$(INSTALLED_BASH_COMPLETION): $(BASH_COMPLETION)
+	install -Dm755 $< $@
+
+$(INSTALLED_ZSH_COMPLETION): $(ZSH_COMPLETION)
+	install -Dm755 $< $@
 
 uninstall:
-	rm -f /usr/local/bin/alr
+	rm -f \
+		$(INSTALED_BIN) \
+		$(INSTALLED_BASH_COMPLETION) \
+		$(INSTALLED_ZSH_COMPLETION)
 
-.PHONY: install clean uninstall installmisc alr
+clean clear:
+	rm -f $(BIN)
