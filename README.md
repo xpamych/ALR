@@ -25,7 +25,7 @@ curl -fsSL plemya-x.ru/alr/install.sh | bash
 Чтобы собрать ALR из исходного кода, вам понадобится версия Go 1.18 или новее. Как только Go будет установлен, клонируйте это репозиторий и запустите:
 
 ```shell
-make alr
+make build
 sudo make install
 ```
 
