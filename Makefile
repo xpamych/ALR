@@ -4,17 +4,19 @@ GIT_VERSION = $(shell git describe --tags )
 DESTDIR ?=
 PREFIX ?= /usr/local
 BIN := ./$(NAME)
-INSTALED_BIN := $(DESTDIR)$(PREFIX)/bin/$(NAME)
+INSTALED_BIN := $(DESTDIR)/$(PREFIX)/bin/$(NAME)
 COMPLETIONS_DIR := ./scripts/completion
 BASH_COMPLETION := $(COMPLETIONS_DIR)/bash
 ZSH_COMPLETION := $(COMPLETIONS_DIR)/zsh
 INSTALLED_BASH_COMPLETION := $(DESTDIR)$(PREFIX)/share/bash-completion/completions/$(NAME)
 INSTALLED_ZSH_COMPLETION := $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_$(NAME)
 
-.PHONY: install clean clear uninstall check-no-root
+.PHONY: build install clean clear uninstall check-no-root
+
+build: check-no-root $(BIN)
 
 export CGO_ENABLED := 0
-$(BIN): check-no-root
+$(BIN):
 	go build \
 		-ldflags="-X 'gitverse.ru/Xpamych/ALR/internal/config.Version=$(GIT_VERSION)'" \
 		-o $@
@@ -25,7 +27,10 @@ check-no-root:
 		exit 1; \
 	fi
 
-install: $(INSTALED_BIN) $(INSTALLED_BASH_COMPLETION) $(INSTALLED_ZSH_COMPLETION)
+install: \
+	$(INSTALED_BIN) \
+	$(INSTALLED_BASH_COMPLETION) \
+	$(INSTALLED_ZSH_COMPLETION)
 	@echo "Installation done!"
 
 $(INSTALED_BIN): $(BIN)
