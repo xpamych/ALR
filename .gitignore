@@ -4,3 +4,4 @@
 /dist/
 /internal/config/version.txt
 .fleet
+.idea
