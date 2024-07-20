@@ -74,7 +74,9 @@ if [ -z "$noPkgMgr" ]; then
   echo "Полученный список файлов:"
   echo "$fileList"
 
-  if [ "$pkgMgr" == "apt" ]; then
+  if [ "$pkgMgr" == "pacman" ]; then
+    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*.pkg.tar.zst' | sort -V | tail -n 1)
+  elif [ "$pkgMgr" == "apt" ]; then
     latestFile=$(echo "$fileList" | grep -E 'alr-bin_.*_amd64.deb' | sort -V | tail -n 1)
   elif [[ "$pkgMgr" == "dnf" || "$pkgMgr" == "yum" || "$pkgMgr" == "zypper" ]]; then
     latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*.x86_64.rpm' | sort -V | tail -n 1)
