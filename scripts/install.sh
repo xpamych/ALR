@@ -65,19 +65,19 @@ else
 fi
 
 if [ -z "$noPkgMgr" ]; then
-  info "Получение списка файлов с https://plemya-x.ru/alr/"
-  pageContent=$(curl -s https://plemya-x.ru/)
-  echo "Полученное содержимое страницы:"
-  echo "$pageContent"
+  info "Получение списка файлов с https://plemya-x.ru/"
+  pageContent=$(curl -s https://plemya-x.ru/?dir=alr)
 
-  fileList=$(echo "$pageContent" | grep -oE "href='([^'#]+)'" | cut -d"'" -f2)
+  # Извлечение списка файлов из HTML
+  fileList=$(echo "$pageContent" | grep -oP '(?<=href=").*?(?=")' | grep -E 'alr-bin-.*.(pkg.tar.zst|rpm|deb)')
+
   echo "Полученный список файлов:"
   echo "$fileList"
 
   if [ "$pkgMgr" == "pacman" ]; then
     latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*.pkg.tar.zst' | sort -V | tail -n 1)
   elif [ "$pkgMgr" == "apt" ]; then
-    latestFile=$(echo "$fileList" | grep -E 'alr-bin_.*_amd64.deb' | sort -V | tail -n 1)
+    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*.amd64.deb' | sort -V | tail -n 1)
   elif [[ "$pkgMgr" == "dnf" || "$pkgMgr" == "yum" || "$pkgMgr" == "zypper" ]]; then
     latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*.x86_64.rpm' | sort -V | tail -n 1)
   else
