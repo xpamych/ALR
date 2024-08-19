@@ -1,7 +1,7 @@
 <p align="center">
-    <img src="assets/logo.png" alt="ALR Logo" width="15%>
+    <img src="assets/logo.png" width="15%">
 </p>
-
+<b></b>
 
 # ALR (Any Linux Repository)
 
