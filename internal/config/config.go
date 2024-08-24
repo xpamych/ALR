@@ -35,7 +35,7 @@ var defaultConfig = &types.Config{
 	Repos: []types.Repo{
 		{
 			Name: "default",
-			URL:  "https://gitverse.ru/sc/Xpamych/xpamych-alr-repo.git",
+			URL:  "https://gitea.plemya-x.ru/xpamych/xpamych-alr-repo.git",
 		},
 	},
 }
