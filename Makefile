@@ -17,9 +17,7 @@ build: check-no-root $(BIN)
 
 export CGO_ENABLED := 0
 $(BIN):
-	go build \
-		-ldflags="-X 'gitverse.ru/Xpamych/ALR/internal/config.Version=$(GIT_VERSION)'" \
-		-o $@
+	go build -ldflags="-X 'gitea.plemya-x.ru/xpamych/ALR/internal/config.Version=$(GIT_VERSION)'" -o $@
 
 check-no-root:
 	@if [[ "$$(whoami)" == 'root' ]]; then \

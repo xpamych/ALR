@@ -56,7 +56,7 @@ const testScript = `
 	release=1
 	epoch=2
 	desc="Test package"
-	homepage='https://gitverse.ru/Xpamych/ALR'
+	homepage='//https://gitea.plemya-x.ru/xpamych/ALR'
 	maintainer='Евгений Храмов <xpamych@yandex.ru>'
 	architectures=('arm64' 'amd64')
 	license=('GPL-3.0-or-later')
@@ -116,8 +116,8 @@ func TestDecodeVars(t *testing.T) {
 		Release:       1,
 		Epoch:         2,
 		Description:   "Test package",
-		Homepage:      "https://gitverse.ru/Xpamych/ALR",
-		Maintainer:    "Arsen Musayelyan <arsen@arsenm.dev>",
+		Homepage:      "https://gitea.plemya-x.ru/xpamych/ALR",
+		Maintainer:    "Евгений Храмов <xpamych@yandex.ru>",
 		Architectures: []string{"arm64", "amd64"},
 		Licenses:      []string{"GPL-3.0-or-later"},
 		Provides:      []string{"test"},
@@ -139,8 +139,8 @@ func TestDecodeVarsMissing(t *testing.T) {
 		name='test'
 		epoch=2
 		desc="Test package"
-		homepage='https://gitverse.ru/Xpamych/ALR'
-		maintainer='Arsen Musayelyan <arsen@arsenm.dev>'
+		homepage='https://gitea.plemya-x.ru/xpamych/ALR'
+		maintainer='Евгений Храмов <xpamych@yandex.ru>'
 		architectures=('arm64' 'amd64')
 		license=('GPL-3.0-or-later')
 		provides=('test')

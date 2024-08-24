@@ -109,7 +109,7 @@ if [ -z "$noPkgMgr" ]; then
   info "Готово!"
 else
   info "Клонирование репозитория ALR"
-  git clone https://gitverse.ru/sc/Xpamych/ALR.git /tmp/alr
+  git clone https://gitea.plemya-x.ru/xpamych/ALR.git /tmp/alr
 
   info "Установка ALR"
   cd /tmp/alr
