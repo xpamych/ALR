@@ -502,7 +502,7 @@ func buildPkgMetadata(vars *types.BuildVars, dirs types.Directories, pkgFormat s
 		})
 	}
 
-	if info.ID == "altlinux" {
+	if pkgFormat == "rpm" && info.ID == "altlinux" {
 		pkgInfo.Release = "alt" + pkgInfo.Release
 	}
 
