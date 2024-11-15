@@ -46,6 +46,7 @@ var managers = []Manager{
 	&YUM{},
 	&APK{},
 	&Zypper{},
+	&APTRpm{},
 }
 
 // Register registers a new package manager
