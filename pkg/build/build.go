@@ -36,6 +36,9 @@ import (
 	_ "github.com/goreleaser/nfpm/v2/arch"
 	_ "github.com/goreleaser/nfpm/v2/deb"
 	_ "github.com/goreleaser/nfpm/v2/rpm"
+	"mvdan.cc/sh/v3/expand"
+	"mvdan.cc/sh/v3/interp"
+	"mvdan.cc/sh/v3/syntax"
 
 	"github.com/goreleaser/nfpm/v2"
 	"github.com/goreleaser/nfpm/v2/files"
@@ -52,9 +55,6 @@ import (
 	"plemya-x.ru/alr/pkg/loggerctx"
 	"plemya-x.ru/alr/pkg/manager"
 	"plemya-x.ru/alr/pkg/repos"
-	"mvdan.cc/sh/v3/expand"
-	"mvdan.cc/sh/v3/interp"
-	"mvdan.cc/sh/v3/syntax"
 )
 
 // BuildPackage builds the script at the given path. It returns two slices. One contains the paths
@@ -161,7 +161,7 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 
 	pkgFormat := getPkgFormat(opts.Manager)
 
-	pkgInfo, err := buildPkgMetadata(vars, dirs, pkgFormat, append(repoDeps, builtNames...))
+	pkgInfo, err := buildPkgMetadata(vars, dirs, pkgFormat, info, append(repoDeps, builtNames...))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -481,23 +481,18 @@ func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Dire
 }
 
 // buildPkgMetadata builds the metadata for the package that's going to be built.
-func buildPkgMetadata(vars *types.BuildVars, dirs types.Directories, pkgFormat string, deps []string) (*nfpm.Info, error) {
-	pkgInfo := &nfpm.Info{
-		Name:        vars.Name,
-		Description: vars.Description,
-		Arch:        cpu.Arch(),
-		Platform:    "linux",
-		Version:     vars.Version,
-		Release:     strconv.Itoa(vars.Release),
-		Homepage:    vars.Homepage,
-		License:     strings.Join(vars.Licenses, ", "),
-		Maintainer:  vars.Maintainer,
-		Overridables: nfpm.Overridables{
-			Conflicts: vars.Conflicts,
-			Replaces:  vars.Replaces,
-			Provides:  vars.Provides,
-			Depends:   deps,
-		},
+func buildPkgMetadata(vars *types.BuildVars, dirs types.Directories, pkgFormat string, info *distro.OSRelease, deps []string) (*nfpm.Info, error) {
+	pkgInfo := getBasePkgInfo(vars)
+	pkgInfo.Description = vars.Description
+	pkgInfo.Platform = "linux"
+	pkgInfo.Homepage = vars.Homepage
+	pkgInfo.License = strings.Join(vars.Licenses, ", ")
+	pkgInfo.Maintainer = vars.Maintainer
+	pkgInfo.Overridables = nfpm.Overridables{
+		Conflicts: vars.Conflicts,
+		Replaces:  vars.Replaces,
+		Provides:  vars.Provides,
+		Depends:   deps,
 	}
 
 	if pkgFormat == "apk" {
@@ -505,6 +500,10 @@ func buildPkgMetadata(vars *types.BuildVars, dirs types.Directories, pkgFormat s
 		pkgInfo.Overridables.Provides = slices.DeleteFunc(pkgInfo.Overridables.Provides, func(s string) bool {
 			return s == pkgInfo.Name
 		})
+	}
+
+	if info.ID == "altlinux" {
+		pkgInfo.Release = "alt" + pkgInfo.Release
 	}
 
 	if vars.Epoch != 0 {
@@ -643,16 +642,20 @@ func checkForBuiltPackage(mgr manager.Manager, vars *types.BuildVars, pkgFormat,
 	return pkgPath, true, nil
 }
 
-// pkgFileName returns the filename of the package if it were to be built.
-// This is used to check if the package has already been built.
-func pkgFileName(vars *types.BuildVars, pkgFormat string) (string, error) {
-	pkgInfo := &nfpm.Info{
+func getBasePkgInfo(vars *types.BuildVars) *nfpm.Info {
+	return &nfpm.Info{
 		Name:    vars.Name,
 		Arch:    cpu.Arch(),
 		Version: vars.Version,
 		Release: strconv.Itoa(vars.Release),
 		Epoch:   strconv.FormatUint(uint64(vars.Epoch), 10),
 	}
+}
+
+// pkgFileName returns the filename of the package if it were to be built.
+// This is used to check if the package has already been built.
+func pkgFileName(vars *types.BuildVars, pkgFormat string) (string, error) {
+	pkgInfo := getBasePkgInfo(vars)
 
 	packager, err := nfpm.Get(pkgFormat)
 	if err != nil {
