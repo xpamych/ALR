@@ -1,19 +1,29 @@
 /*
  * ALR - Any Linux Repository
+ * Любая Linux репозитория
  * Copyright (C) 2024 Евгений Храмов
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ * Это программное обеспечение свободно: вы можете распространять его и/или изменять
+ * на условиях GNU General Public License, опубликованной Free Software Foundation,
+ * либо версии 3 лицензии, либо (на ваш выбор) любой более поздней версии.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
+ * Это программное обеспечение распространяется в надежде, что оно будет полезным,
+ * но БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ; даже без подразумеваемой гарантии
+ * КОММЕРЧЕСКОЙ ПРИГОДНОСТИ или ПРИГОДНОСТИ ДЛЯ ОПРЕДЕЛЕННОЙ ЦЕЛИ. См.
+ * GNU General Public License для более подробной информации.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * Вы должны были получить копию GNU General Public License
+ * вместе с этой программой. Если нет, см. <http://www.gnu.org/licenses/>.
  */
 
 package build
@@ -32,6 +42,7 @@ import (
 	"strings"
 	"time"
 
+    // Импортируем пакеты для поддержки различных форматов пакетов (APK, DEB, RPM и ARCH).
 	_ "github.com/goreleaser/nfpm/v2/apk"
 	_ "github.com/goreleaser/nfpm/v2/arch"
 	_ "github.com/goreleaser/nfpm/v2/deb"
@@ -57,8 +68,8 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 )
 
-// BuildPackage builds the script at the given path. It returns two slices. One contains the paths
-// to the built package(s), the other contains the names of the built package(s).
+// Функция BuildPackage выполняет сборку скрипта по указанному пути. Возвращает два среза.
+// Один содержит пути к собранным пакетам, другой - имена собранных пакетов.
 func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string, error) {
 	log := loggerctx.From(ctx)
 
@@ -72,9 +83,8 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 		return nil, nil, err
 	}
 
-	// The first pass is just used to get variable values and runs before
-	// the script is displayed, so it's restricted so as to prevent malicious
-	// code from executing.
+    // Первый проход предназначен для получения значений переменных и выполняется
+    // до отображения скрипта, чтобы предотвратить выполнение вредоносного кода.
 	vars, err := executeFirstPass(ctx, info, fl, opts.Script)
 	if err != nil {
 		return nil, nil, err
@@ -82,8 +92,8 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 
 	dirs := getDirs(ctx, vars, opts.Script)
 
-	// If opts.Clean isn't set and we find the package already built,
-	// just return it rather than rebuilding
+    // Если флаг opts.Clean не установлен, и пакет уже собран,
+    // возвращаем его, а не собираем заново.
 	if !opts.Clean {
 		builtPkgPath, ok, err := checkForBuiltPackage(opts.Manager, vars, getPkgFormat(opts.Manager), dirs.BaseDir)
 		if err != nil {
@@ -95,7 +105,7 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 		}
 	}
 
-	// Ask the user if they'd like to see the build script
+    // Спрашиваем у пользователя, хочет ли он увидеть скрипт сборки.
 	err = cliutils.PromptViewScript(ctx, opts.Script, vars.Name, config.Config(ctx).PagerStyle, opts.Interactive)
 	if err != nil {
 		log.Fatal("Failed to prompt user to view build script").Err(err).Send()
@@ -103,161 +113,161 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 
 	log.Info("Building package").Str("name", vars.Name).Str("version", vars.Version).Send()
 
-	// The second pass will be used to execute the actual code,
-	// so it's unrestricted. The script has already been displayed
-	// to the user by this point, so it should be safe
+    // Второй проход будет использоваться для выполнения реального кода,
+    // поэтому он не ограничен. Скрипт уже был показан
+    // пользователю к этому моменту, так что это должно быть безопасно.
 	dec, err := executeSecondPass(ctx, info, fl, dirs)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// Get the installed packages on the system
+	// Получаем список установленных пакетов в системе
 	installed, err := opts.Manager.ListInstalled(nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	cont, err := performChecks(ctx, vars, opts.Interactive, installed)
+	cont, err := performChecks(ctx, vars, opts.Interactive, installed) // Выполняем различные проверки
 	if err != nil {
 		return nil, nil, err
 	} else if !cont {
-		os.Exit(1)
+		os.Exit(1) // Если проверки не пройдены, выходим из программы
 	}
 
-	// Prepare the directories for building
+    // Подготавливаем директории для сборки
 	err = prepareDirs(dirs)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	buildDeps, err := installBuildDeps(ctx, vars, opts, installed)
+	buildDeps, err := installBuildDeps(ctx, vars, opts, installed) // Устанавливаем зависимости для сборки
 	if err != nil {
 		return nil, nil, err
 	}
 
-	err = installOptDeps(ctx, vars, opts, installed)
+	err = installOptDeps(ctx, vars, opts, installed) // Устанавливаем опциональные зависимости
 	if err != nil {
 		return nil, nil, err
 	}
 
-	builtPaths, builtNames, repoDeps, err := buildALRDeps(ctx, opts, vars)
+	builtPaths, builtNames, repoDeps, err := buildALRDeps(ctx, opts, vars) // Собираем зависимости
 	if err != nil {
 		return nil, nil, err
 	}
 
-	log.Info("Downloading sources").Send()
+	log.Info("Downloading sources").Send() // Записываем в лог загрузку источников
 
-	err = getSources(ctx, dirs, vars)
+	err = getSources(ctx, dirs, vars) // Загружаем исходники
 	if err != nil {
 		return nil, nil, err
 	}
 
-	err = executeFunctions(ctx, dec, dirs, vars)
+	err = executeFunctions(ctx, dec, dirs, vars) // Выполняем специальные функции
 	if err != nil {
 		return nil, nil, err
 	}
 
-	log.Info("Building package metadata").Str("name", vars.Name).Send()
+	log.Info("Building package metadata").Str("name", vars.Name).Send() // Логгируем сборку метаданных пакета
 
-	pkgFormat := getPkgFormat(opts.Manager)
+	pkgFormat := getPkgFormat(opts.Manager) // Получаем формат пакета
 
-	pkgInfo, err := buildPkgMetadata(vars, dirs, pkgFormat, append(repoDeps, builtNames...))
+	pkgInfo, err := buildPkgMetadata(vars, dirs, pkgFormat, append(repoDeps, builtNames...)) // Собираем метаданные пакета
 	if err != nil {
 		return nil, nil, err
 	}
 
-	packager, err := nfpm.Get(pkgFormat)
+	packager, err := nfpm.Get(pkgFormat) // Получаем упаковщик для формата пакета
 	if err != nil {
 		return nil, nil, err
 	}
 
-	pkgName := packager.ConventionalFileName(pkgInfo)
-	pkgPath := filepath.Join(dirs.BaseDir, pkgName)
+	pkgName := packager.ConventionalFileName(pkgInfo) // Получаем имя файла пакета
+	pkgPath := filepath.Join(dirs.BaseDir, pkgName) // Определяем путь к пакету
 
-	pkgFile, err := os.Create(pkgPath)
+	pkgFile, err := os.Create(pkgPath) // Создаём файл пакета
 	if err != nil {
 		return nil, nil, err
 	}
 
-	log.Info("Compressing package").Str("name", pkgName).Send()
+	log.Info("Compressing package").Str("name", pkgName).Send() // Логгируем сжатие пакета
 
-	err = packager.Package(pkgInfo, pkgFile)
+	err = packager.Package(pkgInfo, pkgFile) // Упаковываем пакет
 	if err != nil {
 		return nil, nil, err
 	}
 
-	err = removeBuildDeps(ctx, buildDeps, opts)
+	err = removeBuildDeps(ctx, buildDeps, opts) // Удаляем зависимости для сборки
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// Add the path and name of the package we just built to the
-	// appropriate slices
+    // Добавляем путь и имя только что собранного пакета в
+    // соответствующие срезы
 	pkgPaths := append(builtPaths, pkgPath)
 	pkgNames := append(builtNames, vars.Name)
 
-	// Remove any duplicates from the pkgPaths and pkgNames.
-	// Duplicates can be introduced if several of the dependencies
-	// depend on the same packages.
+    // Удаляем дубликаты из pkgPaths и pkgNames.
+    // Дубликаты могут появиться, если несколько зависимостей
+    // зависят от одних и тех же пакетов.
 	pkgPaths = removeDuplicates(pkgPaths)
 	pkgNames = removeDuplicates(pkgNames)
 
-	return pkgPaths, pkgNames, nil
+	return pkgPaths, pkgNames, nil // Возвращаем пути и имена пакетов
 }
 
-// parseScript parses the build script using the built-in bash implementation
+// Функция parseScript анализирует скрипт сборки с использованием встроенной реализации bash
 func parseScript(info *distro.OSRelease, script string) (*syntax.File, error) {
-	fl, err := os.Open(script)
+	fl, err := os.Open(script) // Открываем файл скрипта
 	if err != nil {
 		return nil, err
 	}
-	defer fl.Close()
+	defer fl.Close() // Закрываем файл после выполнения
 
-	file, err := syntax.NewParser().Parse(fl, "alr.sh")
+	file, err := syntax.NewParser().Parse(fl, "alr.sh") // Парсим скрипт с помощью синтаксического анализатора
 	if err != nil {
 		return nil, err
 	}
 
-	return file, nil
+	return file, nil // Возвращаем синтаксическое дерево
 }
 
-// executeFirstPass executes the parsed script in a restricted environment
-// to extract the build variables without executing any actual code.
+// Функция executeFirstPass выполняет парсированный скрипт в ограниченной среде,
+// чтобы извлечь переменные сборки без выполнения реального кода.
 func executeFirstPass(ctx context.Context, info *distro.OSRelease, fl *syntax.File, script string) (*types.BuildVars, error) {
-	scriptDir := filepath.Dir(script)
-	env := createBuildEnvVars(info, types.Directories{ScriptDir: scriptDir})
+	scriptDir := filepath.Dir(script) // Получаем директорию скрипта
+	env := createBuildEnvVars(info, types.Directories{ScriptDir: scriptDir}) // Создаём переменные окружения для сборки
 
 	runner, err := interp.New(
-		interp.Env(expand.ListEnviron(env...)),
-		interp.StdIO(os.Stdin, os.Stdout, os.Stderr),
-		interp.ExecHandler(helpers.Restricted.ExecHandler(handlers.NopExec)),
-		interp.ReadDirHandler(handlers.RestrictedReadDir(scriptDir)),
-		interp.StatHandler(handlers.RestrictedStat(scriptDir)),
-		interp.OpenHandler(handlers.RestrictedOpen(scriptDir)),
+		interp.Env(expand.ListEnviron(env...)), // Устанавливаем окружение
+		interp.StdIO(os.Stdin, os.Stdout, os.Stderr), // Устанавливаем стандартный ввод-вывод
+		interp.ExecHandler(helpers.Restricted.ExecHandler(handlers.NopExec)), // Ограничиваем выполнение
+		interp.ReadDirHandler(handlers.RestrictedReadDir(scriptDir)), // Ограничиваем чтение директорий
+		interp.StatHandler(handlers.RestrictedStat(scriptDir)), // Ограничиваем доступ к статистике файлов
+		interp.OpenHandler(handlers.RestrictedOpen(scriptDir)), // Ограничиваем открытие файлов
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	err = runner.Run(ctx, fl)
+	err = runner.Run(ctx, fl) // Запускаем скрипт
 	if err != nil {
 		return nil, err
 	}
 
-	dec := decoder.New(info, runner)
+	dec := decoder.New(info, runner) // Создаём новый декодер
 
 	var vars types.BuildVars
-	err = dec.DecodeVars(&vars)
+	err = dec.DecodeVars(&vars) // Декодируем переменные
 	if err != nil {
 		return nil, err
 	}
 
-	return &vars, nil
+	return &vars, nil // Возвращаем переменные сборки
 }
 
-// getDirs returns the appropriate directories for the script
+// Функция getDirs возвращает соответствующие директории для скрипта
 func getDirs(ctx context.Context, vars *types.BuildVars, script string) types.Directories {
-	baseDir := filepath.Join(config.GetPaths(ctx).PkgsDir, vars.Name)
+	baseDir := filepath.Join(config.GetPaths(ctx).PkgsDir, vars.Name) // Определяем базовую директорию
 	return types.Directories{
 		BaseDir:   baseDir,
 		SrcDir:    filepath.Join(baseDir, "src"),
@@ -266,46 +276,46 @@ func getDirs(ctx context.Context, vars *types.BuildVars, script string) types.Di
 	}
 }
 
-// executeSecondPass executes the build script for the second time, this time without any restrictions.
-// It returns a decoder that can be used to retrieve functions and variables from the script.
+// Функция executeSecondPass выполняет скрипт сборки второй раз без каких-либо ограничений. Возвращается декодер,
+// который может быть использован для получения функций и переменных из скрипта.
 func executeSecondPass(ctx context.Context, info *distro.OSRelease, fl *syntax.File, dirs types.Directories) (*decoder.Decoder, error) {
-	env := createBuildEnvVars(info, dirs)
+	env := createBuildEnvVars(info, dirs) // Создаём переменные окружения для сборки
 
-	fakeroot := handlers.FakerootExecHandler(2 * time.Second)
+	fakeroot := handlers.FakerootExecHandler(2 * time.Second) // Настраиваем "fakeroot" для выполнения
 	runner, err := interp.New(
-		interp.Env(expand.ListEnviron(env...)),
-		interp.StdIO(os.Stdin, os.Stdout, os.Stderr),
-		interp.ExecHandler(helpers.Helpers.ExecHandler(fakeroot)),
+		interp.Env(expand.ListEnviron(env...)), // Устанавливаем окружение
+		interp.StdIO(os.Stdin, os.Stdout, os.Stderr), // Устанавливаем стандартный ввод-вывод
+		interp.ExecHandler(helpers.Helpers.ExecHandler(fakeroot)), // Обрабатываем выполнение через fakeroot
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	err = runner.Run(ctx, fl)
+	err = runner.Run(ctx, fl) // Запускаем скрипт
 	if err != nil {
 		return nil, err
 	}
 
-	return decoder.New(info, runner), nil
+	return decoder.New(info, runner), nil // Возвращаем новый декодер
 }
 
-// prepareDirs prepares the directories for building.
+// Функция prepareDirs подготавливает директории для сборки.
 func prepareDirs(dirs types.Directories) error {
-	err := os.RemoveAll(dirs.BaseDir)
+	err := os.RemoveAll(dirs.BaseDir) // Удаляем базовую директорию, если она существует
 	if err != nil {
 		return err
 	}
-	err = os.MkdirAll(dirs.SrcDir, 0o755)
+	err = os.MkdirAll(dirs.SrcDir, 0o755) // Создаем директорию для источников
 	if err != nil {
 		return err
 	}
-	return os.MkdirAll(dirs.PkgDir, 0o755)
+	return os.MkdirAll(dirs.PkgDir, 0o755) // Создаем директорию для пакетов
 }
 
-// performChecks checks various things on the system to ensure that the package can be installed.
+// Функция performChecks проверяет различные аспекты в системе, чтобы убедиться, что пакет может быть установлен.
 func performChecks(ctx context.Context, vars *types.BuildVars, interactive bool, installed map[string]string) (bool, error) {
 	log := loggerctx.From(ctx)
-	if !cpu.IsCompatibleWith(cpu.Arch(), vars.Architectures) {
+	if !cpu.IsCompatibleWith(cpu.Arch(), vars.Architectures) { // Проверяем совместимость архитектуры
 		cont, err := cliutils.YesNoPrompt(ctx, "Your system's CPU architecture doesn't match this package. Do you want to build anyway?", interactive, true)
 		if err != nil {
 			return false, err
@@ -316,7 +326,7 @@ func performChecks(ctx context.Context, vars *types.BuildVars, interactive bool,
 		}
 	}
 
-	if instVer, ok := installed[vars.Name]; ok {
+	if instVer, ok := installed[vars.Name]; ok { // Если пакет уже установлен, выводим предупреждение
 		log.Warn("This package is already installed").
 			Str("name", vars.Name).
 			Str("version", instVer).
@@ -326,33 +336,33 @@ func performChecks(ctx context.Context, vars *types.BuildVars, interactive bool,
 	return true, nil
 }
 
-// installBuildDeps installs any build dependencies that aren't already installed and returns
-// a slice containing the names of all the packages it installed.
+// Функция installBuildDeps устанавливает все зависимости сборки, которые еще не установлены, и возвращает
+// срез, содержащий имена всех установленных пакетов.
 func installBuildDeps(ctx context.Context, vars *types.BuildVars, opts types.BuildOpts, installed map[string]string) ([]string, error) {
 	log := loggerctx.From(ctx)
 	var buildDeps []string
 	if len(vars.BuildDepends) > 0 {
-		found, notFound, err := repos.FindPkgs(ctx, vars.BuildDepends)
+		found, notFound, err := repos.FindPkgs(ctx, vars.BuildDepends) // Находим пакеты-зависимости
 		if err != nil {
 			return nil, err
 		}
 
-		found = removeAlreadyInstalled(found, installed)
+		found = removeAlreadyInstalled(found, installed) // Убираем уже установленные зависимости
 
-		log.Info("Installing build dependencies").Send()
+		log.Info("Installing build dependencies").Send() // Логгируем установку зависимостей
 
-		flattened := cliutils.FlattenPkgs(ctx, found, "install", opts.Interactive)
+		flattened := cliutils.FlattenPkgs(ctx, found, "install", opts.Interactive) // Уплощаем список зависимостей
 		buildDeps = packageNames(flattened)
-		InstallPkgs(ctx, flattened, notFound, opts)
+		InstallPkgs(ctx, flattened, notFound, opts) // Устанавливаем пакеты
 	}
 	return buildDeps, nil
 }
 
-// installOptDeps asks the user which, if any, optional dependencies they want to install.
-// If the user chooses to install any optional dependencies, it performs the installation.
+// Функция installOptDeps спрашивает у пользователя, какие, если таковые имеются, опциональные зависимости он хочет установить.
+// Если пользователь решает установить какие-либо опциональные зависимости, выполняется их установка.
 func installOptDeps(ctx context.Context, vars *types.BuildVars, opts types.BuildOpts, installed map[string]string) error {
 	if len(vars.OptDepends) > 0 {
-		optDeps, err := cliutils.ChooseOptDepends(ctx, vars.OptDepends, "install", opts.Interactive)
+		optDeps, err := cliutils.ChooseOptDepends(ctx, vars.OptDepends, "install", opts.Interactive) // Пользователя просят выбрать опциональные зависимости
 		if err != nil {
 			return err
 		}
@@ -361,63 +371,63 @@ func installOptDeps(ctx context.Context, vars *types.BuildVars, opts types.Build
 			return nil
 		}
 
-		found, notFound, err := repos.FindPkgs(ctx, optDeps)
+		found, notFound, err := repos.FindPkgs(ctx, optDeps) // Находим опциональные зависимости
 		if err != nil {
 			return err
 		}
 
-		found = removeAlreadyInstalled(found, installed)
+		found = removeAlreadyInstalled(found, installed) // Убираем уже установленные зависимости
 		flattened := cliutils.FlattenPkgs(ctx, found, "install", opts.Interactive)
-		InstallPkgs(ctx, flattened, notFound, opts)
+		InstallPkgs(ctx, flattened, notFound, opts) // Устанавливаем выбранные пакеты
 	}
 	return nil
 }
 
-// buildALRDeps builds all the ALR dependencies of the package. It returns the paths and names
-// of the packages it built, as well as all the dependencies it didn't find in the ALR repo so
-// they can be installed from the system repos.
+// Функция buildALRDeps собирает все ALR зависимости пакета. Возвращает пути и имена
+// пакетов, которые она собрала, а также все зависимости, которые не были найдены в ALR репозитории,
+// чтобы они могли быть установлены из системных репозиториев.
 func buildALRDeps(ctx context.Context, opts types.BuildOpts, vars *types.BuildVars) (builtPaths, builtNames, repoDeps []string, err error) {
 	log := loggerctx.From(ctx)
 	if len(vars.Depends) > 0 {
 		log.Info("Installing dependencies").Send()
 
-		found, notFound, err := repos.FindPkgs(ctx, vars.Depends)
+		found, notFound, err := repos.FindPkgs(ctx, vars.Depends) // Поиск зависимостей
 		if err != nil {
 			return nil, nil, nil, err
 		}
 		repoDeps = notFound
 
-		// If there are multiple options for some packages, flatten them all into a single slice
+        // Если для некоторых пакетов есть несколько опций, упрощаем их все в один срез
 		pkgs := cliutils.FlattenPkgs(ctx, found, "install", opts.Interactive)
 		scripts := GetScriptPaths(ctx, pkgs)
 		for _, script := range scripts {
 			newOpts := opts
 			newOpts.Script = script
 
-			// Build the dependency
+            // Собираем зависимости
 			pkgPaths, pkgNames, err := BuildPackage(ctx, newOpts)
 			if err != nil {
 				return nil, nil, nil, err
 			}
 
-			// Append the paths of all the built packages to builtPaths
+            // Добавляем пути всех собранных пакетов в builtPaths
 			builtPaths = append(builtPaths, pkgPaths...)
-			// Append the names of all the built packages to builtNames
+            // Добавляем пути всех собранных пакетов в builtPaths
 			builtNames = append(builtNames, pkgNames...)
-			// Append the name of the current package to builtNames
+            // Добавляем имя текущего пакета в builtNames
 			builtNames = append(builtNames, filepath.Base(filepath.Dir(script)))
 		}
 	}
 
-	// Remove any potential duplicates, which can be introduced if
-	// several of the dependencies depend on the same packages.
+    // Удаляем возможные дубликаты, которые могут быть введены, если
+    // несколько зависимостей зависят от одних и тех же пакетов.
 	repoDeps = removeDuplicates(repoDeps)
 	builtPaths = removeDuplicates(builtPaths)
 	builtNames = removeDuplicates(builtNames)
 	return builtPaths, builtNames, repoDeps, nil
 }
 
-// executeFunctions executes the special ALR functions, such as version(), prepare(), etc.
+// Функция executeFunctions выполняет специальные функции ALR, такие как version(), prepare() и т.д.
 func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Directories, vars *types.BuildVars) (err error) {
 	log := loggerctx.From(ctx)
 	version, ok := dec.GetFunc("version")
@@ -465,22 +475,34 @@ func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Dire
 		}
 	}
 
-	packageFn, ok := dec.GetFunc("package")
-	if ok {
-		log.Info("Executing package()").Send()
+    // Выполнение всех функций, начинающихся с package_
+    for {
+        packageFn, ok := dec.GetFunc("package")
+        if ok {
+            log.Info("Executing package()").Send()
+            err = packageFn(ctx, interp.Dir(dirs.SrcDir))
+            if err != nil {
+                return err
+            }
+        }
 
-		err = packageFn(ctx, interp.Dir(dirs.SrcDir))
-		if err != nil {
-			return err
-		}
-	} else {
-		log.Fatal("The package() function is required").Send()
-	}
+        // Проверка на наличие дополнительных функций package_*
+        packageFuncName := "package_"
+        if packageFunc, ok := dec.GetFunc(packageFuncName); ok {
+            log.Info("Executing " + packageFuncName).Send()
+            err = packageFunc(ctx, interp.Dir(dirs.SrcDir))
+            if err != nil {
+                return err
+            }
+        } else {
+            break // Если больше нет функций package_*, выходим из цикла
+        }
+    }
 
 	return nil
 }
 
-// buildPkgMetadata builds the metadata for the package that's going to be built.
+// Функция buildPkgMetadata создает метаданные для пакета, который будет собран.
 func buildPkgMetadata(vars *types.BuildVars, dirs types.Directories, pkgFormat string, deps []string) (*nfpm.Info, error) {
 	pkgInfo := &nfpm.Info{
 		Name:        vars.Name,
@@ -501,7 +523,7 @@ func buildPkgMetadata(vars *types.BuildVars, dirs types.Directories, pkgFormat s
 	}
 
 	if pkgFormat == "apk" {
-		// Alpine refuses to install packages that provide themselves, so remove any such provides
+        // Alpine отказывается устанавливать пакеты, которые предоставляют сами себя, поэтому удаляем такие элементы
 		pkgInfo.Overridables.Provides = slices.DeleteFunc(pkgInfo.Overridables.Provides, func(s string) bool {
 			return s == pkgInfo.Name
 		})
@@ -526,8 +548,8 @@ func buildPkgMetadata(vars *types.BuildVars, dirs types.Directories, pkgFormat s
 	return pkgInfo, nil
 }
 
-// buildContents builds the contents section of the package, which contains the files
-// that will be placed into the final package.
+// Функция buildContents создает секцию содержимого пакета, которая содержит файлы,
+// которые будут включены в конечный пакет.
 func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Content, error) {
 	contents := []*files.Content{}
 	err := filepath.Walk(dirs.PkgDir, func(path string, fi os.FileInfo, err error) error {
@@ -539,7 +561,7 @@ func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Cont
 				return err
 			}
 
-			// If the directory is empty, skip it
+            // Если директория пустая, пропускаем её
 			_, err = f.Readdirnames(1)
 			if err != io.EOF {
 				return nil
@@ -556,13 +578,13 @@ func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Cont
 
 			return f.Close()
 		}
-
+        // Если файл является символической ссылкой, прорабатываем это
 		if fi.Mode()&os.ModeSymlink != 0 {
 			link, err := os.Readlink(path)
 			if err != nil {
 				return err
 			}
-			// Remove pkgdir from the symlink's path
+            // Удаляем pkgdir из пути символической ссылки
 			link = strings.TrimPrefix(link, dirs.PkgDir)
 
 			contents = append(contents, &files.Content{
@@ -577,7 +599,7 @@ func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Cont
 
 			return nil
 		}
-
+        // Обрабатываем обычные файлы
 		fileContent := &files.Content{
 			Source:      path,
 			Destination: trimmed,
@@ -588,7 +610,7 @@ func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Cont
 			},
 		}
 
-		// If the file is supposed to be backed up, set its type to config|noreplace
+        // Если файл должен быть сохранен, установите его тип как config|noreplace
 		if slices.Contains(vars.Backup, trimmed) {
 			fileContent.Type = "config|noreplace"
 		}
@@ -600,8 +622,8 @@ func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Cont
 	return contents, err
 }
 
-// removeBuildDeps asks the user if they'd like to remove the build dependencies that were
-// installed by installBuildDeps. If so, it uses the package manager to do that.
+// Функция removeBuildDeps спрашивает у пользователя, хочет ли он удалить зависимости,
+// установленные для сборки. Если да, использует менеджер пакетов для их удаления.
 func removeBuildDeps(ctx context.Context, buildDeps []string, opts types.BuildOpts) error {
 	if len(buildDeps) > 0 {
 		remove, err := cliutils.YesNoPrompt(ctx, "Would you like to remove the build dependencies?", opts.Interactive, false)
@@ -625,8 +647,8 @@ func removeBuildDeps(ctx context.Context, buildDeps []string, opts types.BuildOp
 	return nil
 }
 
-// checkForBuiltPackage tries to detect a previously-built package and returns its path
-// and true if it finds one. If it doesn't find it, it returns "", false, nil.
+// Функция checkForBuiltPackage пытается обнаружить ранее собранный пакет и вернуть его путь
+// и true, если нашла. Если нет, возвратит "", false, nil.
 func checkForBuiltPackage(mgr manager.Manager, vars *types.BuildVars, pkgFormat, baseDir string) (string, bool, error) {
 	filename, err := pkgFileName(vars, pkgFormat)
 	if err != nil {
@@ -643,8 +665,8 @@ func checkForBuiltPackage(mgr manager.Manager, vars *types.BuildVars, pkgFormat,
 	return pkgPath, true, nil
 }
 
-// pkgFileName returns the filename of the package if it were to be built.
-// This is used to check if the package has already been built.
+// Функция pkgFileName возвращает имя файла пакета, если оно было бы создано.
+// Это используется для проверки, был ли пакет уже собран.
 func pkgFileName(vars *types.BuildVars, pkgFormat string) (string, error) {
 	pkgInfo := &nfpm.Info{
 		Name:    vars.Name,
@@ -662,8 +684,8 @@ func pkgFileName(vars *types.BuildVars, pkgFormat string) (string, error) {
 	return packager.ConventionalFileName(pkgInfo), nil
 }
 
-// getPkgFormat returns the package format of the package manager,
-// or ALR_PKG_FORMAT if that's set.
+// Функция getPkgFormat возвращает формат пакета из менеджера пакетов,
+// или ALR_PKG_FORMAT, если он установлен.
 func getPkgFormat(mgr manager.Manager) string {
 	pkgFormat := mgr.Format()
 	if format, ok := os.LookupEnv("ALR_PKG_FORMAT"); ok {
@@ -672,8 +694,8 @@ func getPkgFormat(mgr manager.Manager) string {
 	return pkgFormat
 }
 
-// createBuildEnvVars creates the environment variables that will be set in the
-// build script when it's executed.
+// Функция createBuildEnvVars создает переменные окружения, которые будут установлены
+// в скрипте сборки при его выполнении.
 func createBuildEnvVars(info *distro.OSRelease, dirs types.Directories) []string {
 	env := os.Environ()
 
@@ -703,7 +725,7 @@ func createBuildEnvVars(info *distro.OSRelease, dirs types.Directories) []string
 	return env
 }
 
-// getSources downloads the sources from the script.
+// Функция getSources загружает исходники скрипта.
 func getSources(ctx context.Context, dirs types.Directories, bv *types.BuildVars) error {
 	log := loggerctx.From(ctx)
 	if len(bv.Sources) != len(bv.Checksums) {
@@ -720,9 +742,9 @@ func getSources(ctx context.Context, dirs types.Directories, bv *types.BuildVars
 		}
 
 		if !strings.EqualFold(bv.Checksums[i], "SKIP") {
-			// If the checksum contains a colon, use the part before the colon
-			// as the algorithm and the part after as the actual checksum.
-			// Otherwise, use the default sha256 with the whole string as the checksum.
+            // Если контрольная сумма содержит двоеточие, используйте часть до двоеточия
+            // как алгоритм, а часть после как фактическую контрольную сумму.
+            // В противном случае используйте sha256 по умолчанию с целой строкой как контрольной суммой.
 			algo, hashData, ok := strings.Cut(bv.Checksums[i], ":")
 			if ok {
 				checksum, err := hex.DecodeString(hashData)
@@ -749,7 +771,7 @@ func getSources(ctx context.Context, dirs types.Directories, bv *types.BuildVars
 	return nil
 }
 
-// setScripts adds any hook scripts to the package metadata.
+// Функция setScripts добавляет скрипты-перехватчики к метаданным пакета.
 func setScripts(vars *types.BuildVars, info *nfpm.Info, scriptDir string) {
 	if vars.Scripts.PreInstall != "" {
 		info.Scripts.PreInstall = filepath.Join(scriptDir, vars.Scripts.PreInstall)
@@ -786,8 +808,8 @@ func setScripts(vars *types.BuildVars, info *nfpm.Info, scriptDir string) {
 	}
 }
 
-// setVersion changes the version variable in the script runner.
-// It's used to set the version to the output of the version() function.
+// Функция setVersion изменяет переменную версии в скрипте runner.
+// Она используется для установки версии на вывод функции version().
 func setVersion(ctx context.Context, r *interp.Runner, to string) error {
 	fl, err := syntax.NewParser().Parse(strings.NewReader("version='"+to+"'"), "")
 	if err != nil {
@@ -796,7 +818,7 @@ func setVersion(ctx context.Context, r *interp.Runner, to string) error {
 	return r.Run(ctx, fl)
 }
 
-// removeAlreadyInstalled returns a map without any dependencies that are already installed
+// Функция removeAlreadyInstalled возвращает карту без каких-либо зависимостей, которые уже установлены.
 func removeAlreadyInstalled(found map[string][]db.Package, installed map[string]string) map[string][]db.Package {
 	filteredPackages := make(map[string][]db.Package)
 
@@ -813,7 +835,7 @@ func removeAlreadyInstalled(found map[string][]db.Package, installed map[string]
 	return filteredPackages
 }
 
-// packageNames returns the names of all the given packages
+// Функция packageNames возвращает имена всех предоставленных пакетов.
 func packageNames(pkgs []db.Package) []string {
 	names := make([]string, len(pkgs))
 	for i, p := range pkgs {
@@ -822,7 +844,7 @@ func packageNames(pkgs []db.Package) []string {
 	return names
 }
 
-// removeDuplicates removes any duplicates from the given slice
+// Функция removeDuplicates убирает любые дубликаты из предоставленного среза.
 func removeDuplicates(slice []string) []string {
 	seen := map[string]struct{}{}
 	result := []string{}
