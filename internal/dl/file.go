@@ -222,7 +222,7 @@ func extractFile(r io.Reader, format archiver.Format, name string, opts Options)
 			}
 
 			if f.IsDir() {
-				err = os.Mkdir(path, 0o755)
+				err = os.MkdirAll(path, 0o755)
 				if err != nil {
 					return err
 				}
