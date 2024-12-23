@@ -47,12 +47,15 @@ func rpmFindDependencies(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Dir
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
+		log.Error(stderr.String())
 		return err
 	}
 
 	dependencies := strings.Split(strings.TrimSpace(out.String()), "\n")
 	for _, dep := range dependencies {
-		updateFunc(dep)
+		if dep != "" {
+			updateFunc(dep)
+		}
 	}
 
 	return nil
