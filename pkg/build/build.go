@@ -41,7 +41,7 @@ import (
 	"strings"
 	"time"
 
-    // Импортируем пакеты для поддержки различных форматов пакетов (APK, DEB, RPM и ARCH).
+	// Импортируем пакеты для поддержки различных форматов пакетов (APK, DEB, RPM и ARCH).
 	_ "github.com/goreleaser/nfpm/v2/apk"
 	_ "github.com/goreleaser/nfpm/v2/arch"
 	_ "github.com/goreleaser/nfpm/v2/deb"
@@ -82,8 +82,8 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 		return nil, nil, err
 	}
 
-    // Первый проход предназначен для получения значений переменных и выполняется
-    // до отображения скрипта, чтобы предотвратить выполнение вредоносного кода.
+	// Первый проход предназначен для получения значений переменных и выполняется
+	// до отображения скрипта, чтобы предотвратить выполнение вредоносного кода.
 	vars, err := executeFirstPass(ctx, info, fl, opts.Script)
 	if err != nil {
 		return nil, nil, err
@@ -91,8 +91,8 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 
 	dirs := getDirs(ctx, vars, opts.Script)
 
-    // Если флаг opts.Clean не установлен, и пакет уже собран,
-    // возвращаем его, а не собираем заново.
+	// Если флаг opts.Clean не установлен, и пакет уже собран,
+	// возвращаем его, а не собираем заново.
 	if !opts.Clean {
 		builtPkgPath, ok, err := checkForBuiltPackage(opts.Manager, vars, getPkgFormat(opts.Manager), dirs.BaseDir)
 		if err != nil {
@@ -104,7 +104,7 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 		}
 	}
 
-    // Спрашиваем у пользователя, хочет ли он увидеть скрипт сборки.
+	// Спрашиваем у пользователя, хочет ли он увидеть скрипт сборки.
 	err = cliutils.PromptViewScript(ctx, opts.Script, vars.Name, config.Config(ctx).PagerStyle, opts.Interactive)
 	if err != nil {
 		log.Fatal("Failed to prompt user to view build script").Err(err).Send()
@@ -112,9 +112,9 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 
 	log.Info("Building package").Str("name", vars.Name).Str("version", vars.Version).Send()
 
-    // Второй проход будет использоваться для выполнения реального кода,
-    // поэтому он не ограничен. Скрипт уже был показан
-    // пользователю к этому моменту, так что это должно быть безопасно.
+	// Второй проход будет использоваться для выполнения реального кода,
+	// поэтому он не ограничен. Скрипт уже был показан
+	// пользователю к этому моменту, так что это должно быть безопасно.
 	dec, err := executeSecondPass(ctx, info, fl, dirs)
 	if err != nil {
 		return nil, nil, err
@@ -133,7 +133,7 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 		os.Exit(1) // Если проверки не пройдены, выходим из программы
 	}
 
-    // Подготавливаем директории для сборки
+	// Подготавливаем директории для сборки
 	err = prepareDirs(dirs)
 	if err != nil {
 		return nil, nil, err
@@ -170,7 +170,7 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 
 	pkgFormat := getPkgFormat(opts.Manager) // Получаем формат пакета
 
-	pkgInfo, err := buildPkgMetadata(vars, dirs, pkgFormat, info, append(repoDeps, builtNames...)) // Собираем метаданные пакета
+	pkgInfo, err := buildPkgMetadata(ctx, vars, dirs, pkgFormat, info, append(repoDeps, builtNames...)) // Собираем метаданные пакета
 	if err != nil {
 		return nil, nil, err
 	}
@@ -181,7 +181,7 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 	}
 
 	pkgName := packager.ConventionalFileName(pkgInfo) // Получаем имя файла пакета
-	pkgPath := filepath.Join(dirs.BaseDir, pkgName) // Определяем путь к пакету
+	pkgPath := filepath.Join(dirs.BaseDir, pkgName)   // Определяем путь к пакету
 
 	pkgFile, err := os.Create(pkgPath) // Создаём файл пакета
 	if err != nil {
@@ -200,14 +200,14 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 		return nil, nil, err
 	}
 
-    // Добавляем путь и имя только что собранного пакета в
-    // соответствующие срезы
+	// Добавляем путь и имя только что собранного пакета в
+	// соответствующие срезы
 	pkgPaths := append(builtPaths, pkgPath)
 	pkgNames := append(builtNames, vars.Name)
 
-    // Удаляем дубликаты из pkgPaths и pkgNames.
-    // Дубликаты могут появиться, если несколько зависимостей
-    // зависят от одних и тех же пакетов.
+	// Удаляем дубликаты из pkgPaths и pkgNames.
+	// Дубликаты могут появиться, если несколько зависимостей
+	// зависят от одних и тех же пакетов.
 	pkgPaths = removeDuplicates(pkgPaths)
 	pkgNames = removeDuplicates(pkgNames)
 
@@ -233,16 +233,16 @@ func parseScript(info *distro.OSRelease, script string) (*syntax.File, error) {
 // Функция executeFirstPass выполняет парсированный скрипт в ограниченной среде,
 // чтобы извлечь переменные сборки без выполнения реального кода.
 func executeFirstPass(ctx context.Context, info *distro.OSRelease, fl *syntax.File, script string) (*types.BuildVars, error) {
-	scriptDir := filepath.Dir(script) // Получаем директорию скрипта
+	scriptDir := filepath.Dir(script)                                        // Получаем директорию скрипта
 	env := createBuildEnvVars(info, types.Directories{ScriptDir: scriptDir}) // Создаём переменные окружения для сборки
 
 	runner, err := interp.New(
-		interp.Env(expand.ListEnviron(env...)), // Устанавливаем окружение
-		interp.StdIO(os.Stdin, os.Stdout, os.Stderr), // Устанавливаем стандартный ввод-вывод
+		interp.Env(expand.ListEnviron(env...)),                               // Устанавливаем окружение
+		interp.StdIO(os.Stdin, os.Stdout, os.Stderr),                         // Устанавливаем стандартный ввод-вывод
 		interp.ExecHandler(helpers.Restricted.ExecHandler(handlers.NopExec)), // Ограничиваем выполнение
-		interp.ReadDirHandler(handlers.RestrictedReadDir(scriptDir)), // Ограничиваем чтение директорий
-		interp.StatHandler(handlers.RestrictedStat(scriptDir)), // Ограничиваем доступ к статистике файлов
-		interp.OpenHandler(handlers.RestrictedOpen(scriptDir)), // Ограничиваем открытие файлов
+		interp.ReadDirHandler(handlers.RestrictedReadDir(scriptDir)),         // Ограничиваем чтение директорий
+		interp.StatHandler(handlers.RestrictedStat(scriptDir)),               // Ограничиваем доступ к статистике файлов
+		interp.OpenHandler(handlers.RestrictedOpen(scriptDir)),               // Ограничиваем открытие файлов
 	)
 	if err != nil {
 		return nil, err
@@ -282,8 +282,8 @@ func executeSecondPass(ctx context.Context, info *distro.OSRelease, fl *syntax.F
 
 	fakeroot := handlers.FakerootExecHandler(2 * time.Second) // Настраиваем "fakeroot" для выполнения
 	runner, err := interp.New(
-		interp.Env(expand.ListEnviron(env...)), // Устанавливаем окружение
-		interp.StdIO(os.Stdin, os.Stdout, os.Stderr), // Устанавливаем стандартный ввод-вывод
+		interp.Env(expand.ListEnviron(env...)),                    // Устанавливаем окружение
+		interp.StdIO(os.Stdin, os.Stdout, os.Stderr),              // Устанавливаем стандартный ввод-вывод
 		interp.ExecHandler(helpers.Helpers.ExecHandler(fakeroot)), // Обрабатываем выполнение через fakeroot
 	)
 	if err != nil {
@@ -396,30 +396,30 @@ func buildALRDeps(ctx context.Context, opts types.BuildOpts, vars *types.BuildVa
 		}
 		repoDeps = notFound
 
-        // Если для некоторых пакетов есть несколько опций, упрощаем их все в один срез
+		// Если для некоторых пакетов есть несколько опций, упрощаем их все в один срез
 		pkgs := cliutils.FlattenPkgs(ctx, found, "install", opts.Interactive)
 		scripts := GetScriptPaths(ctx, pkgs)
 		for _, script := range scripts {
 			newOpts := opts
 			newOpts.Script = script
 
-            // Собираем зависимости
+			// Собираем зависимости
 			pkgPaths, pkgNames, err := BuildPackage(ctx, newOpts)
 			if err != nil {
 				return nil, nil, nil, err
 			}
 
-            // Добавляем пути всех собранных пакетов в builtPaths
+			// Добавляем пути всех собранных пакетов в builtPaths
 			builtPaths = append(builtPaths, pkgPaths...)
-            // Добавляем пути всех собранных пакетов в builtPaths
+			// Добавляем пути всех собранных пакетов в builtPaths
 			builtNames = append(builtNames, pkgNames...)
-            // Добавляем имя текущего пакета в builtNames
+			// Добавляем имя текущего пакета в builtNames
 			builtNames = append(builtNames, filepath.Base(filepath.Dir(script)))
 		}
 	}
 
-    // Удаляем возможные дубликаты, которые могут быть введены, если
-    // несколько зависимостей зависят от одних и тех же пакетов.
+	// Удаляем возможные дубликаты, которые могут быть введены, если
+	// несколько зависимостей зависят от одних и тех же пакетов.
 	repoDeps = removeDuplicates(repoDeps)
 	builtPaths = removeDuplicates(builtPaths)
 	builtNames = removeDuplicates(builtNames)
@@ -474,35 +474,35 @@ func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Dire
 		}
 	}
 
-    // Выполнение всех функций, начинающихся с package_
-    for {
-        packageFn, ok := dec.GetFunc("package")
-        if ok {
-            log.Info("Executing package()").Send()
-            err = packageFn(ctx, interp.Dir(dirs.SrcDir))
-            if err != nil {
-                return err
-            }
-        }
+	// Выполнение всех функций, начинающихся с package_
+	for {
+		packageFn, ok := dec.GetFunc("package")
+		if ok {
+			log.Info("Executing package()").Send()
+			err = packageFn(ctx, interp.Dir(dirs.SrcDir))
+			if err != nil {
+				return err
+			}
+		}
 
-        // Проверка на наличие дополнительных функций package_*
-        packageFuncName := "package_"
-        if packageFunc, ok := dec.GetFunc(packageFuncName); ok {
-            log.Info("Executing " + packageFuncName).Send()
-            err = packageFunc(ctx, interp.Dir(dirs.SrcDir))
-            if err != nil {
-                return err
-            }
-        } else {
-            break // Если больше нет функций package_*, выходим из цикла
-        }
-    }
+		// Проверка на наличие дополнительных функций package_*
+		packageFuncName := "package_"
+		if packageFunc, ok := dec.GetFunc(packageFuncName); ok {
+			log.Info("Executing " + packageFuncName).Send()
+			err = packageFunc(ctx, interp.Dir(dirs.SrcDir))
+			if err != nil {
+				return err
+			}
+		} else {
+			break // Если больше нет функций package_*, выходим из цикла
+		}
+	}
 
 	return nil
 }
 
 // Функция buildPkgMetadata создает метаданные для пакета, который будет собран.
-func buildPkgMetadata(vars *types.BuildVars, dirs types.Directories, pkgFormat string, info *distro.OSRelease, deps []string) (*nfpm.Info, error) {
+func buildPkgMetadata(ctx context.Context, vars *types.BuildVars, dirs types.Directories, pkgFormat string, info *distro.OSRelease, deps []string) (*nfpm.Info, error) {
 	pkgInfo := getBasePkgInfo(vars)
 	pkgInfo.Description = vars.Description
 	pkgInfo.Platform = "linux"
@@ -517,7 +517,7 @@ func buildPkgMetadata(vars *types.BuildVars, dirs types.Directories, pkgFormat s
 	}
 
 	if pkgFormat == "apk" {
-        // Alpine отказывается устанавливать пакеты, которые предоставляют сами себя, поэтому удаляем такие элементы
+		// Alpine отказывается устанавливать пакеты, которые предоставляют сами себя, поэтому удаляем такие элементы
 		pkgInfo.Overridables.Provides = slices.DeleteFunc(pkgInfo.Overridables.Provides, func(s string) bool {
 			return s == pkgInfo.Name
 		})
@@ -543,6 +543,17 @@ func buildPkgMetadata(vars *types.BuildVars, dirs types.Directories, pkgFormat s
 	}
 	pkgInfo.Overridables.Contents = contents
 
+	if pkgFormat == "rpm" {
+		err = rpmFindProvides(ctx, pkgInfo, dirs)
+		if err != nil {
+			return nil, err
+		}
+		err = rpmFindRequires(ctx, pkgInfo, dirs)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return pkgInfo, nil
 }
 
@@ -559,7 +570,7 @@ func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Cont
 				return err
 			}
 
-            // Если директория пустая, пропускаем её
+			// Если директория пустая, пропускаем её
 			_, err = f.Readdirnames(1)
 			if err != io.EOF {
 				return nil
@@ -576,13 +587,13 @@ func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Cont
 
 			return f.Close()
 		}
-        // Если файл является символической ссылкой, прорабатываем это
+		// Если файл является символической ссылкой, прорабатываем это
 		if fi.Mode()&os.ModeSymlink != 0 {
 			link, err := os.Readlink(path)
 			if err != nil {
 				return err
 			}
-            // Удаляем pkgdir из пути символической ссылки
+			// Удаляем pkgdir из пути символической ссылки
 			link = strings.TrimPrefix(link, dirs.PkgDir)
 
 			contents = append(contents, &files.Content{
@@ -597,7 +608,7 @@ func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Cont
 
 			return nil
 		}
-        // Обрабатываем обычные файлы
+		// Обрабатываем обычные файлы
 		fileContent := &files.Content{
 			Source:      path,
 			Destination: trimmed,
@@ -608,7 +619,7 @@ func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Cont
 			},
 		}
 
-        // Если файл должен быть сохранен, установите его тип как config|noreplace
+		// Если файл должен быть сохранен, установите его тип как config|noreplace
 		if slices.Contains(vars.Backup, trimmed) {
 			fileContent.Type = "config|noreplace"
 		}
@@ -744,9 +755,9 @@ func getSources(ctx context.Context, dirs types.Directories, bv *types.BuildVars
 		}
 
 		if !strings.EqualFold(bv.Checksums[i], "SKIP") {
-            // Если контрольная сумма содержит двоеточие, используйте часть до двоеточия
-            // как алгоритм, а часть после как фактическую контрольную сумму.
-            // В противном случае используйте sha256 по умолчанию с целой строкой как контрольной суммой.
+			// Если контрольная сумма содержит двоеточие, используйте часть до двоеточия
+			// как алгоритм, а часть после как фактическую контрольную сумму.
+			// В противном случае используйте sha256 по умолчанию с целой строкой как контрольной суммой.
 			algo, hashData, ok := strings.Cut(bv.Checksums[i], ":")
 			if ok {
 				checksum, err := hex.DecodeString(hashData)
