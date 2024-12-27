@@ -25,12 +25,12 @@ import (
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
-	"plemya-x.ru/alr/internal/overrides"
-	"plemya-x.ru/alr/pkg/distro"
 	"golang.org/x/exp/slices"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
+	"plemya-x.ru/alr/internal/overrides"
+	"plemya-x.ru/alr/pkg/distro"
 )
 
 var ErrNotPointerToStruct = errors.New("val must be a pointer to a struct")
@@ -220,4 +220,9 @@ func (d *Decoder) getVar(name string) *expand.Variable {
 		}
 	}
 	return nil
+}
+
+func IsTruthy(value string) bool {
+	value = strings.ToLower(strings.TrimSpace(value))
+	return value == "true" || value == "yes" || value == "1"
 }
