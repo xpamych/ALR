@@ -21,59 +21,108 @@ package config
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/pelletier/go-toml/v2"
+	"go.elara.ws/logger/log"
 	"plemya-x.ru/alr/internal/types"
 	"plemya-x.ru/alr/pkg/loggerctx"
 )
 
-var defaultConfig = &types.Config{
-	RootCmd:          "sudo",
-	PagerStyle:       "native",
-	IgnorePkgUpdates: []string{},
-	Repos: []types.Repo{
-		{
-			Name: "default",
-			URL:  "https://gitea.plemya-x.ru/xpamych/xpamych-alr-repo.git",
-		},
-	},
+type ALRConfig struct {
+	cfg   *types.Config
+	paths *Paths
+
+	pathsOnce sync.Once
 }
 
-var (
-	configMtx sync.Mutex
-	config    *types.Config
-)
+func New() *ALRConfig {
+	return &ALRConfig{}
+}
 
-// Config returns a ALR configuration struct.
-// The first time it's called, it'll load the config from a file.
-// Subsequent calls will just return the same value.
-func Config(ctx context.Context) *types.Config {
-	configMtx.Lock()
-	defer configMtx.Unlock()
+func (c *ALRConfig) Load(ctx context.Context) {
+	cfgFl, err := os.Open(c.GetPaths(ctx).ConfigPath)
+	if err != nil {
+		log.Warn("Error opening config file, using defaults").Err(err).Send()
+		c.cfg = defaultConfig
+		return
+	}
+	defer cfgFl.Close()
+
+	// Copy the default configuration into config
+	defCopy := *defaultConfig
+	config := &defCopy
+	config.Repos = nil
+
+	err = toml.NewDecoder(cfgFl).Decode(config)
+	if err != nil {
+		log.Warn("Error decoding config file, using defaults").Err(err).Send()
+		c.cfg = defaultConfig
+		return
+	}
+	c.cfg = config
+}
+
+func (c *ALRConfig) initPaths(ctx context.Context) {
 	log := loggerctx.From(ctx)
+	paths := &Paths{}
 
-	if config == nil {
-		cfgFl, err := os.Open(GetPaths(ctx).ConfigPath)
-		if err != nil {
-			log.Warn("Error opening config file, using defaults").Err(err).Send()
-			return defaultConfig
-		}
-		defer cfgFl.Close()
-
-		// Copy the default configuration into config
-		defCopy := *defaultConfig
-		config = &defCopy
-		config.Repos = nil
-
-		err = toml.NewDecoder(cfgFl).Decode(config)
-		if err != nil {
-			log.Warn("Error decoding config file, using defaults").Err(err).Send()
-			// Set config back to nil so that we try again next time
-			config = nil
-			return defaultConfig
-		}
+	cfgDir, err := os.UserConfigDir()
+	if err != nil {
+		log.Fatal("Unable to detect user config directory").Err(err).Send()
 	}
 
-	return config
+	paths.ConfigDir = filepath.Join(cfgDir, "alr")
+
+	err = os.MkdirAll(paths.ConfigDir, 0o755)
+	if err != nil {
+		log.Fatal("Unable to create ALR config directory").Err(err).Send()
+	}
+
+	paths.ConfigPath = filepath.Join(paths.ConfigDir, "alr.toml")
+
+	if _, err := os.Stat(paths.ConfigPath); err != nil {
+		cfgFl, err := os.Create(paths.ConfigPath)
+		if err != nil {
+			log.Fatal("Unable to create ALR config file").Err(err).Send()
+		}
+
+		err = toml.NewEncoder(cfgFl).Encode(&defaultConfig)
+		if err != nil {
+			log.Fatal("Error encoding default configuration").Err(err).Send()
+		}
+
+		cfgFl.Close()
+	}
+
+	cacheDir, err := os.UserCacheDir()
+	if err != nil {
+		log.Fatal("Unable to detect cache directory").Err(err).Send()
+	}
+
+	paths.CacheDir = filepath.Join(cacheDir, "alr")
+	paths.RepoDir = filepath.Join(paths.CacheDir, "repo")
+	paths.PkgsDir = filepath.Join(paths.CacheDir, "pkgs")
+
+	err = os.MkdirAll(paths.RepoDir, 0o755)
+	if err != nil {
+		log.Fatal("Unable to create repo cache directory").Err(err).Send()
+	}
+
+	err = os.MkdirAll(paths.PkgsDir, 0o755)
+	if err != nil {
+		log.Fatal("Unable to create package cache directory").Err(err).Send()
+	}
+
+	paths.DBPath = filepath.Join(paths.CacheDir, "db")
+
+	c.paths = paths
+}
+
+func (c *ALRConfig) GetPaths(ctx context.Context) *Paths {
+	c.pathsOnce.Do(func() {
+		c.initPaths(ctx)
+	})
+	return c.paths
 }

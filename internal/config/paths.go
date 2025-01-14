@@ -20,12 +20,6 @@ package config
 
 import (
 	"context"
-	"os"
-	"path/filepath"
-	"sync"
-
-	"github.com/pelletier/go-toml/v2"
-	"plemya-x.ru/alr/pkg/loggerctx"
 )
 
 // Paths contains various paths used by ALR
@@ -38,71 +32,13 @@ type Paths struct {
 	DBPath     string
 }
 
-var (
-	pathsMtx sync.Mutex
-	paths    *Paths
-)
-
 // GetPaths returns a Paths struct.
 // The first time it's called, it'll generate the struct
 // using information from the system.
 // Subsequent calls will return the same value.
+//
+// Depreacted: use struct API
 func GetPaths(ctx context.Context) *Paths {
-	pathsMtx.Lock()
-	defer pathsMtx.Unlock()
-
-	log := loggerctx.From(ctx)
-	if paths == nil {
-		paths = &Paths{}
-
-		cfgDir, err := os.UserConfigDir()
-		if err != nil {
-			log.Fatal("Unable to detect user config directory").Err(err).Send()
-		}
-
-		paths.ConfigDir = filepath.Join(cfgDir, "alr")
-
-		err = os.MkdirAll(paths.ConfigDir, 0o755)
-		if err != nil {
-			log.Fatal("Unable to create ALR config directory").Err(err).Send()
-		}
-
-		paths.ConfigPath = filepath.Join(paths.ConfigDir, "alr.toml")
-
-		if _, err := os.Stat(paths.ConfigPath); err != nil {
-			cfgFl, err := os.Create(paths.ConfigPath)
-			if err != nil {
-				log.Fatal("Unable to create ALR config file").Err(err).Send()
-			}
-
-			err = toml.NewEncoder(cfgFl).Encode(&defaultConfig)
-			if err != nil {
-				log.Fatal("Error encoding default configuration").Err(err).Send()
-			}
-
-			cfgFl.Close()
-		}
-
-		cacheDir, err := os.UserCacheDir()
-		if err != nil {
-			log.Fatal("Unable to detect cache directory").Err(err).Send()
-		}
-
-		paths.CacheDir = filepath.Join(cacheDir, "alr")
-		paths.RepoDir = filepath.Join(paths.CacheDir, "repo")
-		paths.PkgsDir = filepath.Join(paths.CacheDir, "pkgs")
-
-		err = os.MkdirAll(paths.RepoDir, 0o755)
-		if err != nil {
-			log.Fatal("Unable to create repo cache directory").Err(err).Send()
-		}
-
-		err = os.MkdirAll(paths.PkgsDir, 0o755)
-		if err != nil {
-			log.Fatal("Unable to create package cache directory").Err(err).Send()
-		}
-
-		paths.DBPath = filepath.Join(paths.CacheDir, "db")
-	}
-	return paths
+	alrConfig := GetInstance(ctx)
+	return alrConfig.GetPaths(ctx)
 }
