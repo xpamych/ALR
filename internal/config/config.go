@@ -34,6 +34,7 @@ type ALRConfig struct {
 	cfg   *types.Config
 	paths *Paths
 
+	cfgOnce   sync.Once
 	pathsOnce sync.Once
 }
 
@@ -125,4 +126,18 @@ func (c *ALRConfig) GetPaths(ctx context.Context) *Paths {
 		c.initPaths(ctx)
 	})
 	return c.paths
+}
+
+func (c *ALRConfig) Repos(ctx context.Context) []types.Repo {
+	c.cfgOnce.Do(func() {
+		c.Load(ctx)
+	})
+	return c.cfg.Repos
+}
+
+func (c *ALRConfig) IgnorePkgUpdates(ctx context.Context) []string {
+	c.cfgOnce.Do(func() {
+		c.Load(ctx)
+	})
+	return c.cfg.IgnorePkgUpdates
 }

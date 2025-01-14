@@ -22,12 +22,12 @@ import (
 	"fmt"
 
 	"github.com/urfave/cli/v2"
+	"golang.org/x/exp/slices"
 	"plemya-x.ru/alr/internal/config"
-	"plemya-x.ru/alr/internal/db"
+	database "plemya-x.ru/alr/internal/db"
 	"plemya-x.ru/alr/pkg/loggerctx"
 	"plemya-x.ru/alr/pkg/manager"
 	"plemya-x.ru/alr/pkg/repos"
-	"golang.org/x/exp/slices"
 )
 
 var listCmd = &cli.Command{
@@ -43,8 +43,15 @@ var listCmd = &cli.Command{
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 		log := loggerctx.From(ctx)
+		cfg := config.New()
 
-		err := repos.Pull(ctx, config.Config(ctx).Repos)
+		db := database.New(cfg)
+		err := db.Init(ctx)
+		if err != nil {
+			log.Fatal("Error initialization database").Err(err).Send()
+		}
+
+		err = repos.Pull(ctx, cfg.Repos(ctx))
 		if err != nil {
 			log.Fatal("Error pulling repositories").Err(err).Send()
 		}
@@ -76,13 +83,13 @@ var listCmd = &cli.Command{
 		}
 
 		for result.Next() {
-			var pkg db.Package
+			var pkg database.Package
 			err := result.StructScan(&pkg)
 			if err != nil {
 				return err
 			}
 
-			if slices.Contains(config.Config(ctx).IgnorePkgUpdates, pkg.Name) {
+			if slices.Contains(cfg.IgnorePkgUpdates(ctx), pkg.Name) {
 				continue
 			}
 
