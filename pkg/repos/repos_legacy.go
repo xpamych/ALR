@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"plemya-x.ru/alr/internal/config"
+	"plemya-x.ru/alr/internal/db"
 	database "plemya-x.ru/alr/internal/db"
 	"plemya-x.ru/alr/internal/types"
 )
@@ -17,6 +18,15 @@ import (
 // Deprecated: use struct method
 func Pull(ctx context.Context, repos []types.Repo) error {
 	return GetInstance(ctx).Pull(ctx, repos)
+}
+
+// FindPkgs looks for packages matching the inputs inside the database.
+// It returns a map that maps the package name input to any packages found for it.
+// It also returns a slice that contains the names of all packages that were not found.
+//
+// Deprecated: use struct method
+func FindPkgs(ctx context.Context, pkgs []string) (map[string][]db.Package, []string, error) {
+	return GetInstance(ctx).FindPkgs(ctx, pkgs)
 }
 
 // =======================
