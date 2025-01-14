@@ -25,7 +25,6 @@ import (
 	"sync"
 
 	"github.com/pelletier/go-toml/v2"
-	"go.elara.ws/logger/log"
 	"plemya-x.ru/alr/internal/types"
 	"plemya-x.ru/alr/pkg/loggerctx"
 )
@@ -43,6 +42,7 @@ func New() *ALRConfig {
 }
 
 func (c *ALRConfig) Load(ctx context.Context) {
+	log := loggerctx.From(ctx)
 	cfgFl, err := os.Open(c.GetPaths(ctx).ConfigPath)
 	if err != nil {
 		log.Warn("Error opening config file, using defaults").Err(err).Send()
