@@ -11,6 +11,8 @@ ZSH_COMPLETION := $(COMPLETIONS_DIR)/zsh
 INSTALLED_BASH_COMPLETION := $(DESTDIR)$(PREFIX)/share/bash-completion/completions/$(NAME)
 INSTALLED_ZSH_COMPLETION := $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_$(NAME)
 
+ADD_LICENSE_BIN := go run github.com/google/addlicense@4caba19b7ed7818bb86bc4cd20411a246aa4a524
+
 .PHONY: build install clean clear uninstall check-no-root
 
 build: check-no-root $(BIN)
@@ -49,7 +51,8 @@ uninstall:
 clean clear:
 	rm -f $(BIN)
 
+OLD_FILES=$$(< old-files)
 IGNORE_OLD_FILES := $(foreach file,$(shell cat old-files),-ignore $(file))
 update-license:
-	go run github.com/google/addlicense@latest -v -f license-header-old-files.tmpl $$(< old-files)
-	go run github.com/google/addlicense@latest -v -f license-header.tmpl $(IGNORE_OLD_FILES) .
+	$(ADD_LICENSE_BIN) -v -f license-header-old-files.tmpl $(OLD_FILES)
+	$(ADD_LICENSE_BIN) -v -f license-header.tmpl $(IGNORE_OLD_FILES) .
