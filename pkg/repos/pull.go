@@ -21,41 +21,48 @@ package repos
 import (
 	"context"
 	"errors"
-	"io"
 	"net/url"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/format/diff"
 	"github.com/pelletier/go-toml/v2"
 	"go.elara.ws/vercmp"
-	"plemya-x.ru/alr/internal/config"
-	"plemya-x.ru/alr/internal/db"
-	"plemya-x.ru/alr/internal/shutils/decoder"
-	"plemya-x.ru/alr/internal/shutils/handlers"
-	"plemya-x.ru/alr/internal/types"
-	"plemya-x.ru/alr/pkg/distro"
-	"plemya-x.ru/alr/pkg/loggerctx"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
+	"plemya-x.ru/alr/internal/config"
+	"plemya-x.ru/alr/internal/db"
+	"plemya-x.ru/alr/internal/shutils/handlers"
+	"plemya-x.ru/alr/internal/types"
+	"plemya-x.ru/alr/pkg/loggerctx"
 )
+
+type actionType uint8
+
+const (
+	actionDelete actionType = iota
+	actionUpdate
+)
+
+type action struct {
+	Type actionType
+	File string
+}
 
 // Pull pulls the provided repositories. If a repo doesn't exist, it will be cloned
 // and its packages will be written to the DB. If it does exist, it will be pulled.
 // In this case, only changed packages will be processed if possible.
 // If repos is set to nil, the repos in the ALR config will be used.
-func Pull(ctx context.Context, repos []types.Repo) error {
+func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 	log := loggerctx.From(ctx)
 
 	if repos == nil {
-		repos = config.Config(ctx).Repos
+		repos = rs.cfg.Repos(ctx)
 	}
 
 	for _, repo := range repos {
@@ -95,7 +102,7 @@ func Pull(ctx context.Context, repos []types.Repo) error {
 			repoFS = w.Filesystem
 
 			// Make sure the DB is created even if the repo is up to date
-			if !errors.Is(err, git.NoErrAlreadyUpToDate) || db.IsEmpty(ctx) {
+			if !errors.Is(err, git.NoErrAlreadyUpToDate) || rs.db.IsEmpty(ctx) {
 				new, err := r.Head()
 				if err != nil {
 					return err
@@ -104,13 +111,13 @@ func Pull(ctx context.Context, repos []types.Repo) error {
 				// If the DB was not present at startup, that means it's
 				// empty. In this case, we need to update the DB fully
 				// rather than just incrementally.
-				if db.IsEmpty(ctx) {
-					err = processRepoFull(ctx, repo, repoDir)
+				if rs.db.IsEmpty(ctx) {
+					err = rs.processRepoFull(ctx, repo, repoDir)
 					if err != nil {
 						return err
 					}
 				} else {
-					err = processRepoChanges(ctx, repo, r, w, old, new)
+					err = rs.processRepoChanges(ctx, repo, r, w, old, new)
 					if err != nil {
 						return err
 					}
@@ -135,7 +142,7 @@ func Pull(ctx context.Context, repos []types.Repo) error {
 				return err
 			}
 
-			err = processRepoFull(ctx, repo, repoDir)
+			err = rs.processRepoFull(ctx, repo, repoDir)
 			if err != nil {
 				return err
 			}
@@ -169,19 +176,7 @@ func Pull(ctx context.Context, repos []types.Repo) error {
 	return nil
 }
 
-type actionType uint8
-
-const (
-	actionDelete actionType = iota
-	actionUpdate
-)
-
-type action struct {
-	Type actionType
-	File string
-}
-
-func processRepoChanges(ctx context.Context, repo types.Repo, r *git.Repository, w *git.Worktree, old, new *plumbing.Reference) error {
+func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git.Repository, w *git.Worktree, old, new *plumbing.Reference) error {
 	oldCommit, err := r.CommitObject(old.Hash())
 	if err != nil {
 		return err
@@ -275,7 +270,7 @@ func processRepoChanges(ctx context.Context, repo types.Repo, r *git.Repository,
 				return err
 			}
 
-			err = db.DeletePkgs(ctx, "name = ? AND repository = ?", pkg.Name, repo.Name)
+			err = rs.db.DeletePkgs(ctx, "name = ? AND repository = ?", pkg.Name, repo.Name)
 			if err != nil {
 				return err
 			}
@@ -310,7 +305,7 @@ func processRepoChanges(ctx context.Context, repo types.Repo, r *git.Repository,
 
 			resolveOverrides(runner, &pkg)
 
-			err = db.InsertPackage(ctx, pkg)
+			err = rs.db.InsertPackage(ctx, pkg)
 			if err != nil {
 				return err
 			}
@@ -320,23 +315,7 @@ func processRepoChanges(ctx context.Context, repo types.Repo, r *git.Repository,
 	return nil
 }
 
-// isValid makes sure the path of the file being updated is valid.
-// It checks to make sure the file is not within a nested directory
-// and that it is called alr.sh.
-func isValid(from, to diff.File) bool {
-	var path string
-	if from != nil {
-		path = from.Path()
-	}
-	if to != nil {
-		path = to.Path()
-	}
-
-	match, _ := filepath.Match("*/*.sh", path)
-	return match
-}
-
-func processRepoFull(ctx context.Context, repo types.Repo, repoDir string) error {
+func (rs *Repos) processRepoFull(ctx context.Context, repo types.Repo, repoDir string) error {
 	glob := filepath.Join(repoDir, "/*/alr.sh")
 	matches, err := filepath.Glob(glob)
 	if err != nil {
@@ -380,62 +359,11 @@ func processRepoFull(ctx context.Context, repo types.Repo, repoDir string) error
 
 		resolveOverrides(runner, &pkg)
 
-		err = db.InsertPackage(ctx, pkg)
+		err = rs.db.InsertPackage(ctx, pkg)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func parseScript(ctx context.Context, parser *syntax.Parser, runner *interp.Runner, r io.ReadCloser, pkg *db.Package) error {
-	defer r.Close()
-	fl, err := parser.Parse(r, "alr.sh")
-	if err != nil {
-		return err
-	}
-
-	runner.Reset()
-	err = runner.Run(ctx, fl)
-	if err != nil {
-		return err
-	}
-
-	d := decoder.New(&distro.OSRelease{}, runner)
-	d.Overrides = false
-	d.LikeDistros = false
-	return d.DecodeVars(pkg)
-}
-
-var overridable = map[string]string{
-	"deps":       "Depends",
-	"build_deps": "BuildDepends",
-	"desc":       "Description",
-	"homepage":   "Homepage",
-	"maintainer": "Maintainer",
-}
-
-func resolveOverrides(runner *interp.Runner, pkg *db.Package) {
-	pkgVal := reflect.ValueOf(pkg).Elem()
-	for name, val := range runner.Vars {
-		for prefix, field := range overridable {
-			if strings.HasPrefix(name, prefix) {
-				override := strings.TrimPrefix(name, prefix)
-				override = strings.TrimPrefix(override, "_")
-
-				field := pkgVal.FieldByName(field)
-				varVal := field.FieldByName("Val")
-				varType := varVal.Type()
-
-				switch varType.Elem().String() {
-				case "[]string":
-					varVal.SetMapIndex(reflect.ValueOf(override), reflect.ValueOf(val.List))
-				case "string":
-					varVal.SetMapIndex(reflect.ValueOf(override), reflect.ValueOf(val.Str))
-				}
-				break
-			}
-		}
-	}
 }

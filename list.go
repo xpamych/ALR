@@ -44,14 +44,13 @@ var listCmd = &cli.Command{
 		ctx := c.Context
 		log := loggerctx.From(ctx)
 		cfg := config.New()
-
 		db := database.New(cfg)
 		err := db.Init(ctx)
 		if err != nil {
 			log.Fatal("Error initialization database").Err(err).Send()
 		}
-
-		err = repos.Pull(ctx, cfg.Repos(ctx))
+		rs := repos.New(cfg, db)
+		err = rs.Pull(ctx, cfg.Repos(ctx))
 		if err != nil {
 			log.Fatal("Error pulling repositories").Err(err).Send()
 		}

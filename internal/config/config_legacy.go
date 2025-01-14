@@ -55,6 +55,7 @@ var (
 	alrConfigOnce sync.Once
 )
 
+// Deprecated: For legacy only
 func GetInstance(ctx context.Context) *ALRConfig {
 	alrConfigOnce.Do(func() {
 		alrConfig = New()

@@ -1,0 +1,44 @@
+package repos
+
+import (
+	"context"
+	"sync"
+
+	"plemya-x.ru/alr/internal/config"
+	database "plemya-x.ru/alr/internal/db"
+	"plemya-x.ru/alr/internal/types"
+)
+
+// Pull pulls the provided repositories. If a repo doesn't exist, it will be cloned
+// and its packages will be written to the DB. If it does exist, it will be pulled.
+// In this case, only changed packages will be processed if possible.
+// If repos is set to nil, the repos in the ALR config will be used.
+//
+// Deprecated: use struct method
+func Pull(ctx context.Context, repos []types.Repo) error {
+	return GetInstance(ctx).Pull(ctx, repos)
+}
+
+// =======================
+// FOR LEGACY ONLY
+// =======================
+
+var (
+	reposInstance *Repos
+	alrConfigOnce sync.Once
+)
+
+// Deprecated: For legacy only
+func GetInstance(ctx context.Context) *Repos {
+	alrConfigOnce.Do(func() {
+		cfg := config.GetInstance(ctx)
+		db := database.GetInstance(ctx)
+
+		reposInstance = New(
+			cfg,
+			db,
+		)
+	})
+
+	return reposInstance
+}

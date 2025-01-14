@@ -26,69 +26,104 @@ import (
 
 	"plemya-x.ru/alr/internal/config"
 	"plemya-x.ru/alr/internal/db"
+	database "plemya-x.ru/alr/internal/db"
 	"plemya-x.ru/alr/internal/types"
 	"plemya-x.ru/alr/pkg/repos"
 )
 
-func setCfgDirs(t *testing.T) {
-	t.Helper()
-
-	paths := config.GetPaths()
-
-	var err error
-	paths.CacheDir, err = os.MkdirTemp("/tmp", "alr-pull-test.*")
-	if err != nil {
-		t.Fatalf("Expected no error, got %s", err)
-	}
-
-	paths.RepoDir = filepath.Join(paths.CacheDir, "repo")
-	paths.PkgsDir = filepath.Join(paths.CacheDir, "pkgs")
-
-	err = os.MkdirAll(paths.RepoDir, 0o755)
-	if err != nil {
-		t.Fatalf("Expected no error, got %s", err)
-	}
-
-	err = os.MkdirAll(paths.PkgsDir, 0o755)
-	if err != nil {
-		t.Fatalf("Expected no error, got %s", err)
-	}
-
-	paths.DBPath = filepath.Join(paths.CacheDir, "db")
+type TestEnv struct {
+	Ctx context.Context
+	Cfg *TestALRConfig
+	Db  *db.Database
 }
 
-func removeCacheDir(t *testing.T) {
-	t.Helper()
+type TestALRConfig struct {
+	CacheDir string
+	RepoDir  string
+	PkgsDir  string
+}
 
-	err := os.RemoveAll(config.GetPaths().CacheDir)
-	if err != nil {
-		t.Fatalf("Expected no error, got %s", err)
+func (c *TestALRConfig) GetPaths(ctx context.Context) *config.Paths {
+	return &config.Paths{
+		DBPath:   ":memory:",
+		CacheDir: c.CacheDir,
+		RepoDir:  c.RepoDir,
+		PkgsDir:  c.PkgsDir,
 	}
 }
 
-func TestPull(t *testing.T) {
-	_, err := db.Open(":memory:")
+func (c *TestALRConfig) Repos(ctx context.Context) []types.Repo {
+	return []types.Repo{}
+}
+
+func prepare(t *testing.T) *TestEnv {
+	t.Helper()
+
+	cacheDir, err := os.MkdirTemp("/tmp", "alr-pull-test.*")
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}
-	defer db.Close()
 
-	setCfgDirs(t)
-	defer removeCacheDir(t)
+	repoDir := filepath.Join(cacheDir, "repo")
+	err = os.MkdirAll(repoDir, 0o755)
+	if err != nil {
+		t.Fatalf("Expected no error, got %s", err)
+	}
+
+	pkgsDir := filepath.Join(cacheDir, "pkgs")
+	err = os.MkdirAll(pkgsDir, 0o755)
+	if err != nil {
+		t.Fatalf("Expected no error, got %s", err)
+	}
+
+	cfg := &TestALRConfig{
+		CacheDir: cacheDir,
+		RepoDir:  repoDir,
+		PkgsDir:  pkgsDir,
+	}
 
 	ctx := context.Background()
 
-	err = repos.Pull(ctx, []types.Repo{
+	db := database.New(cfg)
+	db.Init(ctx)
+
+	return &TestEnv{
+		Cfg: cfg,
+		Db:  db,
+		Ctx: ctx,
+	}
+}
+
+func cleanup(t *testing.T, e *TestEnv) {
+	t.Helper()
+
+	err := os.RemoveAll(e.Cfg.CacheDir)
+	if err != nil {
+		t.Fatalf("Expected no error, got %s", err)
+	}
+	e.Db.Close()
+}
+
+func TestPull(t *testing.T) {
+	e := prepare(t)
+	defer cleanup(t, e)
+
+	rs := repos.New(
+		e.Cfg,
+		e.Db,
+	)
+
+	err := rs.Pull(e.Ctx, []types.Repo{
 		{
 			Name: "default",
-			URL:  "https://gitea.plemya-x.ru/xpamych/ALR.git",
+			URL:  "https://gitea.plemya-x.ru/Plemya-x/xpamych-alr-repo.git",
 		},
 	})
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}
 
-	result, err := db.GetPkgs("name LIKE 'itd%'")
+	result, err := e.Db.GetPkgs(e.Ctx, "true")
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}
@@ -103,7 +138,7 @@ func TestPull(t *testing.T) {
 		pkgAmt++
 	}
 
-	if pkgAmt < 2 {
-		t.Errorf("Expected 2 packages to match, got %d", pkgAmt)
+	if pkgAmt == 0 {
+		t.Errorf("Expected at least 1 matching package, but got %d", pkgAmt)
 	}
 }

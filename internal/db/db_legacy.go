@@ -33,7 +33,7 @@ import (
 //
 // Deprecated: use struct method
 func DB(ctx context.Context) *sqlx.DB {
-	return getInstance(ctx).GetConn()
+	return GetInstance(ctx).GetConn()
 }
 
 // Close closes the database
@@ -50,35 +50,35 @@ func Close() error {
 //
 // Deprecated: use struct method
 func IsEmpty(ctx context.Context) bool {
-	return getInstance(ctx).IsEmpty(ctx)
+	return GetInstance(ctx).IsEmpty(ctx)
 }
 
 // InsertPackage adds a package to the database
 //
 // Deprecated: use struct method
 func InsertPackage(ctx context.Context, pkg Package) error {
-	return getInstance(ctx).InsertPackage(ctx, pkg)
+	return GetInstance(ctx).InsertPackage(ctx, pkg)
 }
 
 // GetPkgs returns a result containing packages that match the where conditions
 //
 // Deprecated: use struct method
 func GetPkgs(ctx context.Context, where string, args ...any) (*sqlx.Rows, error) {
-	return getInstance(ctx).GetPkgs(ctx, where, args...)
+	return GetInstance(ctx).GetPkgs(ctx, where, args...)
 }
 
 // GetPkg returns a single package that matches the where conditions
 //
 // Deprecated: use struct method
 func GetPkg(ctx context.Context, where string, args ...any) (*Package, error) {
-	return getInstance(ctx).GetPkg(ctx, where, args...)
+	return GetInstance(ctx).GetPkg(ctx, where, args...)
 }
 
 // DeletePkgs deletes all packages matching the where conditions
 //
 // Deprecated: use struct method
 func DeletePkgs(ctx context.Context, where string, args ...any) error {
-	return getInstance(ctx).DeletePkgs(ctx, where, args...)
+	return GetInstance(ctx).DeletePkgs(ctx, where, args...)
 }
 
 // =======================
@@ -90,8 +90,8 @@ var (
 	database *Database
 )
 
-// For refactoring only
-func getInstance(ctx context.Context) *Database {
+// Deprecated: For legacy only
+func GetInstance(ctx context.Context) *Database {
 	dbOnce.Do(func() {
 		log := loggerctx.From(ctx)
 		cfg := config.GetInstance(ctx)
