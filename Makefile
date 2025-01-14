@@ -48,3 +48,8 @@ uninstall:
 
 clean clear:
 	rm -f $(BIN)
+
+IGNORE_OLD_FILES := $(foreach file,$(shell cat old-files),-ignore $(file))
+update-license:
+	go run github.com/google/addlicense@latest -v -f license-header-old-files.tmpl $$(< old-files)
+	go run github.com/google/addlicense@latest -v -f license-header.tmpl $(IGNORE_OLD_FILES) .
