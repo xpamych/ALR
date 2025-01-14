@@ -25,18 +25,6 @@ import (
 	"plemya-x.ru/alr/internal/types"
 )
 
-var defaultConfig = &types.Config{
-	RootCmd:          "sudo",
-	PagerStyle:       "native",
-	IgnorePkgUpdates: []string{},
-	Repos: []types.Repo{
-		{
-			Name: "default",
-			URL:  "https://gitea.plemya-x.ru/xpamych/xpamych-alr-repo.git",
-		},
-	},
-}
-
 // Config returns a ALR configuration struct.
 // The first time it's called, it'll load the config from a file.
 // Subsequent calls will just return the same value.

@@ -37,6 +37,18 @@ type ALRConfig struct {
 	pathsOnce sync.Once
 }
 
+var defaultConfig = &types.Config{
+	RootCmd:          "sudo",
+	PagerStyle:       "native",
+	IgnorePkgUpdates: []string{},
+	Repos: []types.Repo{
+		{
+			Name: "default",
+			URL:  "https://gitea.plemya-x.ru/xpamych/xpamych-alr-repo.git",
+		},
+	},
+}
+
 func New() *ALRConfig {
 	return &ALRConfig{}
 }
