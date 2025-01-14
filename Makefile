@@ -12,6 +12,7 @@ INSTALLED_BASH_COMPLETION := $(DESTDIR)$(PREFIX)/share/bash-completion/completio
 INSTALLED_ZSH_COMPLETION := $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_$(NAME)
 
 ADD_LICENSE_BIN := go run github.com/google/addlicense@4caba19b7ed7818bb86bc4cd20411a246aa4a524
+GOLANGCI_LINT_BIN := go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.2
 
 .PHONY: build install clean clear uninstall check-no-root
 
@@ -56,3 +57,6 @@ IGNORE_OLD_FILES := $(foreach file,$(shell cat old-files),-ignore $(file))
 update-license:
 	$(ADD_LICENSE_BIN) -v -f license-header-old-files.tmpl $(OLD_FILES)
 	$(ADD_LICENSE_BIN) -v -f license-header.tmpl $(IGNORE_OLD_FILES) .
+
+fmt:
+	$(GOLANGCI_LINT_BIN) run --fix
