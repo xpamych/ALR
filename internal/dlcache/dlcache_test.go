@@ -39,14 +39,49 @@ func init() {
 	config.GetPaths(context.Background()).RepoDir = dir
 }
 
+type TestALRConfig struct {
+	CacheDir string
+}
+
+func (c *TestALRConfig) GetPaths(ctx context.Context) *config.Paths {
+	return &config.Paths{
+		CacheDir: c.CacheDir,
+	}
+}
+
+func prepare(t *testing.T) *TestALRConfig {
+	t.Helper()
+
+	dir, err := os.MkdirTemp("/tmp", "alr-dlcache-test.*")
+	if err != nil {
+		panic(err)
+	}
+
+	return &TestALRConfig{
+		CacheDir: dir,
+	}
+}
+
+func cleanup(t *testing.T, cfg *TestALRConfig) {
+	t.Helper()
+	os.Remove(cfg.CacheDir)
+}
+
 func TestNew(t *testing.T) {
+	cfg := prepare(t)
+	defer cleanup(t, cfg)
+
+	dc := dlcache.New(cfg)
+
+	ctx := context.Background()
+
 	const id = "https://example.com"
-	dir, err := dlcache.New(id)
+	dir, err := dc.New(ctx, id)
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err)
 	}
 
-	exp := filepath.Join(dlcache.BasePath(), sha1sum(id))
+	exp := filepath.Join(dc.BasePath(ctx), sha1sum(id))
 	if dir != exp {
 		t.Errorf("Expected %s, got %s", exp, dir)
 	}
@@ -60,7 +95,7 @@ func TestNew(t *testing.T) {
 		t.Errorf("Expected cache item to be a directory")
 	}
 
-	dir2, ok := dlcache.Get(id)
+	dir2, ok := dc.Get(ctx, id)
 	if !ok {
 		t.Errorf("Expected Get() to return valid value")
 	}

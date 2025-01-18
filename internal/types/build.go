@@ -49,6 +49,8 @@ type BuildVars struct {
 	Checksums     []string `sh:"checksums"`
 	Backup        []string `sh:"backup"`
 	Scripts       Scripts  `sh:"scripts"`
+	AutoReq       []string `sh:"auto_req"`
+	AutoProv      []string `sh:"auto_prov"`
 }
 
 type Scripts struct {
