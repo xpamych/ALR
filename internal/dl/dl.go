@@ -14,7 +14,7 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 // Пакет dl содержит абстракции для загрузки файлов и каталогов
 // из различных источников.
@@ -39,6 +39,7 @@ import (
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/blake2s"
 	"golang.org/x/exp/slices"
+	"plemya-x.ru/alr/internal/config"
 	"plemya-x.ru/alr/internal/dlcache"
 	"plemya-x.ru/alr/pkg/loggerctx"
 )
@@ -142,6 +143,9 @@ type UpdatingDownloader interface {
 // Функция Download загружает файл или каталог с использованием указанных параметров
 func Download(ctx context.Context, opts Options) (err error) {
 	log := loggerctx.From(ctx)
+	cfg := config.GetInstance(ctx)
+	dc := dlcache.New(cfg)
+
 	normalized, err := normalizeURL(opts.URL)
 	if err != nil {
 		return err
@@ -156,7 +160,7 @@ func Download(ctx context.Context, opts Options) (err error) {
 	}
 
 	var t Type
-	cacheDir, ok := dlcache.Get(ctx, opts.URL)
+	cacheDir, ok := dc.Get(ctx, opts.URL)
 	if ok {
 		var updated bool
 		if d, ok := d.(UpdatingDownloader); ok {
@@ -203,7 +207,7 @@ func Download(ctx context.Context, opts Options) (err error) {
 
 	log.Info("Downloading source").Str("source", opts.Name).Str("downloader", d.Name()).Send()
 
-	cacheDir, err = dlcache.New(ctx, opts.URL)
+	cacheDir, err = dc.New(ctx, opts.URL)
 	if err != nil {
 		return err
 	}
@@ -298,8 +302,6 @@ func linkDir(src, dest string) error {
 		if info.Name() == manifestFileName {
 			return nil
 		}
-
-
 
 		rel, err := filepath.Rel(src, path)
 		if err != nil {

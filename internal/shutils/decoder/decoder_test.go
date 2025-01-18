@@ -27,10 +27,10 @@ import (
 	"strings"
 	"testing"
 
-	"plemya-x.ru/alr/internal/shutils/decoder"
-	"plemya-x.ru/alr/pkg/distro"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
+	"plemya-x.ru/alr/internal/shutils/decoder"
+	"plemya-x.ru/alr/pkg/distro"
 )
 
 type BuildVars struct {
@@ -56,7 +56,7 @@ const testScript = `
 	release=1
 	epoch=2
 	desc="Test package"
-	homepage='//https://gitea.plemya-x.ru/xpamych/ALR'
+	homepage='https://gitea.plemya-x.ru/xpamych/ALR'
 	maintainer='Евгений Храмов <xpamych@yandex.ru>'
 	architectures=('arm64' 'amd64')
 	license=('GPL-3.0-or-later')

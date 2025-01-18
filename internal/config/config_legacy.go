@@ -20,25 +20,35 @@ package config
 
 import (
 	"context"
+	"sync"
+
+	"plemya-x.ru/alr/internal/types"
 )
 
-// Paths contains various paths used by ALR
-type Paths struct {
-	ConfigDir  string
-	ConfigPath string
-	CacheDir   string
-	RepoDir    string
-	PkgsDir    string
-	DBPath     string
+// Config returns a ALR configuration struct.
+// The first time it's called, it'll load the config from a file.
+// Subsequent calls will just return the same value.
+//
+// Deprecated: use struct method
+func Config(ctx context.Context) *types.Config {
+	return GetInstance(ctx).cfg
 }
 
-// GetPaths returns a Paths struct.
-// The first time it's called, it'll generate the struct
-// using information from the system.
-// Subsequent calls will return the same value.
-//
-// Depreacted: use struct API
-func GetPaths(ctx context.Context) *Paths {
-	alrConfig := GetInstance(ctx)
-	return alrConfig.GetPaths(ctx)
+// =======================
+// FOR LEGACY ONLY
+// =======================
+
+var (
+	alrConfig     *ALRConfig
+	alrConfigOnce sync.Once
+)
+
+// Deprecated: For legacy only
+func GetInstance(ctx context.Context) *ALRConfig {
+	alrConfigOnce.Do(func() {
+		alrConfig = New()
+		alrConfig.Load(ctx)
+	})
+
+	return alrConfig
 }

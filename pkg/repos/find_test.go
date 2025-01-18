@@ -19,7 +19,6 @@
 package repos_test
 
 import (
-	"context"
 	"reflect"
 	"strings"
 	"testing"
@@ -30,18 +29,15 @@ import (
 )
 
 func TestFindPkgs(t *testing.T) {
-	_, err := db.Open(":memory:")
-	if err != nil {
-		t.Fatalf("Expected no error, got %s", err)
-	}
-	defer db.Close()
+	e := prepare(t)
+	defer cleanup(t, e)
 
-	setCfgDirs(t)
-	defer removeCacheDir(t)
+	rs := repos.New(
+		e.Cfg,
+		e.Db,
+	)
 
-	ctx := context.Background()
-
-	err = repos.Pull(ctx, []types.Repo{
+	err := rs.Pull(e.Ctx, []types.Repo{
 		{
 			Name: "default",
 			URL:  "https://gitea.plemya-x.ru/xpamych/xpamych-alr-repo.git",
@@ -51,7 +47,10 @@ func TestFindPkgs(t *testing.T) {
 		t.Fatalf("Expected no error, got %s", err)
 	}
 
-	found, notFound, err := repos.FindPkgs([]string{"itd", "nonexistentpackage1", "nonexistentpackage2"})
+	found, notFound, err := rs.FindPkgs(
+		e.Ctx,
+		[]string{"alr", "nonexistentpackage1", "nonexistentpackage2"},
+	)
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}
@@ -64,33 +63,32 @@ func TestFindPkgs(t *testing.T) {
 		t.Errorf("Expected 1 package found, got %d", len(found))
 	}
 
-	itdPkgs, ok := found["itd"]
+	alrPkgs, ok := found["alr"]
 	if !ok {
-		t.Fatalf("Expected 'itd' packages to be found")
+		t.Fatalf("Expected 'alr' packages to be found")
 	}
 
-	if len(itdPkgs) < 2 {
-		t.Errorf("Expected two 'itd' packages to be found")
+	if len(alrPkgs) < 2 {
+		t.Errorf("Expected two 'alr' packages to be found")
 	}
 
-	for i, pkg := range itdPkgs {
-		if !strings.HasPrefix(pkg.Name, "itd") {
-			t.Errorf("Expected package name of all found packages to start with 'itd', got %s on element %d", pkg.Name, i)
+	for i, pkg := range alrPkgs {
+		if !strings.HasPrefix(pkg.Name, "alr") {
+			t.Errorf("Expected package name of all found packages to start with 'alr', got %s on element %d", pkg.Name, i)
 		}
 	}
 }
 
 func TestFindPkgsEmpty(t *testing.T) {
-	_, err := db.Open(":memory:")
-	if err != nil {
-		t.Fatalf("Expected no error, got %s", err)
-	}
-	defer db.Close()
+	e := prepare(t)
+	defer cleanup(t, e)
 
-	setCfgDirs(t)
-	defer removeCacheDir(t)
+	rs := repos.New(
+		e.Cfg,
+		e.Db,
+	)
 
-	err = db.InsertPackage(db.Package{
+	err := e.Db.InsertPackage(e.Ctx, db.Package{
 		Name:       "test1",
 		Repository: "default",
 		Version:    "0.0.1",
@@ -105,7 +103,7 @@ func TestFindPkgsEmpty(t *testing.T) {
 		t.Fatalf("Expected no error, got %s", err)
 	}
 
-	err = db.InsertPackage(db.Package{
+	err = e.Db.InsertPackage(e.Ctx, db.Package{
 		Name:       "test2",
 		Repository: "default",
 		Version:    "0.0.1",
@@ -120,7 +118,7 @@ func TestFindPkgsEmpty(t *testing.T) {
 		t.Fatalf("Expected no error, got %s", err)
 	}
 
-	found, notFound, err := repos.FindPkgs([]string{"test", ""})
+	found, notFound, err := rs.FindPkgs(e.Ctx, []string{"test", ""})
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}

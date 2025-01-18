@@ -46,6 +46,7 @@ import (
 	_ "github.com/goreleaser/nfpm/v2/arch"
 	_ "github.com/goreleaser/nfpm/v2/deb"
 	_ "github.com/goreleaser/nfpm/v2/rpm"
+	"go.elara.ws/logger/log"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
@@ -543,14 +544,25 @@ func buildPkgMetadata(ctx context.Context, vars *types.BuildVars, dirs types.Dir
 	}
 	pkgInfo.Overridables.Contents = contents
 
-	if pkgFormat == "rpm" {
-		err = rpmFindProvides(ctx, pkgInfo, dirs)
-		if err != nil {
-			return nil, err
+	if len(vars.AutoProv) == 1 && decoder.IsTruthy(vars.AutoProv[0]) {
+		if pkgFormat == "rpm" {
+			err = rpmFindProvides(ctx, pkgInfo, dirs)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			log.Info("AutoProv is not implemented for this package format, so it's skiped").Send()
 		}
-		err = rpmFindRequires(ctx, pkgInfo, dirs)
-		if err != nil {
-			return nil, err
+	}
+
+	if len(vars.AutoReq) == 1 && decoder.IsTruthy(vars.AutoReq[0]) {
+		if pkgFormat == "rpm" {
+			err = rpmFindRequires(ctx, pkgInfo, dirs)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			log.Info("AutoReq is not implemented for this package format, so it's skiped").Send()
 		}
 	}
 
