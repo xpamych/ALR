@@ -23,11 +23,11 @@ import (
 	"strings"
 	"testing"
 
-	"plemya-x.ru/alr/internal/shutils/handlers"
-	"plemya-x.ru/alr/internal/shutils/decoder"
-	"plemya-x.ru/alr/pkg/distro"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
+	"plemya-x.ru/alr/internal/shutils/decoder"
+	"plemya-x.ru/alr/internal/shutils/handlers"
+	"plemya-x.ru/alr/pkg/distro"
 )
 
 const testScript = `
@@ -89,7 +89,7 @@ func TestExecFuncs(t *testing.T) {
 		t.Fatalf("Expected test() function to exist")
 	}
 
-	eh := shutils.ExecFuncs{
+	eh := handlers.ExecFuncs{
 		"test-cmd": func(hc interp.HandlerContext, name string, args []string) error {
 			if name != "test-cmd" {
 				t.Errorf("Expected name to be 'test-cmd', got '%s'", name)

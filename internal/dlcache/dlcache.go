@@ -20,29 +20,41 @@ package dlcache
 
 import (
 	"context"
-	"crypto/sha1"
-	"encoding/hex"
-	"io"
 	"os"
 	"path/filepath"
 
 	"plemya-x.ru/alr/internal/config"
 )
 
-// BasePath returns the base path of the download cache
-func BasePath(ctx context.Context) string {
-	return filepath.Join(config.GetPaths(ctx).CacheDir, "dl")
+type Config interface {
+	GetPaths(ctx context.Context) *config.Paths
+}
+
+type DownloadCache struct {
+	cfg Config
+}
+
+func New(cfg Config) *DownloadCache {
+	return &DownloadCache{
+		cfg,
+	}
+}
+
+func (dc *DownloadCache) BasePath(ctx context.Context) string {
+	return filepath.Join(
+		dc.cfg.GetPaths(ctx).CacheDir, "dl",
+	)
 }
 
 // New creates a new directory with the given ID in the cache.
 // If a directory with the same ID already exists,
 // it will be deleted before creating a new one.
-func New(ctx context.Context, id string) (string, error) {
+func (dc *DownloadCache) New(ctx context.Context, id string) (string, error) {
 	h, err := hashID(id)
 	if err != nil {
 		return "", err
 	}
-	itemPath := filepath.Join(BasePath(ctx), h)
+	itemPath := filepath.Join(dc.BasePath(ctx), h)
 
 	fi, err := os.Stat(itemPath)
 	if err == nil || (fi != nil && !fi.IsDir()) {
@@ -65,12 +77,12 @@ func New(ctx context.Context, id string) (string, error) {
 // returns the directory and true. If it
 // does not exist, it returns an empty string
 // and false.
-func Get(ctx context.Context, id string) (string, bool) {
+func (dc *DownloadCache) Get(ctx context.Context, id string) (string, bool) {
 	h, err := hashID(id)
 	if err != nil {
 		return "", false
 	}
-	itemPath := filepath.Join(BasePath(ctx), h)
+	itemPath := filepath.Join(dc.BasePath(ctx), h)
 
 	_, err = os.Stat(itemPath)
 	if err != nil {
@@ -78,16 +90,4 @@ func Get(ctx context.Context, id string) (string, bool) {
 	}
 
 	return itemPath, true
-}
-
-// hashID hashes the input ID with SHA1
-// and returns the hex string of the hashed
-// ID.
-func hashID(id string) (string, error) {
-	h := sha1.New()
-	_, err := io.WriteString(h, id)
-	if err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(h.Sum(nil)), nil
 }
