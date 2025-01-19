@@ -19,14 +19,13 @@
 package manager
 
 import (
-	"bufio"
 	"fmt"
 	"os/exec"
-	"strings"
 )
 
 // DNF представляет менеджер пакетов DNF
 type DNF struct {
+	CommonRPM
 	rootCmd string // rootCmd хранит команду, используемую для выполнения команд с правами root
 }
 
@@ -118,39 +117,6 @@ func (d *DNF) UpgradeAll(opts *Opts) error {
 		return fmt.Errorf("dnf: upgradeall: %w", err)
 	}
 	return nil
-}
-
-// ListInstalled возвращает список установленных пакетов и их версий
-func (d *DNF) ListInstalled(opts *Opts) (map[string]string, error) {
-	out := map[string]string{}
-	cmd := exec.Command("rpm", "-qa", "--queryformat", "%{NAME}\u200b%|EPOCH?{%{EPOCH}:}:{}|%{VERSION}-%{RELEASE}\\n")
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-
-	err = cmd.Start()
-	if err != nil {
-		return nil, err
-	}
-
-	scanner := bufio.NewScanner(stdout)
-	for scanner.Scan() {
-		name, version, ok := strings.Cut(scanner.Text(), "\u200b")
-		if !ok {
-			continue
-		}
-		version = strings.TrimPrefix(version, "0:")
-		out[name] = version
-	}
-
-	err = scanner.Err()
-	if err != nil {
-		return nil, err
-	}
-
-	return out, nil
 }
 
 // getCmd создает и возвращает команду exec.Cmd для менеджера пакетов DNF

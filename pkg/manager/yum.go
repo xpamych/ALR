@@ -20,14 +20,14 @@
 package manager
 
 import (
-	"bufio"
 	"fmt"
 	"os/exec"
-	"strings"
 )
 
 // YUM represents the YUM package manager
 type YUM struct {
+	CommonRPM
+
 	rootCmd string
 }
 
@@ -109,38 +109,6 @@ func (y *YUM) UpgradeAll(opts *Opts) error {
 		return fmt.Errorf("yum: upgradeall: %w", err)
 	}
 	return nil
-}
-
-func (y *YUM) ListInstalled(opts *Opts) (map[string]string, error) {
-	out := map[string]string{}
-	cmd := exec.Command("rpm", "-qa", "--queryformat", "%{NAME}\u200b%|EPOCH?{%{EPOCH}:}:{}|%{VERSION}-%{RELEASE}\\n")
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-
-	err = cmd.Start()
-	if err != nil {
-		return nil, err
-	}
-
-	scanner := bufio.NewScanner(stdout)
-	for scanner.Scan() {
-		name, version, ok := strings.Cut(scanner.Text(), "\u200b")
-		if !ok {
-			continue
-		}
-		version = strings.TrimPrefix(version, "0:")
-		out[name] = version
-	}
-
-	err = scanner.Err()
-	if err != nil {
-		return nil, err
-	}
-
-	return out, nil
 }
 
 func (y *YUM) getCmd(opts *Opts, mgrCmd string, args ...string) *exec.Cmd {

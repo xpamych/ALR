@@ -142,6 +142,21 @@ func (p *Pacman) ListInstalled(opts *Opts) (map[string]string, error) {
 	return out, nil
 }
 
+func (p *Pacman) IsInstalled(pkg string) (bool, error) {
+	cmd := exec.Command("pacman", "-Q", pkg)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		// Pacman returns exit code 1 if the package is not found
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			if exitErr.ExitCode() == 1 {
+				return false, nil
+			}
+		}
+		return false, fmt.Errorf("pacman: isinstalled: %w, output: %s", err, output)
+	}
+	return true, nil
+}
+
 func (p *Pacman) getCmd(opts *Opts, mgrCmd string, args ...string) *exec.Cmd {
 	var cmd *exec.Cmd
 	if opts.AsRoot {
