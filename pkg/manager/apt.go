@@ -135,6 +135,21 @@ func (a *APT) ListInstalled(opts *Opts) (map[string]string, error) {
 	return out, nil
 }
 
+func (a *APT) IsInstalled(pkg string) (bool, error) {
+	cmd := exec.Command("dpkg-query", "-l", pkg)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			// Exit code 1 means the package is not installed
+			if exitErr.ExitCode() == 1 {
+				return false, nil
+			}
+		}
+		return false, fmt.Errorf("apt: isinstalled: %w, output: %s", err, output)
+	}
+	return true, nil
+}
+
 func (a *APT) getCmd(opts *Opts, mgrCmd string, args ...string) *exec.Cmd {
 	var cmd *exec.Cmd
 	if opts.AsRoot {

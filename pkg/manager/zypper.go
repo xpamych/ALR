@@ -20,14 +20,13 @@
 package manager
 
 import (
-	"bufio"
 	"fmt"
 	"os/exec"
-	"strings"
 )
 
 // Zypper represents the Zypper package manager
 type Zypper struct {
+	CommonRPM
 	rootCmd string
 }
 
@@ -109,38 +108,6 @@ func (z *Zypper) UpgradeAll(opts *Opts) error {
 		return fmt.Errorf("zypper: upgradeall: %w", err)
 	}
 	return nil
-}
-
-func (z *Zypper) ListInstalled(opts *Opts) (map[string]string, error) {
-	out := map[string]string{}
-	cmd := exec.Command("rpm", "-qa", "--queryformat", "%{NAME}\u200b%|EPOCH?{%{EPOCH}:}:{}|%{VERSION}-%{RELEASE}\\n")
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-
-	err = cmd.Start()
-	if err != nil {
-		return nil, err
-	}
-
-	scanner := bufio.NewScanner(stdout)
-	for scanner.Scan() {
-		name, version, ok := strings.Cut(scanner.Text(), "\u200b")
-		if !ok {
-			continue
-		}
-		version = strings.TrimPrefix(version, "0:")
-		out[name] = version
-	}
-
-	err = scanner.Err()
-	if err != nil {
-		return nil, err
-	}
-
-	return out, nil
 }
 
 func (z *Zypper) getCmd(opts *Opts, mgrCmd string, args ...string) *exec.Cmd {

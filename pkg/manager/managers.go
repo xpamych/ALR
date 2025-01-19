@@ -80,6 +80,8 @@ type Manager interface {
 	UpgradeAll(*Opts) error
 	// ListInstalled returns all installed packages mapped to their versions
 	ListInstalled(*Opts) (map[string]string, error)
+	//
+	IsInstalled(string) (bool, error)
 }
 
 // Detect returns the package manager detected on the system

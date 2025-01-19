@@ -65,6 +65,7 @@ import (
 // Один содержит пути к собранным пакетам, другой - имена собранных пакетов.
 func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string, error) {
 	log := loggerctx.From(ctx)
+	reposInstance := repos.GetInstance(ctx)
 
 	info, err := distro.ParseOSRelease(ctx)
 	if err != nil {
@@ -133,12 +134,12 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 		return nil, nil, err
 	}
 
-	buildDeps, err := installBuildDeps(ctx, vars, opts, installed) // Устанавливаем зависимости для сборки
+	buildDeps, err := installBuildDeps(ctx, reposInstance, vars, opts) // Устанавливаем зависимости для сборки
 	if err != nil {
 		return nil, nil, err
 	}
 
-	err = installOptDeps(ctx, vars, opts, installed) // Устанавливаем опциональные зависимости
+	err = installOptDeps(ctx, reposInstance, vars, opts) // Устанавливаем опциональные зависимости
 	if err != nil {
 		return nil, nil, err
 	}
@@ -329,18 +330,25 @@ func performChecks(ctx context.Context, vars *types.BuildVars, interactive bool,
 	return true, nil
 }
 
+type PackageFinder interface {
+	FindPkgs(ctx context.Context, pkgs []string) (map[string][]db.Package, []string, error)
+}
+
 // Функция installBuildDeps устанавливает все зависимости сборки, которые еще не установлены, и возвращает
 // срез, содержащий имена всех установленных пакетов.
-func installBuildDeps(ctx context.Context, vars *types.BuildVars, opts types.BuildOpts, installed map[string]string) ([]string, error) {
+func installBuildDeps(ctx context.Context, repos PackageFinder, vars *types.BuildVars, opts types.BuildOpts) ([]string, error) {
 	log := loggerctx.From(ctx)
 	var buildDeps []string
 	if len(vars.BuildDepends) > 0 {
-		found, notFound, err := repos.FindPkgs(ctx, vars.BuildDepends) // Находим пакеты-зависимости
+		deps, err := removeAlreadyInstalled(opts, vars.BuildDepends)
 		if err != nil {
 			return nil, err
 		}
 
-		found = removeAlreadyInstalled(found, installed) // Убираем уже установленные зависимости
+		found, notFound, err := repos.FindPkgs(ctx, deps) // Находим пакеты-зависимости
+		if err != nil {
+			return nil, err
+		}
 
 		log.Info("Installing build dependencies").Send() // Логгируем установку зависимостей
 
@@ -353,9 +361,13 @@ func installBuildDeps(ctx context.Context, vars *types.BuildVars, opts types.Bui
 
 // Функция installOptDeps спрашивает у пользователя, какие, если таковые имеются, опциональные зависимости он хочет установить.
 // Если пользователь решает установить какие-либо опциональные зависимости, выполняется их установка.
-func installOptDeps(ctx context.Context, vars *types.BuildVars, opts types.BuildOpts, installed map[string]string) error {
-	if len(vars.OptDepends) > 0 {
-		optDeps, err := cliutils.ChooseOptDepends(ctx, vars.OptDepends, "install", opts.Interactive) // Пользователя просят выбрать опциональные зависимости
+func installOptDeps(ctx context.Context, repos PackageFinder, vars *types.BuildVars, opts types.BuildOpts) error {
+	optDeps, err := removeAlreadyInstalled(opts, vars.OptDepends)
+	if err != nil {
+		return err
+	}
+	if len(optDeps) > 0 {
+		optDeps, err := cliutils.ChooseOptDepends(ctx, optDeps, "install", opts.Interactive) // Пользователя просят выбрать опциональные зависимости
 		if err != nil {
 			return err
 		}
@@ -369,7 +381,6 @@ func installOptDeps(ctx context.Context, vars *types.BuildVars, opts types.Build
 			return err
 		}
 
-		found = removeAlreadyInstalled(found, installed) // Убираем уже установленные зависимости
 		flattened := cliutils.FlattenPkgs(ctx, found, "install", opts.Interactive)
 		InstallPkgs(ctx, flattened, notFound, opts) // Устанавливаем выбранные пакеты
 	}
@@ -836,21 +847,22 @@ func setVersion(ctx context.Context, r *interp.Runner, to string) error {
 	return r.Run(ctx, fl)
 }
 
-// Функция removeAlreadyInstalled возвращает карту без каких-либо зависимостей, которые уже установлены.
-func removeAlreadyInstalled(found map[string][]db.Package, installed map[string]string) map[string][]db.Package {
-	filteredPackages := make(map[string][]db.Package)
+// Returns not installed dependencies
+func removeAlreadyInstalled(opts types.BuildOpts, dependencies []string) ([]string, error) {
+	filteredPackages := []string{}
 
-	for name, pkgList := range found {
-		filteredPkgList := []db.Package{}
-		for _, pkg := range pkgList {
-			if _, isInstalled := installed[pkg.Name]; !isInstalled {
-				filteredPkgList = append(filteredPkgList, pkg)
-			}
+	for _, dep := range dependencies {
+		installed, err := opts.Manager.IsInstalled(dep)
+		if err != nil {
+			return nil, err
 		}
-		filteredPackages[name] = filteredPkgList
+		if installed {
+			continue
+		}
+		filteredPackages = append(filteredPackages, dep)
 	}
 
-	return filteredPackages
+	return filteredPackages, nil
 }
 
 // Функция packageNames возвращает имена всех предоставленных пакетов.

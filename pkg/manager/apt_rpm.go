@@ -17,7 +17,6 @@
 package manager
 
 import (
-	"bufio"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -25,6 +24,7 @@ import (
 
 // APTRpm represents the APT-RPM package manager
 type APTRpm struct {
+	CommonRPM
 	rootCmd string
 }
 
@@ -104,38 +104,6 @@ func (a *APTRpm) UpgradeAll(opts *Opts) error {
 		return fmt.Errorf("apt-get: upgradeall: %w", err)
 	}
 	return nil
-}
-
-func (y *APTRpm) ListInstalled(opts *Opts) (map[string]string, error) {
-	out := map[string]string{}
-	cmd := exec.Command("rpm", "-qa", "--queryformat", "%{NAME}\u200b%|EPOCH?{%{EPOCH}:}:{}|%{VERSION}-%{RELEASE}\\n")
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-
-	err = cmd.Start()
-	if err != nil {
-		return nil, err
-	}
-
-	scanner := bufio.NewScanner(stdout)
-	for scanner.Scan() {
-		name, version, ok := strings.Cut(scanner.Text(), "\u200b")
-		if !ok {
-			continue
-		}
-		version = strings.TrimPrefix(version, "0:")
-		out[name] = version
-	}
-
-	err = scanner.Err()
-	if err != nil {
-		return nil, err
-	}
-
-	return out, nil
 }
 
 func (a *APTRpm) getCmd(opts *Opts, mgrCmd string, args ...string) *exec.Cmd {
