@@ -19,9 +19,9 @@ package repos
 import (
 	"context"
 
-	"plemya-x.ru/alr/internal/config"
-	database "plemya-x.ru/alr/internal/db"
-	"plemya-x.ru/alr/internal/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 )
 
 type Config interface {

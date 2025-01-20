@@ -26,8 +26,8 @@ import (
 
 	"golang.org/x/text/language"
 
-	"plemya-x.ru/alr/internal/overrides"
-	"plemya-x.ru/alr/pkg/distro"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
 
 var info = &distro.OSRelease{

@@ -34,7 +34,7 @@ import (
 	"golang.org/x/exp/slices"
 	"mvdan.cc/sh/v3/interp"
 
-	"plemya-x.ru/alr/internal/shutils/handlers"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
 )
 
 var (

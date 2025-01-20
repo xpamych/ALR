@@ -26,12 +26,12 @@ import (
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 
-	"plemya-x.ru/alr/internal/cliutils"
-	"plemya-x.ru/alr/internal/config"
-	"plemya-x.ru/alr/internal/overrides"
-	"plemya-x.ru/alr/pkg/distro"
-	"plemya-x.ru/alr/pkg/loggerctx"
-	"plemya-x.ru/alr/pkg/repos"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
 var infoCmd = &cli.Command{

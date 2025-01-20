@@ -26,9 +26,9 @@ import (
 	"golang.org/x/exp/slices"
 	"golang.org/x/text/language"
 
-	"plemya-x.ru/alr/internal/cpu"
-	"plemya-x.ru/alr/internal/db"
-	"plemya-x.ru/alr/pkg/distro"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
 
 type Opts struct {

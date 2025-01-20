@@ -28,8 +28,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"plemya-x.ru/alr/internal/config"
-	"plemya-x.ru/alr/internal/dlcache"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/dlcache"
 )
 
 func init() {

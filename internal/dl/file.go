@@ -35,7 +35,7 @@ import (
 	"github.com/mholt/archiver/v4"
 	"github.com/schollz/progressbar/v3"
 
-	"plemya-x.ru/alr/internal/shutils/handlers"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
 )
 
 // FileDownloader загружает файлы с использованием HTTP

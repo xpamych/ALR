@@ -25,13 +25,13 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"plemya-x.ru/alr/internal/config"
-	"plemya-x.ru/alr/internal/osutils"
-	"plemya-x.ru/alr/internal/types"
-	"plemya-x.ru/alr/pkg/build"
-	"plemya-x.ru/alr/pkg/loggerctx"
-	"plemya-x.ru/alr/pkg/manager"
-	"plemya-x.ru/alr/pkg/repos"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/osutils"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
 var buildCmd = &cli.Command{

@@ -22,8 +22,8 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"plemya-x.ru/alr/internal/config"
-	"plemya-x.ru/alr/pkg/loggerctx"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 // DB returns the ALR database.

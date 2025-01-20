@@ -24,10 +24,10 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"plemya-x.ru/alr/internal/config"
-	"plemya-x.ru/alr/internal/db"
-	"plemya-x.ru/alr/pkg/loggerctx"
-	"plemya-x.ru/alr/pkg/repos"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
 var fixCmd = &cli.Command{

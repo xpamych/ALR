@@ -27,7 +27,7 @@ import (
 
 	"golang.org/x/text/language"
 
-	"plemya-x.ru/alr/pkg/loggerctx"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 var (

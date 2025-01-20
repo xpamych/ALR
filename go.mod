@@ -1,4 +1,4 @@
-module plemya-x.ru/alr
+module gitea.plemya-x.ru/Plemya-x/ALR
 
 go 1.21
 
@@ -21,6 +21,7 @@ require (
 	github.com/muesli/reflow v0.3.0
 	github.com/pelletier/go-toml/v2 v2.1.0
 	github.com/schollz/progressbar/v3 v3.13.1
+	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/vmihailenco/msgpack/v5 v5.3.5
 	go.elara.ws/logger v0.0.0-20230421022458-e80700db2090
@@ -101,7 +102,6 @@ require (
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/skeema/knownhosts v1.2.2 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/therootcompany/xz v1.0.1 // indirect
 	github.com/ulikunitz/xz v0.5.12 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect

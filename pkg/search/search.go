@@ -29,8 +29,8 @@ import (
 	"strconv"
 	"strings"
 
-	"plemya-x.ru/alr/internal/config"
-	"plemya-x.ru/alr/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 )
 
 // Filter represents search filters.
