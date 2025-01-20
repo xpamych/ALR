@@ -22,7 +22,7 @@ package repos
 import (
 	"context"
 
-	"plemya-x.ru/alr/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 )
 
 func (rs *Repos) FindPkgs(ctx context.Context, pkgs []string) (map[string][]db.Package, []string, error) {

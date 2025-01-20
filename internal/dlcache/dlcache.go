@@ -24,7 +24,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"plemya-x.ru/alr/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 )
 
 type Config interface {

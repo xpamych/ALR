@@ -26,11 +26,11 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 
-	"plemya-x.ru/alr/internal/config"
-	"plemya-x.ru/alr/internal/db"
-	"plemya-x.ru/alr/internal/pager"
-	"plemya-x.ru/alr/internal/translations"
-	"plemya-x.ru/alr/pkg/loggerctx"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/pager"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/translations"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 // YesNoPrompt asks the user a yes or no question, using def as the default answer

@@ -41,9 +41,9 @@ import (
 	"golang.org/x/crypto/blake2s"
 	"golang.org/x/exp/slices"
 
-	"plemya-x.ru/alr/internal/config"
-	"plemya-x.ru/alr/internal/dlcache"
-	"plemya-x.ru/alr/pkg/loggerctx"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/dlcache"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 // Константа для имени файла манифеста кэша

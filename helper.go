@@ -28,10 +28,10 @@ import (
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 
-	"plemya-x.ru/alr/internal/cpu"
-	"plemya-x.ru/alr/internal/shutils/helpers"
-	"plemya-x.ru/alr/pkg/distro"
-	"plemya-x.ru/alr/pkg/loggerctx"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/helpers"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 var helperCmd = &cli.Command{

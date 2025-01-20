@@ -20,7 +20,7 @@ import (
 	"context"
 	"sync"
 
-	"plemya-x.ru/alr/internal/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 )
 
 // Config returns a ALR configuration struct.

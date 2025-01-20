@@ -24,7 +24,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"plemya-x.ru/alr/pkg/gen"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/gen"
 )
 
 var genCmd = &cli.Command{

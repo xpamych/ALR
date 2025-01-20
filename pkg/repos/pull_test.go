@@ -25,11 +25,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"plemya-x.ru/alr/internal/config"
-	"plemya-x.ru/alr/internal/db"
-	database "plemya-x.ru/alr/internal/db"
-	"plemya-x.ru/alr/internal/types"
-	"plemya-x.ru/alr/pkg/repos"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
 type TestEnv struct {

@@ -19,7 +19,7 @@
 
 package types
 
-import "plemya-x.ru/alr/pkg/manager"
+import "gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 
 type BuildOpts struct {
 	Script      string

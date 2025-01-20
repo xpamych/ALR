@@ -25,8 +25,8 @@ import (
 
 	"github.com/goreleaser/nfpm/v2"
 
-	"plemya-x.ru/alr/internal/types"
-	"plemya-x.ru/alr/pkg/loggerctx"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 func rpmFindDependencies(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Directories, command string, updateFunc func(string)) error {

@@ -27,8 +27,8 @@ import (
 
 	"github.com/pelletier/go-toml/v2"
 
-	"plemya-x.ru/alr/internal/types"
-	"plemya-x.ru/alr/pkg/loggerctx"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 type ALRConfig struct {

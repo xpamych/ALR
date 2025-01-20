@@ -29,7 +29,7 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
-	"plemya-x.ru/alr/internal/shutils/handlers"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
 )
 
 func TestNopExec(t *testing.T) {

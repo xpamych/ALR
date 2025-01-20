@@ -27,9 +27,9 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
-	"plemya-x.ru/alr/internal/db"
-	"plemya-x.ru/alr/internal/shutils/decoder"
-	"plemya-x.ru/alr/pkg/distro"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
 
 // isValid makes sure the path of the file being updated is valid.
