@@ -35,138 +35,144 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
-var addrepoCmd = &cli.Command{
-	Name:    "addrepo",
-	Usage:   "Add a new repository",
-	Aliases: []string{"ar"},
-	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:     "name",
-			Aliases:  []string{"n"},
-			Required: true,
-			Usage:    "Name of the new repo",
+func AddRepoCmd() *cli.Command {
+	return &cli.Command{
+		Name:    "addrepo",
+		Usage:   gotext.Get("Add a new repository"),
+		Aliases: []string{"ar"},
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "name",
+				Aliases:  []string{"n"},
+				Required: true,
+				Usage:    gotext.Get("Name of the new repo"),
+			},
+			&cli.StringFlag{
+				Name:     "url",
+				Aliases:  []string{"u"},
+				Required: true,
+				Usage:    gotext.Get("URL of the new repo"),
+			},
 		},
-		&cli.StringFlag{
-			Name:     "url",
-			Aliases:  []string{"u"},
-			Required: true,
-			Usage:    "URL of the new repo",
-		},
-	},
-	Action: func(c *cli.Context) error {
-		ctx := c.Context
+		Action: func(c *cli.Context) error {
+			ctx := c.Context
 
-		name := c.String("name")
-		repoURL := c.String("url")
+			name := c.String("name")
+			repoURL := c.String("url")
 
-		cfg := config.Config(ctx)
+			cfg := config.Config(ctx)
 
-		for _, repo := range cfg.Repos {
-			if repo.URL == repoURL {
-				slog.Error("Repo already exists", "name", repo.Name)
+			for _, repo := range cfg.Repos {
+				if repo.URL == repoURL {
+					slog.Error("Repo already exists", "name", repo.Name)
+					os.Exit(1)
+				}
+			}
+
+			cfg.Repos = append(cfg.Repos, types.Repo{
+				Name: name,
+				URL:  repoURL,
+			})
+
+			cfgFl, err := os.Create(config.GetPaths(ctx).ConfigPath)
+			if err != nil {
+				slog.Error(gotext.Get("Error opening config file"), "err", err)
 				os.Exit(1)
 			}
-		}
 
-		cfg.Repos = append(cfg.Repos, types.Repo{
-			Name: name,
-			URL:  repoURL,
-		})
-
-		cfgFl, err := os.Create(config.GetPaths(ctx).ConfigPath)
-		if err != nil {
-			slog.Error(gotext.Get("Error opening config file"), "err", err)
-			os.Exit(1)
-		}
-
-		err = toml.NewEncoder(cfgFl).Encode(cfg)
-		if err != nil {
-			slog.Error(gotext.Get("Error encoding config"), "err", err)
-			os.Exit(1)
-		}
-
-		err = repos.Pull(ctx, cfg.Repos)
-		if err != nil {
-			slog.Error(gotext.Get("Error pulling repos"), "err", err)
-			os.Exit(1)
-		}
-
-		return nil
-	},
-}
-
-var removerepoCmd = &cli.Command{
-	Name:    "removerepo",
-	Usage:   "Remove an existing repository",
-	Aliases: []string{"rr"},
-	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:     "name",
-			Aliases:  []string{"n"},
-			Required: true,
-			Usage:    "Name of the repo to be deleted",
-		},
-	},
-	Action: func(c *cli.Context) error {
-		ctx := c.Context
-
-		name := c.String("name")
-		cfg := config.Config(ctx)
-
-		found := false
-		index := 0
-		for i, repo := range cfg.Repos {
-			if repo.Name == name {
-				index = i
-				found = true
+			err = toml.NewEncoder(cfgFl).Encode(cfg)
+			if err != nil {
+				slog.Error(gotext.Get("Error encoding config"), "err", err)
+				os.Exit(1)
 			}
-		}
-		if !found {
-			slog.Error(gotext.Get("Repo does not exist"), "name", name)
-			os.Exit(1)
-		}
 
-		cfg.Repos = slices.Delete(cfg.Repos, index, index+1)
+			err = repos.Pull(ctx, cfg.Repos)
+			if err != nil {
+				slog.Error(gotext.Get("Error pulling repos"), "err", err)
+				os.Exit(1)
+			}
 
-		cfgFl, err := os.Create(config.GetPaths(ctx).ConfigPath)
-		if err != nil {
-			slog.Error(gotext.Get("Error opening config file"), "err", err)
-			os.Exit(1)
-		}
-
-		err = toml.NewEncoder(cfgFl).Encode(&cfg)
-		if err != nil {
-			slog.Error(gotext.Get("Error encoding config"), "err", err)
-			os.Exit(1)
-		}
-
-		err = os.RemoveAll(filepath.Join(config.GetPaths(ctx).RepoDir, name))
-		if err != nil {
-			slog.Error(gotext.Get("Error removing repo directory"), "err", err)
-			os.Exit(1)
-		}
-
-		err = db.DeletePkgs(ctx, "repository = ?", name)
-		if err != nil {
-			slog.Error(gotext.Get("Error removing packages from database"), "err", err)
-			os.Exit(1)
-		}
-
-		return nil
-	},
+			return nil
+		},
+	}
 }
 
-var refreshCmd = &cli.Command{
-	Name:    "refresh",
-	Usage:   "Pull all repositories that have changed",
-	Aliases: []string{"ref"},
-	Action: func(c *cli.Context) error {
-		ctx := c.Context
-		err := repos.Pull(ctx, config.Config(ctx).Repos)
-		if err != nil {
-			slog.Error(gotext.Get("Error pulling repos"), "err", err)
-			os.Exit(1)
-		}
-		return nil
-	},
+func RemoveRepoCmd() *cli.Command {
+	return &cli.Command{
+		Name:    "removerepo",
+		Usage:   gotext.Get("Remove an existing repository"),
+		Aliases: []string{"rr"},
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "name",
+				Aliases:  []string{"n"},
+				Required: true,
+				Usage:    gotext.Get("Name of the repo to be deleted"),
+			},
+		},
+		Action: func(c *cli.Context) error {
+			ctx := c.Context
+
+			name := c.String("name")
+			cfg := config.Config(ctx)
+
+			found := false
+			index := 0
+			for i, repo := range cfg.Repos {
+				if repo.Name == name {
+					index = i
+					found = true
+				}
+			}
+			if !found {
+				slog.Error(gotext.Get("Repo does not exist"), "name", name)
+				os.Exit(1)
+			}
+
+			cfg.Repos = slices.Delete(cfg.Repos, index, index+1)
+
+			cfgFl, err := os.Create(config.GetPaths(ctx).ConfigPath)
+			if err != nil {
+				slog.Error(gotext.Get("Error opening config file"), "err", err)
+				os.Exit(1)
+			}
+
+			err = toml.NewEncoder(cfgFl).Encode(&cfg)
+			if err != nil {
+				slog.Error(gotext.Get("Error encoding config"), "err", err)
+				os.Exit(1)
+			}
+
+			err = os.RemoveAll(filepath.Join(config.GetPaths(ctx).RepoDir, name))
+			if err != nil {
+				slog.Error(gotext.Get("Error removing repo directory"), "err", err)
+				os.Exit(1)
+			}
+
+			err = db.DeletePkgs(ctx, "repository = ?", name)
+			if err != nil {
+				slog.Error(gotext.Get("Error removing packages from database"), "err", err)
+				os.Exit(1)
+			}
+
+			return nil
+		},
+	}
+}
+
+func RefreshCmd() *cli.Command {
+	return &cli.Command{
+		Name:    "refresh",
+		Usage:   gotext.Get("Pull all repositories that have changed"),
+		Aliases: []string{"ref"},
+		Action: func(c *cli.Context) error {
+			ctx := c.Context
+			err := repos.Pull(ctx, config.Config(ctx).Repos)
+			if err != nil {
+				slog.Error(gotext.Get("Error pulling repos"), "err", err)
+				os.Exit(1)
+			}
+			return nil
+		},
+	}
 }

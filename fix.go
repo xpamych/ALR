@@ -31,39 +31,41 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
-var fixCmd = &cli.Command{
-	Name:  "fix",
-	Usage: "Attempt to fix problems with ALR",
-	Action: func(c *cli.Context) error {
-		ctx := c.Context
+func FixCmd() *cli.Command {
+	return &cli.Command{
+		Name:  "fix",
+		Usage: gotext.Get("Attempt to fix problems with ALR"),
+		Action: func(c *cli.Context) error {
+			ctx := c.Context
 
-		db.Close()
-		paths := config.GetPaths(ctx)
+			db.Close()
+			paths := config.GetPaths(ctx)
 
-		slog.Info(gotext.Get("Removing cache directory"))
+			slog.Info(gotext.Get("Removing cache directory"))
 
-		err := os.RemoveAll(paths.CacheDir)
-		if err != nil {
-			slog.Error(gotext.Get("Unable to remove cache directory"), "err", err)
-			os.Exit(1)
-		}
+			err := os.RemoveAll(paths.CacheDir)
+			if err != nil {
+				slog.Error(gotext.Get("Unable to remove cache directory"), "err", err)
+				os.Exit(1)
+			}
 
-		slog.Info(gotext.Get("Rebuilding cache"))
+			slog.Info(gotext.Get("Rebuilding cache"))
 
-		err = os.MkdirAll(paths.CacheDir, 0o755)
-		if err != nil {
-			slog.Error(gotext.Get("Unable to create new cache directory"), "err", err)
-			os.Exit(1)
-		}
+			err = os.MkdirAll(paths.CacheDir, 0o755)
+			if err != nil {
+				slog.Error(gotext.Get("Unable to create new cache directory"), "err", err)
+				os.Exit(1)
+			}
 
-		err = repos.Pull(ctx, config.Config(ctx).Repos)
-		if err != nil {
-			slog.Error(gotext.Get("Error pulling repos"), "err", err)
-			os.Exit(1)
-		}
+			err = repos.Pull(ctx, config.Config(ctx).Repos)
+			if err != nil {
+				slog.Error(gotext.Get("Error pulling repos"), "err", err)
+				os.Exit(1)
+			}
 
-		slog.Info(gotext.Get("Done"))
+			slog.Info(gotext.Get("Done"))
 
-		return nil
-	},
+			return nil
+		},
+	}
 }

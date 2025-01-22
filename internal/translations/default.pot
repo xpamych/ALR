@@ -9,51 +9,92 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: build.go:69
+#: build.go:41
+msgid "Build a local package"
+msgstr ""
+
+#: build.go:47
+msgid "Path to the build script"
+msgstr ""
+
+#: build.go:52
+msgid "Name of the package to build and its repo (example: default/go-bin)"
+msgstr ""
+
+#: build.go:57
+msgid ""
+"Build package from scratch even if there's an already built package available"
+msgstr ""
+
+#: build.go:70
 msgid "Error pulling repositories"
 msgstr ""
 
-#: build.go:75
+#: build.go:76
 msgid "Unable to detect a supported package manager on the system"
 msgstr ""
 
-#: build.go:86
+#: build.go:87
 msgid "Error building package"
 msgstr ""
 
-#: build.go:92
+#: build.go:93
 msgid "Error getting working directory"
 msgstr ""
 
-#: build.go:100
+#: build.go:101
 msgid "Error moving the package"
 msgstr ""
 
-#: fix.go:43
+#: fix.go:37
+msgid "Attempt to fix problems with ALR"
+msgstr ""
+
+#: fix.go:44
 msgid "Removing cache directory"
 msgstr ""
 
-#: fix.go:47
+#: fix.go:48
 msgid "Unable to remove cache directory"
 msgstr ""
 
-#: fix.go:51
+#: fix.go:52
 msgid "Rebuilding cache"
 msgstr ""
 
-#: fix.go:55
+#: fix.go:56
 msgid "Unable to create new cache directory"
 msgstr ""
 
-#: fix.go:61
+#: fix.go:62
 msgid "Error pulling repos"
 msgstr ""
 
-#: fix.go:65
+#: fix.go:66
 msgid "Done"
 msgstr ""
 
+#: gen.go:34
+msgid "Generate a ALR script from a template"
+msgstr ""
+
+#: gen.go:39
+msgid "Generate a ALR script for a pip module"
+msgstr ""
+
+#: helper.go:41
+msgid "List all the available helper commands"
+msgstr ""
+
+#: helper.go:53
+msgid "Run a ALR helper command"
+msgstr ""
+
 #: helper.go:60
+msgid "The directory that the install commands will install to"
+msgstr ""
+
+#: helper.go:73
 msgid "No such helper command"
 msgstr ""
 
@@ -85,23 +126,27 @@ msgstr ""
 msgid "Error encoding script variables"
 msgstr ""
 
-#: install.go:55
+#: install.go:57
 msgid "Command install expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:88
+#: install.go:90
 msgid "Error getting packages"
 msgstr ""
 
-#: install.go:97
+#: install.go:99
 msgid "Error iterating over packages"
 msgstr ""
 
-#: install.go:113
+#: install.go:112
+msgid "Remove an installed package"
+msgstr ""
+
+#: install.go:117
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:125
+#: install.go:129
 msgid "Error removing packages"
 msgstr ""
 
@@ -202,21 +247,37 @@ msgstr ""
 msgid "ERROR"
 msgstr ""
 
-#: list.go:53
+#: list.go:40
+msgid "List ALR repo packages"
+msgstr ""
+
+#: list.go:54
 msgid "Error initialization database"
 msgstr ""
 
-#: list.go:87
+#: list.go:88
 msgid "Error listing installed packages"
 msgstr ""
 
-#: main.go:88
+#: main.go:45
+msgid "Print the current ALR version and exit"
+msgstr ""
+
+#: main.go:61
+msgid "Arguments to be passed on to the package manager"
+msgstr ""
+
+#: main.go:67
+msgid "Enable interactive questions and prompts"
+msgstr ""
+
+#: main.go:90
 msgid ""
 "Running ALR as root is forbidden as it may cause catastrophic damage to your "
 "system"
 msgstr ""
 
-#: main.go:122
+#: main.go:124
 msgid "Error while running app"
 msgstr ""
 
@@ -328,26 +389,54 @@ msgid ""
 "updating ALR if something doesn't work."
 msgstr ""
 
-#: repo.go:78 repo.go:133
+#: repo.go:41
+msgid "Add a new repository"
+msgstr ""
+
+#: repo.go:48
+msgid "Name of the new repo"
+msgstr ""
+
+#: repo.go:54
+msgid "URL of the new repo"
+msgstr ""
+
+#: repo.go:79 repo.go:136
 msgid "Error opening config file"
 msgstr ""
 
-#: repo.go:84 repo.go:139
+#: repo.go:85 repo.go:142
 msgid "Error encoding config"
 msgstr ""
 
-#: repo.go:125
+#: repo.go:103
+msgid "Remove an existing repository"
+msgstr ""
+
+#: repo.go:110
+msgid "Name of the repo to be deleted"
+msgstr ""
+
+#: repo.go:128
 msgid "Repo does not exist"
 msgstr ""
 
-#: repo.go:145
+#: repo.go:148
 msgid "Error removing repo directory"
 msgstr ""
 
-#: repo.go:151
+#: repo.go:154
 msgid "Error removing packages from database"
 msgstr ""
 
-#: upgrade.go:78
+#: repo.go:166
+msgid "Pull all repositories that have changed"
+msgstr ""
+
+#: upgrade.go:47
+msgid "Upgrade all installed packages"
+msgstr ""
+
+#: upgrade.go:79
 msgid "Error checking for updates"
 msgstr ""

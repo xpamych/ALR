@@ -34,90 +34,92 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
-var listCmd = &cli.Command{
-	Name:    "list",
-	Usage:   "List ALR repo packages",
-	Aliases: []string{"ls"},
-	Flags: []cli.Flag{
-		&cli.BoolFlag{
-			Name:    "installed",
-			Aliases: []string{"I"},
+func ListCmd() *cli.Command {
+	return &cli.Command{
+		Name:    "list",
+		Usage:   gotext.Get("List ALR repo packages"),
+		Aliases: []string{"ls"},
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "installed",
+				Aliases: []string{"I"},
+			},
 		},
-	},
-	Action: func(c *cli.Context) error {
-		ctx := c.Context
-		cfg := config.New()
-		db := database.New(cfg)
-		err := db.Init(ctx)
-		if err != nil {
-			slog.Error(gotext.Get("Error initialization database"), "err", err)
-			os.Exit(1)
-		}
-		rs := repos.New(cfg, db)
-		err = rs.Pull(ctx, cfg.Repos(ctx))
-		if err != nil {
-			slog.Error(gotext.Get("Error pulling repositories"), "err", err)
-			os.Exit(1)
-		}
-
-		where := "true"
-		args := []any(nil)
-		if c.NArg() > 0 {
-			where = "name LIKE ? OR json_array_contains(provides, ?)"
-			args = []any{c.Args().First(), c.Args().First()}
-		}
-
-		result, err := db.GetPkgs(ctx, where, args...)
-		if err != nil {
-			slog.Error(gotext.Get("Error getting packages"), "err", err)
-			os.Exit(1)
-		}
-		defer result.Close()
-
-		var installed map[string]string
-		if c.Bool("installed") {
-			mgr := manager.Detect()
-			if mgr == nil {
-				slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
+		Action: func(c *cli.Context) error {
+			ctx := c.Context
+			cfg := config.New()
+			db := database.New(cfg)
+			err := db.Init(ctx)
+			if err != nil {
+				slog.Error(gotext.Get("Error initialization database"), "err", err)
+				os.Exit(1)
+			}
+			rs := repos.New(cfg, db)
+			err = rs.Pull(ctx, cfg.Repos(ctx))
+			if err != nil {
+				slog.Error(gotext.Get("Error pulling repositories"), "err", err)
 				os.Exit(1)
 			}
 
-			installed, err = mgr.ListInstalled(&manager.Opts{AsRoot: false})
+			where := "true"
+			args := []any(nil)
+			if c.NArg() > 0 {
+				where = "name LIKE ? OR json_array_contains(provides, ?)"
+				args = []any{c.Args().First(), c.Args().First()}
+			}
+
+			result, err := db.GetPkgs(ctx, where, args...)
 			if err != nil {
-				slog.Error(gotext.Get("Error listing installed packages"), "err", err)
+				slog.Error(gotext.Get("Error getting packages"), "err", err)
 				os.Exit(1)
 			}
-		}
+			defer result.Close()
 
-		for result.Next() {
-			var pkg database.Package
-			err := result.StructScan(&pkg)
-			if err != nil {
-				return err
-			}
-
-			if slices.Contains(cfg.IgnorePkgUpdates(ctx), pkg.Name) {
-				continue
-			}
-
-			version := pkg.Version
+			var installed map[string]string
 			if c.Bool("installed") {
-				instVersion, ok := installed[pkg.Name]
-				if !ok {
-					continue
-				} else {
-					version = instVersion
+				mgr := manager.Detect()
+				if mgr == nil {
+					slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
+					os.Exit(1)
+				}
+
+				installed, err = mgr.ListInstalled(&manager.Opts{AsRoot: false})
+				if err != nil {
+					slog.Error(gotext.Get("Error listing installed packages"), "err", err)
+					os.Exit(1)
 				}
 			}
 
-			fmt.Printf("%s/%s %s\n", pkg.Repository, pkg.Name, version)
-		}
+			for result.Next() {
+				var pkg database.Package
+				err := result.StructScan(&pkg)
+				if err != nil {
+					return err
+				}
 
-		if err != nil {
-			slog.Error(gotext.Get("Error iterating over packages"), "err", err)
-			os.Exit(1)
-		}
+				if slices.Contains(cfg.IgnorePkgUpdates(ctx), pkg.Name) {
+					continue
+				}
 
-		return nil
-	},
+				version := pkg.Version
+				if c.Bool("installed") {
+					instVersion, ok := installed[pkg.Name]
+					if !ok {
+						continue
+					} else {
+						version = instVersion
+					}
+				}
+
+				fmt.Printf("%s/%s %s\n", pkg.Repository, pkg.Name, version)
+			}
+
+			if err != nil {
+				slog.Error(gotext.Get("Error iterating over packages"), "err", err)
+				os.Exit(1)
+			}
+
+			return nil
+		},
+	}
 }

@@ -41,56 +41,58 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
-var upgradeCmd = &cli.Command{
-	Name:    "upgrade",
-	Usage:   "Upgrade all installed packages",
-	Aliases: []string{"up"},
-	Flags: []cli.Flag{
-		&cli.BoolFlag{
-			Name:    "clean",
-			Aliases: []string{"c"},
-			Usage:   "Build package from scratch even if there's an already built package available",
+func UpgradeCmd() *cli.Command {
+	return &cli.Command{
+		Name:    "upgrade",
+		Usage:   gotext.Get("Upgrade all installed packages"),
+		Aliases: []string{"up"},
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "clean",
+				Aliases: []string{"c"},
+				Usage:   gotext.Get("Build package from scratch even if there's an already built package available"),
+			},
 		},
-	},
-	Action: func(c *cli.Context) error {
-		ctx := c.Context
+		Action: func(c *cli.Context) error {
+			ctx := c.Context
 
-		info, err := distro.ParseOSRelease(ctx)
-		if err != nil {
-			slog.Error(gotext.Get("Error parsing os-release file"), "err", err)
-			os.Exit(1)
-		}
+			info, err := distro.ParseOSRelease(ctx)
+			if err != nil {
+				slog.Error(gotext.Get("Error parsing os-release file"), "err", err)
+				os.Exit(1)
+			}
 
-		mgr := manager.Detect()
-		if mgr == nil {
-			slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
-			os.Exit(1)
-		}
+			mgr := manager.Detect()
+			if mgr == nil {
+				slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
+				os.Exit(1)
+			}
 
-		err = repos.Pull(ctx, config.Config(ctx).Repos)
-		if err != nil {
-			slog.Error(gotext.Get("Error pulling repos"), "err", err)
-			os.Exit(1)
-		}
+			err = repos.Pull(ctx, config.Config(ctx).Repos)
+			if err != nil {
+				slog.Error(gotext.Get("Error pulling repos"), "err", err)
+				os.Exit(1)
+			}
 
-		updates, err := checkForUpdates(ctx, mgr, info)
-		if err != nil {
-			slog.Error(gotext.Get("Error checking for updates"), "err", err)
-			os.Exit(1)
-		}
+			updates, err := checkForUpdates(ctx, mgr, info)
+			if err != nil {
+				slog.Error(gotext.Get("Error checking for updates"), "err", err)
+				os.Exit(1)
+			}
 
-		if len(updates) > 0 {
-			build.InstallPkgs(ctx, updates, nil, types.BuildOpts{
-				Manager:     mgr,
-				Clean:       c.Bool("clean"),
-				Interactive: c.Bool("interactive"),
-			})
-		} else {
-			log.Info("There is nothing to do.").Send()
-		}
+			if len(updates) > 0 {
+				build.InstallPkgs(ctx, updates, nil, types.BuildOpts{
+					Manager:     mgr,
+					Clean:       c.Bool("clean"),
+					Interactive: c.Bool("interactive"),
+				})
+			} else {
+				log.Info("There is nothing to do.").Send()
+			}
 
-		return nil
-	},
+			return nil
+		},
+	}
 }
 
 func checkForUpdates(ctx context.Context, mgr manager.Manager, info *distro.OSRelease) ([]db.Package, error) {

@@ -35,75 +35,77 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
 
-var helperCmd = &cli.Command{
-	Name:        "helper",
-	Usage:       "Run a ALR helper command",
-	ArgsUsage:   `<helper_name|"list">`,
-	Subcommands: []*cli.Command{helperListCmd},
-	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:    "dest-dir",
-			Aliases: []string{"d"},
-			Usage:   "The directory that the install commands will install to",
-			Value:   "dest",
+func HelperCmd() *cli.Command {
+	var helperListCmd = &cli.Command{
+		Name:    "list",
+		Usage:   gotext.Get("List all the available helper commands"),
+		Aliases: []string{"ls"},
+		Action: func(ctx *cli.Context) error {
+			for name := range helpers.Helpers {
+				fmt.Println(name)
+			}
+			return nil
 		},
-	},
-	Action: func(c *cli.Context) error {
-		ctx := c.Context
+	}
 
-		if c.Args().Len() < 1 {
-			cli.ShowSubcommandHelpAndExit(c, 1)
-		}
+	return &cli.Command{
+		Name:        "helper",
+		Usage:       gotext.Get("Run a ALR helper command"),
+		ArgsUsage:   `<helper_name|"list">`,
+		Subcommands: []*cli.Command{helperListCmd},
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "dest-dir",
+				Aliases: []string{"d"},
+				Usage:   gotext.Get("The directory that the install commands will install to"),
+				Value:   "dest",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			ctx := c.Context
 
-		helper, ok := helpers.Helpers[c.Args().First()]
-		if !ok {
-			slog.Error(gotext.Get("No such helper command"), "name", c.Args().First())
-			os.Exit(1)
-		}
+			if c.Args().Len() < 1 {
+				cli.ShowSubcommandHelpAndExit(c, 1)
+			}
 
-		wd, err := os.Getwd()
-		if err != nil {
-			slog.Error(gotext.Get("Error getting working directory"), "err", err)
-			os.Exit(1)
-		}
+			helper, ok := helpers.Helpers[c.Args().First()]
+			if !ok {
+				slog.Error(gotext.Get("No such helper command"), "name", c.Args().First())
+				os.Exit(1)
+			}
 
-		info, err := distro.ParseOSRelease(ctx)
-		if err != nil {
-			slog.Error(gotext.Get("Error getting working directory"), "err", err)
-			os.Exit(1)
-		}
+			wd, err := os.Getwd()
+			if err != nil {
+				slog.Error(gotext.Get("Error getting working directory"), "err", err)
+				os.Exit(1)
+			}
 
-		hc := interp.HandlerContext{
-			Env: expand.ListEnviron(
-				"pkgdir="+c.String("dest-dir"),
-				"DISTRO_ID="+info.ID,
-				"DISTRO_ID_LIKE="+strings.Join(info.Like, " "),
-				"ARCH="+cpu.Arch(),
-			),
-			Dir:    wd,
-			Stdin:  os.Stdin,
-			Stdout: os.Stdout,
-			Stderr: os.Stderr,
-		}
+			info, err := distro.ParseOSRelease(ctx)
+			if err != nil {
+				slog.Error(gotext.Get("Error getting working directory"), "err", err)
+				os.Exit(1)
+			}
 
-		return helper(hc, c.Args().First(), c.Args().Slice()[1:])
-	},
-	CustomHelpTemplate: cli.CommandHelpTemplate,
-	BashComplete: func(ctx *cli.Context) {
-		for name := range helpers.Helpers {
-			fmt.Println(name)
-		}
-	},
-}
+			hc := interp.HandlerContext{
+				Env: expand.ListEnviron(
+					"pkgdir="+c.String("dest-dir"),
+					"DISTRO_ID="+info.ID,
+					"DISTRO_ID_LIKE="+strings.Join(info.Like, " "),
+					"ARCH="+cpu.Arch(),
+				),
+				Dir:    wd,
+				Stdin:  os.Stdin,
+				Stdout: os.Stdout,
+				Stderr: os.Stderr,
+			}
 
-var helperListCmd = &cli.Command{
-	Name:    "list",
-	Usage:   "List all the available helper commands",
-	Aliases: []string{"ls"},
-	Action: func(ctx *cli.Context) error {
-		for name := range helpers.Helpers {
-			fmt.Println(name)
-		}
-		return nil
-	},
+			return helper(hc, c.Args().First(), c.Args().Slice()[1:])
+		},
+		CustomHelpTemplate: cli.CommandHelpTemplate,
+		BashComplete: func(ctx *cli.Context) {
+			for name := range helpers.Helpers {
+				fmt.Println(name)
+			}
+		},
+	}
 }

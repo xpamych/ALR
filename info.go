@@ -36,7 +36,7 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
-func GetInfoCmd() *cli.Command {
+func InfoCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "info",
 		Usage: gotext.Get("Print information about a package"),

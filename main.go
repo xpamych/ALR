@@ -39,13 +39,15 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/logger"
 )
 
-var versionCmd = &cli.Command{
-	Name:  "version",
-	Usage: "Print the current ALR version and exit",
-	Action: func(ctx *cli.Context) error {
-		println(config.Version)
-		return nil
-	},
+func VersionCmd() *cli.Command {
+	return &cli.Command{
+		Name:  "version",
+		Usage: gotext.Get("Print the current ALR version and exit"),
+		Action: func(ctx *cli.Context) error {
+			println(config.Version)
+			return nil
+		},
+	}
 }
 
 func GetApp() *cli.App {
@@ -56,29 +58,29 @@ func GetApp() *cli.App {
 			&cli.StringFlag{
 				Name:    "pm-args",
 				Aliases: []string{"P"},
-				Usage:   "Arguments to be passed on to the package manager",
+				Usage:   gotext.Get("Arguments to be passed on to the package manager"),
 			},
 			&cli.BoolFlag{
 				Name:    "interactive",
 				Aliases: []string{"i"},
 				Value:   isatty.IsTerminal(os.Stdin.Fd()),
-				Usage:   "Enable interactive questions and prompts",
+				Usage:   gotext.Get("Enable interactive questions and prompts"),
 			},
 		},
 		Commands: []*cli.Command{
-			installCmd,
-			removeCmd,
-			upgradeCmd,
-			GetInfoCmd(),
-			listCmd,
-			buildCmd,
-			addrepoCmd,
-			removerepoCmd,
-			refreshCmd,
-			fixCmd,
-			genCmd,
-			helperCmd,
-			versionCmd,
+			InstallCmd(),
+			RemoveCmd(),
+			UpgradeCmd(),
+			InfoCmd(),
+			ListCmd(),
+			BuildCmd(),
+			AddRepoCmd(),
+			RemoveRepoCmd(),
+			RefreshCmd(),
+			FixCmd(),
+			GenCmd(),
+			HelperCmd(),
+			VersionCmd(),
 		},
 		Before: func(c *cli.Context) error {
 			ctx := c.Context
