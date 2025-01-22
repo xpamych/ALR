@@ -309,7 +309,7 @@ func prepareDirs(dirs types.Directories) error {
 // Функция performChecks проверяет различные аспекты в системе, чтобы убедиться, что пакет может быть установлен.
 func performChecks(ctx context.Context, vars *types.BuildVars, interactive bool, installed map[string]string) (bool, error) {
 	if !cpu.IsCompatibleWith(cpu.Arch(), vars.Architectures) { // Проверяем совместимость архитектуры
-		cont, err := cliutils.YesNoPrompt(ctx, "Your system's CPU architecture doesn't match this package. Do you want to build anyway?", interactive, true)
+		cont, err := cliutils.YesNoPrompt(ctx, gotext.Get("Your system's CPU architecture doesn't match this package. Do you want to build anyway?"), interactive, true)
 		if err != nil {
 			return false, err
 		}
@@ -650,7 +650,7 @@ func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Cont
 // установленные для сборки. Если да, использует менеджер пакетов для их удаления.
 func removeBuildDeps(ctx context.Context, buildDeps []string, opts types.BuildOpts) error {
 	if len(buildDeps) > 0 {
-		remove, err := cliutils.YesNoPrompt(ctx, "Would you like to remove the build dependencies?", opts.Interactive, false)
+		remove, err := cliutils.YesNoPrompt(ctx, gotext.Get("Would you like to remove the build dependencies?"), opts.Interactive, false)
 		if err != nil {
 			return err
 		}

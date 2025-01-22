@@ -219,7 +219,7 @@ func Download(ctx context.Context, opts Options) (err error) {
 		}
 	}
 
-	slog.Info("Downloading source", "source", opts.Name, "downloader", d.Name())
+	slog.Info(gotext.Get("Downloading source"), "source", opts.Name, "downloader", d.Name())
 
 	cacheDir, err = dc.New(ctx, opts.URL)
 	if err != nil {

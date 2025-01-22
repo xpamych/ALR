@@ -20,46 +20,14 @@
 package translations
 
 import (
-	"context"
 	"embed"
 	"io/fs"
-	"log/slog"
 	"os"
 	"path"
-	"sync"
 
 	"github.com/jeandeaual/go-locale"
 	"github.com/leonelquinteros/gotext"
-	"go.elara.ws/logger"
-	"go.elara.ws/translate"
-	"golang.org/x/text/language"
 )
-
-//go:embed files
-var translationFS embed.FS
-
-var (
-	mu         sync.Mutex
-	translator *translate.Translator
-)
-
-func Translator(ctx context.Context) *translate.Translator {
-	mu.Lock()
-	defer mu.Unlock()
-	if translator == nil {
-		t, err := translate.NewFromFS(translationFS)
-		if err != nil {
-			slog.Error(gotext.Get("Error creating new translator"), "err", err)
-			os.Exit(1)
-		}
-		translator = &t
-	}
-	return translator
-}
-
-func NewLogger(ctx context.Context, l logger.Logger, lang language.Tag) *translate.TranslatedLogger {
-	return translate.NewLogger(l, *Translator(ctx), lang)
-}
 
 //go:embed po
 var poFS embed.FS

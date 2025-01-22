@@ -105,12 +105,28 @@ msgstr ""
 msgid "Error removing packages"
 msgstr ""
 
-#: internal/cliutils/prompt.go:80
+#: internal/cliutils/prompt.go:60
+msgid "Would you like to view the build script for %s"
+msgstr ""
+
+#: internal/cliutils/prompt.go:71
+msgid "Would you still like to continue?"
+msgstr ""
+
+#: internal/cliutils/prompt.go:77
 msgid "User chose not to continue after reading script"
 msgstr ""
 
-#: internal/cliutils/prompt.go:114
+#: internal/cliutils/prompt.go:111
 msgid "Error prompting for choice of package"
+msgstr ""
+
+#: internal/cliutils/prompt.go:135
+msgid "Choose which package to %s"
+msgstr ""
+
+#: internal/cliutils/prompt.go:156
+msgid "Choose which optional package(s) to install"
 msgstr ""
 
 #: internal/config/config.go:63
@@ -178,12 +194,12 @@ msgstr ""
 msgid "Source updated and linked to destination"
 msgstr ""
 
-#: internal/logger/log.go:44
-msgid "ERROR"
+#: internal/dl/dl.go:222
+msgid "Downloading source"
 msgstr ""
 
-#: internal/translations/translations.go:52
-msgid "Error creating new translator"
+#: internal/logger/log.go:44
+msgid "ERROR"
 msgstr ""
 
 #: list.go:53
@@ -224,6 +240,12 @@ msgstr ""
 msgid "Compressing package"
 msgstr ""
 
+#: pkg/build/build.go:312
+msgid ""
+"Your system's CPU architecture doesn't match this package. Do you want to "
+"build anyway?"
+msgstr ""
+
 #: pkg/build/build.go:323
 msgid "This package is already installed"
 msgstr ""
@@ -258,6 +280,10 @@ msgstr ""
 
 #: pkg/build/build.go:568
 msgid "AutoReq is not implemented for this package format, so it's skiped"
+msgstr ""
+
+#: pkg/build/build.go:653
+msgid "Would you like to remove the build dependencies?"
 msgstr ""
 
 #: pkg/build/build.go:759

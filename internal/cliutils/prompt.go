@@ -28,10 +28,8 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/leonelquinteros/gotext"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/pager"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/translations"
 )
 
 // YesNoPrompt asks the user a yes or no question, using def as the default answer
@@ -40,7 +38,7 @@ func YesNoPrompt(ctx context.Context, msg string, interactive, def bool) (bool, 
 		var answer bool
 		err := survey.AskOne(
 			&survey.Confirm{
-				Message: translations.Translator(ctx).TranslateTo(msg, config.Language(ctx)),
+				Message: msg,
 				Default: def,
 			},
 			&answer,
@@ -59,8 +57,7 @@ func PromptViewScript(ctx context.Context, script, name, style string, interacti
 		return nil
 	}
 
-	scriptPrompt := translations.Translator(ctx).TranslateTo("Would you like to view the build script for", config.Language(ctx)) + " " + name
-	view, err := YesNoPrompt(ctx, scriptPrompt, interactive, false)
+	view, err := YesNoPrompt(ctx, gotext.Get("Would you like to view the build script for %s", name), interactive, false)
 	if err != nil {
 		return err
 	}
@@ -71,7 +68,7 @@ func PromptViewScript(ctx context.Context, script, name, style string, interacti
 			return err
 		}
 
-		cont, err := YesNoPrompt(ctx, "Would you still like to continue?", interactive, false)
+		cont, err := YesNoPrompt(ctx, gotext.Get("Would you still like to continue?"), interactive, false)
 		if err != nil {
 			return err
 		}
@@ -135,7 +132,7 @@ func PkgPrompt(ctx context.Context, options []db.Package, verb string, interacti
 
 	prompt := &survey.Select{
 		Options: names,
-		Message: translations.Translator(ctx).TranslateTo("Choose which package to "+verb, config.Language(ctx)),
+		Message: gotext.Get("Choose which package to %s", verb),
 	}
 
 	var choice int
@@ -156,7 +153,7 @@ func ChooseOptDepends(ctx context.Context, options []string, verb string, intera
 
 	prompt := &survey.MultiSelect{
 		Options: options,
-		Message: translations.Translator(ctx).TranslateTo("Choose which optional package(s) to install", config.Language(ctx)),
+		Message: gotext.Get("Choose which optional package(s) to install"),
 	}
 
 	var choices []int
