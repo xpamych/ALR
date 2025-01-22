@@ -36,7 +36,7 @@ import (
 )
 
 func HelperCmd() *cli.Command {
-	var helperListCmd = &cli.Command{
+	helperListCmd := &cli.Command{
 		Name:    "list",
 		Usage:   gotext.Get("List all the available helper commands"),
 		Aliases: []string{"ls"},

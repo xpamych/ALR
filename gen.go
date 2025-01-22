@@ -34,7 +34,7 @@ func GenCmd() *cli.Command {
 		Usage:   gotext.Get("Generate a ALR script from a template"),
 		Aliases: []string{"gen"},
 		Subcommands: []*cli.Command{
-			&cli.Command{
+			{
 				Name:  "pip",
 				Usage: gotext.Get("Generate a ALR script for a pip module"),
 				Flags: []cli.Flag{

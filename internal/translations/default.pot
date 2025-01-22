@@ -27,7 +27,7 @@ msgid ""
 msgstr ""
 
 #: build.go:71
-msgid "Error pulling repos"
+msgid "Error pulling repositories"
 msgstr ""
 
 #: build.go:78
@@ -66,6 +66,10 @@ msgstr ""
 msgid "Unable to create new cache directory"
 msgstr ""
 
+#: fix.go:62
+msgid "Error pulling repos"
+msgstr ""
+
 #: fix.go:66
 msgid "Done"
 msgstr ""
@@ -102,55 +106,55 @@ msgstr ""
 msgid "Show all information, not just for the current distro"
 msgstr ""
 
-#: info.go:59
+#: info.go:57
+msgid "Error initialization database"
+msgstr ""
+
+#: info.go:64
 msgid "Command info expected at least 1 argument, got %d"
 msgstr ""
 
-#: info.go:73
+#: info.go:78
 msgid "Error finding packages"
 msgstr ""
 
-#: info.go:89
+#: info.go:94
 msgid "Error parsing os-release file"
 msgstr ""
 
-#: info.go:98
+#: info.go:103
 msgid "Error resolving overrides"
 msgstr ""
 
-#: info.go:107 info.go:113
+#: info.go:112 info.go:118
 msgid "Error encoding script variables"
 msgstr ""
 
-#: install.go:43
+#: install.go:42
 msgid "Install a new package"
 msgstr ""
 
-#: install.go:57
+#: install.go:56
 msgid "Command install expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:70
-msgid "Error pulling repositories"
-msgstr ""
-
-#: install.go:92
+#: install.go:91
 msgid "Error getting packages"
 msgstr ""
 
-#: install.go:101
+#: install.go:100
 msgid "Error iterating over packages"
 msgstr ""
 
-#: install.go:114
+#: install.go:113
 msgid "Remove an installed package"
 msgstr ""
 
-#: install.go:119
+#: install.go:118
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:131
+#: install.go:130
 msgid "Error removing packages"
 msgstr ""
 
@@ -253,10 +257,6 @@ msgstr ""
 
 #: list.go:40
 msgid "List ALR repo packages"
-msgstr ""
-
-#: list.go:54
-msgid "Error initialization database"
 msgstr ""
 
 #: list.go:91

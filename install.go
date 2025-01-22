@@ -37,7 +37,6 @@ import (
 )
 
 func InstallCmd() *cli.Command {
-
 	return &cli.Command{
 		Name:    "install",
 		Usage:   gotext.Get("Install a new package"),
