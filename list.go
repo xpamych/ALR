@@ -55,10 +55,13 @@ func ListCmd() *cli.Command {
 				os.Exit(1)
 			}
 			rs := repos.New(cfg, db)
-			err = rs.Pull(ctx, cfg.Repos(ctx))
-			if err != nil {
-				slog.Error(gotext.Get("Error pulling repositories"), "err", err)
-				os.Exit(1)
+
+			if cfg.AutoPull(ctx) {
+				err = rs.Pull(ctx, cfg.Repos(ctx))
+				if err != nil {
+					slog.Error(gotext.Get("Error pulling repositories"), "err", err)
+					os.Exit(1)
+				}
 			}
 
 			where := "true"

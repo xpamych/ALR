@@ -64,10 +64,12 @@ func InstallCmd() *cli.Command {
 				os.Exit(1)
 			}
 
-			err := repos.Pull(ctx, config.Config(ctx).Repos)
-			if err != nil {
-				slog.Error(gotext.Get("Error pulling repositories"), "err", err)
-				os.Exit(1)
+			if config.GetInstance(ctx).AutoPull(ctx) {
+				err := repos.Pull(ctx, config.Config(ctx).Repos)
+				if err != nil {
+					slog.Error(gotext.Get("Error pulling repositories"), "err", err)
+					os.Exit(1)
+				}
 			}
 
 			found, notFound, err := repos.FindPkgs(ctx, args.Slice())

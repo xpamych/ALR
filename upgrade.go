@@ -56,6 +56,8 @@ func UpgradeCmd() *cli.Command {
 		Action: func(c *cli.Context) error {
 			ctx := c.Context
 
+			cfg := config.GetInstance(ctx)
+
 			info, err := distro.ParseOSRelease(ctx)
 			if err != nil {
 				slog.Error(gotext.Get("Error parsing os-release file"), "err", err)
@@ -68,10 +70,12 @@ func UpgradeCmd() *cli.Command {
 				os.Exit(1)
 			}
 
-			err = repos.Pull(ctx, config.Config(ctx).Repos)
-			if err != nil {
-				slog.Error(gotext.Get("Error pulling repos"), "err", err)
-				os.Exit(1)
+			if cfg.AutoPull(ctx) {
+				err = repos.Pull(ctx, config.Config(ctx).Repos)
+				if err != nil {
+					slog.Error(gotext.Get("Error pulling repos"), "err", err)
+					os.Exit(1)
+				}
 			}
 
 			updates, err := checkForUpdates(ctx, mgr, info)

@@ -34,23 +34,23 @@ msgid ""
 "Build package from scratch even if there's an already built package available"
 msgstr ""
 
-#: build.go:70
-msgid "Error pulling repositories"
+#: build.go:71
+msgid "Error pulling repos"
 msgstr ""
 
-#: build.go:76
+#: build.go:78
 msgid "Unable to detect a supported package manager on the system"
 msgstr ""
 
-#: build.go:87
+#: build.go:89
 msgid "Error building package"
 msgstr "Ошибка при сборке пакета"
 
-#: build.go:93
+#: build.go:95
 msgid "Error getting working directory"
 msgstr ""
 
-#: build.go:101
+#: build.go:103
 msgid "Error moving the package"
 msgstr ""
 
@@ -72,10 +72,6 @@ msgstr ""
 
 #: fix.go:56
 msgid "Unable to create new cache directory"
-msgstr ""
-
-#: fix.go:62
-msgid "Error pulling repos"
 msgstr ""
 
 #: fix.go:66
@@ -118,43 +114,51 @@ msgstr "Показывать всю информацию, а не только �
 msgid "Command info expected at least 1 argument, got %d"
 msgstr ""
 
-#: info.go:71
+#: info.go:73
 msgid "Error finding packages"
 msgstr ""
 
-#: info.go:87
+#: info.go:89
 msgid "Error parsing os-release file"
 msgstr ""
 
-#: info.go:96
+#: info.go:98
 msgid "Error resolving overrides"
 msgstr ""
 
-#: info.go:105 info.go:111
+#: info.go:107 info.go:113
 msgid "Error encoding script variables"
+msgstr ""
+
+#: install.go:43
+msgid "Install a new package"
 msgstr ""
 
 #: install.go:57
 msgid "Command install expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:90
+#: install.go:70
+msgid "Error pulling repositories"
+msgstr ""
+
+#: install.go:92
 msgid "Error getting packages"
 msgstr ""
 
-#: install.go:99
+#: install.go:101
 msgid "Error iterating over packages"
 msgstr ""
 
-#: install.go:112
+#: install.go:114
 msgid "Remove an installed package"
 msgstr ""
 
-#: install.go:117
+#: install.go:119
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:129
+#: install.go:131
 msgid "Error removing packages"
 msgstr ""
 
@@ -182,39 +186,39 @@ msgstr ""
 msgid "Choose which optional package(s) to install"
 msgstr ""
 
-#: internal/config/config.go:63
+#: internal/config/config.go:64
 msgid "Error opening config file, using defaults"
 msgstr ""
 
-#: internal/config/config.go:76
+#: internal/config/config.go:77
 msgid "Error decoding config file, using defaults"
 msgstr ""
 
-#: internal/config/config.go:88
+#: internal/config/config.go:89
 msgid "Unable to detect user config directory"
 msgstr ""
 
-#: internal/config/config.go:96
+#: internal/config/config.go:97
 msgid "Unable to create ALR config directory"
 msgstr ""
 
-#: internal/config/config.go:105
+#: internal/config/config.go:106
 msgid "Unable to create ALR config file"
 msgstr ""
 
-#: internal/config/config.go:111
+#: internal/config/config.go:112
 msgid "Error encoding default configuration"
 msgstr ""
 
-#: internal/config/config.go:120
+#: internal/config/config.go:121
 msgid "Unable to detect cache directory"
 msgstr ""
 
-#: internal/config/config.go:130
+#: internal/config/config.go:131
 msgid "Unable to create repo cache directory"
 msgstr ""
 
-#: internal/config/config.go:136
+#: internal/config/config.go:137
 msgid "Unable to create package cache directory"
 msgstr ""
 
@@ -263,7 +267,7 @@ msgstr ""
 msgid "Error initialization database"
 msgstr ""
 
-#: list.go:88
+#: list.go:91
 msgid "Error listing installed packages"
 msgstr ""
 
@@ -446,6 +450,6 @@ msgstr ""
 msgid "Upgrade all installed packages"
 msgstr ""
 
-#: upgrade.go:79
+#: upgrade.go:83
 msgid "Error checking for updates"
 msgstr ""

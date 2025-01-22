@@ -65,10 +65,12 @@ func BuildCmd() *cli.Command {
 				script = filepath.Join(config.GetPaths(ctx).RepoDir, c.String("package"), "alr.sh")
 			}
 
-			err := repos.Pull(ctx, config.Config(ctx).Repos)
-			if err != nil {
-				slog.Error(gotext.Get("Error pulling repositories"), "err", err)
-				os.Exit(1)
+			if config.GetInstance(ctx).AutoPull(ctx) {
+				err := repos.Pull(ctx, config.Config(ctx).Repos)
+				if err != nil {
+					slog.Error(gotext.Get("Error pulling repositories"), "err", err)
+					os.Exit(1)
+				}
 			}
 
 			mgr := manager.Detect()

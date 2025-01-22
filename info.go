@@ -52,6 +52,11 @@ func InfoCmd() *cli.Command {
 
 			cfg := config.New()
 			db := db.New(cfg)
+			err := db.Init(ctx)
+			if err != nil {
+				slog.Error(gotext.Get("Error initialization database"), "err", err)
+				os.Exit(1)
+			}
 			rs := repos.New(cfg, db)
 
 			args := c.Args()
@@ -60,10 +65,12 @@ func InfoCmd() *cli.Command {
 				os.Exit(1)
 			}
 
-			err := rs.Pull(ctx, cfg.Repos(ctx))
-			if err != nil {
-				slog.Error(gotext.Get("Error pulling repositories"))
-				os.Exit(1)
+			if cfg.AutoPull(ctx) {
+				err := rs.Pull(ctx, cfg.Repos(ctx))
+				if err != nil {
+					slog.Error(gotext.Get("Error pulling repos"), "err", err)
+					os.Exit(1)
+				}
 			}
 
 			found, _, err := rs.FindPkgs(ctx, args.Slice())

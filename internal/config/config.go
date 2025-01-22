@@ -45,6 +45,7 @@ var defaultConfig = &types.Config{
 	RootCmd:          "sudo",
 	PagerStyle:       "native",
 	IgnorePkgUpdates: []string{},
+	AutoPull:         true,
 	Repos: []types.Repo{
 		{
 			Name: "default",
@@ -161,4 +162,11 @@ func (c *ALRConfig) IgnorePkgUpdates(ctx context.Context) []string {
 		c.Load(ctx)
 	})
 	return c.cfg.IgnorePkgUpdates
+}
+
+func (c *ALRConfig) AutoPull(ctx context.Context) bool {
+	c.cfgOnce.Do(func() {
+		c.Load(ctx)
+	})
+	return c.cfg.AutoPull
 }
