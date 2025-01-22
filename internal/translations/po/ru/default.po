@@ -3,17 +3,65 @@
 #
 msgid ""
 msgstr ""
+"Project-Id-Version: \n"
 "PO-Revision-Date: 2025-01-22 14:23+0300\n"
 "Last-Translator: Maxim Slipenko <maks1ms@alt-gnome.ru>\n"
+"Language-Team: Russian\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 47.1\n"
-"Project-Id-Version: \n"
-"Language-Team: Russian\n"
+
+#: build.go:69
+msgid "Error pulling repositories"
+msgstr ""
+
+#: build.go:75
+msgid "Unable to detect a supported package manager on the system"
+msgstr ""
+
+#: build.go:86
+msgid "Error building package"
+msgstr ""
+
+#: build.go:92
+msgid "Error getting working directory"
+msgstr ""
+
+#: build.go:100
+msgid "Error moving the package"
+msgstr ""
+
+#: fix.go:43
+msgid "Removing cache directory"
+msgstr ""
+
+#: fix.go:47
+msgid "Unable to remove cache directory"
+msgstr ""
+
+#: fix.go:51
+msgid "Rebuilding cache"
+msgstr ""
+
+#: fix.go:55
+msgid "Unable to create new cache directory"
+msgstr ""
+
+#: fix.go:61
+msgid "Error pulling repos"
+msgstr ""
+
+#: fix.go:65
+msgid "Done"
+msgstr ""
+
+#: helper.go:60
+msgid "No such helper command"
+msgstr ""
 
 #: info.go:42
 msgid "Print information about a package"
@@ -25,10 +73,6 @@ msgstr "Показывать всю информацию, а не только �
 
 #: info.go:59
 msgid "Command info expected at least 1 argument, got %d"
-msgstr ""
-
-#: info.go:65
-msgid "Error pulling repositories"
 msgstr ""
 
 #: info.go:71
@@ -45,6 +89,34 @@ msgstr ""
 
 #: info.go:105 info.go:111
 msgid "Error encoding script variables"
+msgstr ""
+
+#: install.go:55
+msgid "Command install expected at least 1 argument, got %d"
+msgstr ""
+
+#: install.go:88
+msgid "Error getting packages"
+msgstr ""
+
+#: install.go:97
+msgid "Error iterating over packages"
+msgstr ""
+
+#: install.go:113
+msgid "Command remove expected at least 1 argument, got %d"
+msgstr ""
+
+#: install.go:125
+msgid "Error removing packages"
+msgstr ""
+
+#: internal/cliutils/prompt.go:80
+msgid "User chose not to continue after reading script"
+msgstr ""
+
+#: internal/cliutils/prompt.go:114
+msgid "Error prompting for choice of package"
 msgstr ""
 
 #: internal/config/config.go:63
@@ -83,6 +155,179 @@ msgstr ""
 msgid "Unable to create package cache directory"
 msgstr ""
 
+#: internal/config/lang.go:50
+msgid "Error parsing system language"
+msgstr ""
+
+#: internal/db/db.go:131
+msgid "Database version mismatch; resetting"
+msgstr ""
+
+#: internal/db/db.go:135
+msgid ""
+"Database version does not exist. Run alr fix if something isn't working."
+msgstr ""
+
+#: internal/db/db_legacy.go:101
+msgid "Error opening database"
+msgstr ""
+
+#: internal/dl/dl.go:170
+msgid "Source can be updated, updating if required"
+msgstr ""
+
+#: internal/dl/dl.go:201
+msgid "Source found in cache and linked to destination"
+msgstr ""
+
+#: internal/dl/dl.go:208
+msgid "Source updated and linked to destination"
+msgstr ""
+
 #: internal/logger/log.go:44
 msgid "ERROR"
 msgstr "ОШИБКА"
+
+#: internal/translations/translations.go:52
+msgid "Error creating new translator"
+msgstr ""
+
+#: list.go:53
+msgid "Error initialization database"
+msgstr ""
+
+#: list.go:87
+msgid "Error listing installed packages"
+msgstr ""
+
+#: main.go:88
+msgid ""
+"Running ALR as root is forbidden as it may cause catastrophic damage to your "
+"system"
+msgstr ""
+
+#: main.go:122
+msgid "Error while running app"
+msgstr ""
+
+#: pkg/build/build.go:104
+msgid "Failed to prompt user to view build script"
+msgstr ""
+
+#: pkg/build/build.go:108
+msgid "Building package"
+msgstr ""
+
+#: pkg/build/build.go:152
+msgid "Downloading sources"
+msgstr ""
+
+#: pkg/build/build.go:164
+msgid "Building package metadata"
+msgstr ""
+
+#: pkg/build/build.go:186
+msgid "Compressing package"
+msgstr ""
+
+#: pkg/build/build.go:323
+msgid "This package is already installed"
+msgstr ""
+
+#: pkg/build/build.go:351
+msgid "Installing build dependencies"
+msgstr ""
+
+#: pkg/build/build.go:393
+msgid "Installing dependencies"
+msgstr ""
+
+#: pkg/build/build.go:435
+msgid "Executing version()"
+msgstr ""
+
+#: pkg/build/build.go:460
+msgid "Executing prepare()"
+msgstr ""
+
+#: pkg/build/build.go:470
+msgid "Executing build()"
+msgstr ""
+
+#: pkg/build/build.go:482
+msgid "Executing package()"
+msgstr ""
+
+#: pkg/build/build.go:557
+msgid "AutoProv is not implemented for this package format, so it's skiped"
+msgstr ""
+
+#: pkg/build/build.go:568
+msgid "AutoReq is not implemented for this package format, so it's skiped"
+msgstr ""
+
+#: pkg/build/build.go:759
+msgid "The checksums array must be the same length as sources"
+msgstr ""
+
+#: pkg/build/findDeps.go:35
+msgid "Command not found on the system"
+msgstr ""
+
+#: pkg/build/findDeps.go:82
+msgid "Provided dependency found"
+msgstr ""
+
+#: pkg/build/findDeps.go:89
+msgid "Required dependency found"
+msgstr ""
+
+#: pkg/build/install.go:42
+msgid "Error installing native packages"
+msgstr ""
+
+#: pkg/build/install.go:79
+msgid "Error installing package"
+msgstr ""
+
+#: pkg/repos/pull.go:75
+msgid "Pulling repository"
+msgstr ""
+
+#: pkg/repos/pull.go:99
+msgid "Repository up to date"
+msgstr ""
+
+#: pkg/repos/pull.go:156
+msgid "Git repository does not appear to be a valid ALR repo"
+msgstr ""
+
+#: pkg/repos/pull.go:172
+msgid ""
+"ALR repo's minumum ALR version is greater than the current version. Try "
+"updating ALR if something doesn't work."
+msgstr ""
+
+#: repo.go:78 repo.go:133
+msgid "Error opening config file"
+msgstr ""
+
+#: repo.go:84 repo.go:139
+msgid "Error encoding config"
+msgstr ""
+
+#: repo.go:125
+msgid "Repo does not exist"
+msgstr ""
+
+#: repo.go:145
+msgid "Error removing repo directory"
+msgstr ""
+
+#: repo.go:151
+msgid "Error removing packages from database"
+msgstr ""
+
+#: upgrade.go:78
+msgid "Error checking for updates"
+msgstr ""

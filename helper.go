@@ -21,9 +21,11 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 
+	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
@@ -31,7 +33,6 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/helpers"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 var helperCmd = &cli.Command{
@@ -49,7 +50,6 @@ var helperCmd = &cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		log := loggerctx.From(ctx)
 
 		if c.Args().Len() < 1 {
 			cli.ShowSubcommandHelpAndExit(c, 1)
@@ -57,17 +57,20 @@ var helperCmd = &cli.Command{
 
 		helper, ok := helpers.Helpers[c.Args().First()]
 		if !ok {
-			log.Fatal("No such helper command").Str("name", c.Args().First()).Send()
+			slog.Error(gotext.Get("No such helper command"), "name", c.Args().First())
+			os.Exit(1)
 		}
 
 		wd, err := os.Getwd()
 		if err != nil {
-			log.Fatal("Error getting working directory").Err(err).Send()
+			slog.Error(gotext.Get("Error getting working directory"), "err", err)
+			os.Exit(1)
 		}
 
 		info, err := distro.ParseOSRelease(ctx)
 		if err != nil {
-			log.Fatal("Error getting working directory").Err(err).Send()
+			slog.Error(gotext.Get("Error getting working directory"), "err", err)
+			os.Exit(1)
 		}
 
 		hc := interp.HandlerContext{

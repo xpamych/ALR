@@ -23,6 +23,7 @@ import (
 	"context"
 	"embed"
 	"io/fs"
+	"log/slog"
 	"os"
 	"path"
 	"sync"
@@ -32,8 +33,6 @@ import (
 	"go.elara.ws/logger"
 	"go.elara.ws/translate"
 	"golang.org/x/text/language"
-
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 //go:embed files
@@ -47,11 +46,11 @@ var (
 func Translator(ctx context.Context) *translate.Translator {
 	mu.Lock()
 	defer mu.Unlock()
-	log := loggerctx.From(ctx)
 	if translator == nil {
 		t, err := translate.NewFromFS(translationFS)
 		if err != nil {
-			log.Fatal("Error creating new translator").Err(err).Send()
+			slog.Error(gotext.Get("Error creating new translator"), "err", err)
+			os.Exit(1)
 		}
 		translator = &t
 	}

@@ -21,7 +21,10 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
 
+	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
@@ -29,7 +32,6 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
@@ -47,26 +49,29 @@ var installCmd = &cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		log := loggerctx.From(ctx)
 
 		args := c.Args()
 		if args.Len() < 1 {
-			log.Fatalf("Command install expected at least 1 argument, got %d", args.Len()).Send()
+			slog.Error(gotext.Get("Command install expected at least 1 argument, got %d", args.Len()))
+			os.Exit(1)
 		}
 
 		mgr := manager.Detect()
 		if mgr == nil {
-			log.Fatal("Unable to detect a supported package manager on the system").Send()
+			slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
+			os.Exit(1)
 		}
 
 		err := repos.Pull(ctx, config.Config(ctx).Repos)
 		if err != nil {
-			log.Fatal("Error pulling repositories").Err(err).Send()
+			slog.Error(gotext.Get("Error pulling repositories"), "err", err)
+			os.Exit(1)
 		}
 
 		found, notFound, err := repos.FindPkgs(ctx, args.Slice())
 		if err != nil {
-			log.Fatal("Error finding packages").Err(err).Send()
+			slog.Error(gotext.Get("Error finding packages"), "err", err)
+			os.Exit(1)
 		}
 
 		pkgs := cliutils.FlattenPkgs(ctx, found, "install", c.Bool("interactive"))
@@ -78,10 +83,10 @@ var installCmd = &cli.Command{
 		return nil
 	},
 	BashComplete: func(c *cli.Context) {
-		log := loggerctx.From(c.Context)
 		result, err := db.GetPkgs(c.Context, "true")
 		if err != nil {
-			log.Fatal("Error getting packages").Err(err).Send()
+			slog.Error(gotext.Get("Error getting packages"), "err", err)
+			os.Exit(1)
 		}
 		defer result.Close()
 
@@ -89,7 +94,8 @@ var installCmd = &cli.Command{
 			var pkg db.Package
 			err = result.StructScan(&pkg)
 			if err != nil {
-				log.Fatal("Error iterating over packages").Err(err).Send()
+				slog.Error(gotext.Get("Error iterating over packages"), "err", err)
+				os.Exit(1)
 			}
 
 			fmt.Println(pkg.Name)
@@ -102,21 +108,22 @@ var removeCmd = &cli.Command{
 	Usage:   "Remove an installed package",
 	Aliases: []string{"rm"},
 	Action: func(c *cli.Context) error {
-		log := loggerctx.From(c.Context)
-
 		args := c.Args()
 		if args.Len() < 1 {
-			log.Fatalf("Command remove expected at least 1 argument, got %d", args.Len()).Send()
+			slog.Error(gotext.Get("Command remove expected at least 1 argument, got %d", args.Len()))
+			os.Exit(1)
 		}
 
 		mgr := manager.Detect()
 		if mgr == nil {
-			log.Fatal("Unable to detect a supported package manager on the system").Send()
+			slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
+			os.Exit(1)
 		}
 
 		err := mgr.Remove(nil, c.Args().Slice()...)
 		if err != nil {
-			log.Fatal("Error removing packages").Err(err).Send()
+			slog.Error(gotext.Get("Error removing packages"), "err", err)
+			os.Exit(1)
 		}
 
 		return nil

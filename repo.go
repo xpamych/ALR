@@ -20,9 +20,11 @@
 package main
 
 import (
+	"log/slog"
 	"os"
 	"path/filepath"
 
+	"github.com/leonelquinteros/gotext"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/exp/slices"
@@ -30,7 +32,6 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
@@ -54,7 +55,6 @@ var addrepoCmd = &cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		log := loggerctx.From(ctx)
 
 		name := c.String("name")
 		repoURL := c.String("url")
@@ -63,7 +63,8 @@ var addrepoCmd = &cli.Command{
 
 		for _, repo := range cfg.Repos {
 			if repo.URL == repoURL {
-				log.Fatal("Repo already exists").Str("name", repo.Name).Send()
+				slog.Error("Repo already exists", "name", repo.Name)
+				os.Exit(1)
 			}
 		}
 
@@ -74,17 +75,20 @@ var addrepoCmd = &cli.Command{
 
 		cfgFl, err := os.Create(config.GetPaths(ctx).ConfigPath)
 		if err != nil {
-			log.Fatal("Error opening config file").Err(err).Send()
+			slog.Error(gotext.Get("Error opening config file"), "err", err)
+			os.Exit(1)
 		}
 
 		err = toml.NewEncoder(cfgFl).Encode(cfg)
 		if err != nil {
-			log.Fatal("Error encoding config").Err(err).Send()
+			slog.Error(gotext.Get("Error encoding config"), "err", err)
+			os.Exit(1)
 		}
 
 		err = repos.Pull(ctx, cfg.Repos)
 		if err != nil {
-			log.Fatal("Error pulling repos").Err(err).Send()
+			slog.Error(gotext.Get("Error pulling repos"), "err", err)
+			os.Exit(1)
 		}
 
 		return nil
@@ -105,7 +109,6 @@ var removerepoCmd = &cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		log := loggerctx.From(ctx)
 
 		name := c.String("name")
 		cfg := config.Config(ctx)
@@ -119,29 +122,34 @@ var removerepoCmd = &cli.Command{
 			}
 		}
 		if !found {
-			log.Fatal("Repo does not exist").Str("name", name).Send()
+			slog.Error(gotext.Get("Repo does not exist"), "name", name)
+			os.Exit(1)
 		}
 
 		cfg.Repos = slices.Delete(cfg.Repos, index, index+1)
 
 		cfgFl, err := os.Create(config.GetPaths(ctx).ConfigPath)
 		if err != nil {
-			log.Fatal("Error opening config file").Err(err).Send()
+			slog.Error(gotext.Get("Error opening config file"), "err", err)
+			os.Exit(1)
 		}
 
 		err = toml.NewEncoder(cfgFl).Encode(&cfg)
 		if err != nil {
-			log.Fatal("Error encoding config").Err(err).Send()
+			slog.Error(gotext.Get("Error encoding config"), "err", err)
+			os.Exit(1)
 		}
 
 		err = os.RemoveAll(filepath.Join(config.GetPaths(ctx).RepoDir, name))
 		if err != nil {
-			log.Fatal("Error removing repo directory").Err(err).Send()
+			slog.Error(gotext.Get("Error removing repo directory"), "err", err)
+			os.Exit(1)
 		}
 
 		err = db.DeletePkgs(ctx, "repository = ?", name)
 		if err != nil {
-			log.Fatal("Error removing packages from database").Err(err).Send()
+			slog.Error(gotext.Get("Error removing packages from database"), "err", err)
+			os.Exit(1)
 		}
 
 		return nil
@@ -154,10 +162,10 @@ var refreshCmd = &cli.Command{
 	Aliases: []string{"ref"},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		log := loggerctx.From(ctx)
 		err := repos.Pull(ctx, config.Config(ctx).Repos)
 		if err != nil {
-			log.Fatal("Error pulling repos").Err(err).Send()
+			slog.Error(gotext.Get("Error pulling repos"), "err", err)
+			os.Exit(1)
 		}
 		return nil
 	},

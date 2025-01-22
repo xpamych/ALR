@@ -21,11 +21,12 @@ package db
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/leonelquinteros/gotext"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 // CurrentVersion is the current version of the database.
@@ -94,7 +95,6 @@ func (d *Database) GetConn() *sqlx.DB {
 }
 
 func (d *Database) initDB(ctx context.Context) error {
-	log := loggerctx.From(ctx)
 	d.conn = d.conn.Unsafe()
 	conn := d.conn
 	_, err := conn.ExecContext(ctx, `
@@ -128,11 +128,11 @@ func (d *Database) initDB(ctx context.Context) error {
 
 	ver, ok := d.GetVersion(ctx)
 	if ok && ver != CurrentVersion {
-		log.Warn("Database version mismatch; resetting").Int("version", ver).Int("expected", CurrentVersion).Send()
+		slog.Warn(gotext.Get("Database version mismatch; resetting"), "version", ver, "expected", CurrentVersion)
 		d.reset(ctx)
 		return d.initDB(ctx)
 	} else if !ok {
-		log.Warn("Database version does not exist. Run alr fix if something isn't working.").Send()
+		slog.Warn(gotext.Get("Database version does not exist. Run alr fix if something isn't working."), "version", ver, "expected", CurrentVersion)
 		return d.addVersion(ctx, CurrentVersion)
 	}
 

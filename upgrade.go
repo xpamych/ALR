@@ -22,8 +22,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
 
+	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
+	"go.elara.ws/logger/log"
 	"go.elara.ws/vercmp"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
@@ -33,7 +37,6 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
@@ -51,26 +54,29 @@ var upgradeCmd = &cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		log := loggerctx.From(ctx)
 
 		info, err := distro.ParseOSRelease(ctx)
 		if err != nil {
-			log.Fatal("Error parsing os-release file").Err(err).Send()
+			slog.Error(gotext.Get("Error parsing os-release file"), "err", err)
+			os.Exit(1)
 		}
 
 		mgr := manager.Detect()
 		if mgr == nil {
-			log.Fatal("Unable to detect a supported package manager on the system").Send()
+			slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
+			os.Exit(1)
 		}
 
 		err = repos.Pull(ctx, config.Config(ctx).Repos)
 		if err != nil {
-			log.Fatal("Error pulling repos").Err(err).Send()
+			slog.Error(gotext.Get("Error pulling repos"), "err", err)
+			os.Exit(1)
 		}
 
 		updates, err := checkForUpdates(ctx, mgr, info)
 		if err != nil {
-			log.Fatal("Error checking for updates").Err(err).Send()
+			slog.Error(gotext.Get("Error checking for updates"), "err", err)
+			os.Exit(1)
 		}
 
 		if len(updates) > 0 {

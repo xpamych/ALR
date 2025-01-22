@@ -20,16 +20,17 @@
 package main
 
 import (
+	"log/slog"
 	"os"
 	"path/filepath"
 
+	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/osutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
@@ -57,7 +58,6 @@ var buildCmd = &cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		log := loggerctx.From(ctx)
 
 		script := c.String("script")
 		if c.String("package") != "" {
@@ -66,12 +66,14 @@ var buildCmd = &cli.Command{
 
 		err := repos.Pull(ctx, config.Config(ctx).Repos)
 		if err != nil {
-			log.Fatal("Error pulling repositories").Err(err).Send()
+			slog.Error(gotext.Get("Error pulling repositories"), "err", err)
+			os.Exit(1)
 		}
 
 		mgr := manager.Detect()
 		if mgr == nil {
-			log.Fatal("Unable to detect a supported package manager on the system").Send()
+			slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
+			os.Exit(1)
 		}
 
 		pkgPaths, _, err := build.BuildPackage(ctx, types.BuildOpts{
@@ -81,19 +83,22 @@ var buildCmd = &cli.Command{
 			Interactive: c.Bool("interactive"),
 		})
 		if err != nil {
-			log.Fatal("Error building package").Err(err).Send()
+			slog.Error(gotext.Get("Error building package"), "err", err)
+			os.Exit(1)
 		}
 
 		wd, err := os.Getwd()
 		if err != nil {
-			log.Fatal("Error getting working directory").Err(err).Send()
+			slog.Error(gotext.Get("Error getting working directory"), "err", err)
+			os.Exit(1)
 		}
 
 		for _, pkgPath := range pkgPaths {
 			name := filepath.Base(pkgPath)
 			err = osutils.Move(pkgPath, filepath.Join(wd, name))
 			if err != nil {
-				log.Fatal("Error moving the package").Err(err).Send()
+				slog.Error(gotext.Get("Error moving the package"), "err", err)
+				os.Exit(1)
 			}
 		}
 

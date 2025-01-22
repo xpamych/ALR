@@ -18,12 +18,14 @@ package db
 
 import (
 	"context"
+	"log/slog"
+	"os"
 	"sync"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/leonelquinteros/gotext"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 // DB returns the ALR database.
@@ -92,12 +94,12 @@ var (
 // Deprecated: For legacy only
 func GetInstance(ctx context.Context) *Database {
 	dbOnce.Do(func() {
-		log := loggerctx.From(ctx)
 		cfg := config.GetInstance(ctx)
 		database = New(cfg)
 		err := database.Init(ctx)
 		if err != nil {
-			log.Fatal("Error opening database").Err(err).Send()
+			slog.Error(gotext.Get("Error opening database"), "err", err)
+			os.Exit(1)
 		}
 	})
 	return database

@@ -21,20 +21,19 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 
+	"github.com/leonelquinteros/gotext"
 	"github.com/mattn/go-isatty"
 	"github.com/urfave/cli/v2"
-
-	oldLogger "go.elara.ws/logger"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/translations"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/logger"
@@ -83,11 +82,11 @@ func GetApp() *cli.App {
 		},
 		Before: func(c *cli.Context) error {
 			ctx := c.Context
-			log := loggerctx.From(ctx)
 
 			cmd := c.Args().First()
 			if cmd != "helper" && !config.Config(ctx).Unsafe.AllowRunAsRoot && os.Geteuid() == 0 {
-				log.Fatal("Running ALR as root is forbidden as it may cause catastrophic damage to your system").Send()
+				slog.Error(gotext.Get("Running ALR as root is forbidden as it may cause catastrophic damage to your system"))
+				os.Exit(1)
 			}
 
 			if trimmed := strings.TrimSpace(c.String("pm-args")); trimmed != "" {
@@ -111,8 +110,6 @@ func main() {
 	app := GetApp()
 
 	ctx := context.Background()
-	log := translations.NewLogger(ctx, oldLogger.NewCLI(os.Stderr), config.Language(ctx))
-	ctx = loggerctx.With(ctx, log)
 
 	// Set the root command to the one set in the ALR config
 	manager.DefaultRootCmd = config.Config(ctx).RootCmd
@@ -122,6 +119,6 @@ func main() {
 
 	err := app.RunContext(ctx, os.Args)
 	if err != nil {
-		log.Error("Error while running app").Err(err).Send()
+		slog.Error(gotext.Get("Error while running app"), "err", err)
 	}
 }

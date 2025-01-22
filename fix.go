@@ -20,13 +20,14 @@
 package main
 
 import (
+	"log/slog"
 	"os"
 
+	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
@@ -35,31 +36,33 @@ var fixCmd = &cli.Command{
 	Usage: "Attempt to fix problems with ALR",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		log := loggerctx.From(ctx)
 
 		db.Close()
 		paths := config.GetPaths(ctx)
 
-		log.Info("Removing cache directory").Send()
+		slog.Info(gotext.Get("Removing cache directory"))
 
 		err := os.RemoveAll(paths.CacheDir)
 		if err != nil {
-			log.Fatal("Unable to remove cache directory").Err(err).Send()
+			slog.Error(gotext.Get("Unable to remove cache directory"), "err", err)
+			os.Exit(1)
 		}
 
-		log.Info("Rebuilding cache").Send()
+		slog.Info(gotext.Get("Rebuilding cache"))
 
 		err = os.MkdirAll(paths.CacheDir, 0o755)
 		if err != nil {
-			log.Fatal("Unable to create new cache directory").Err(err).Send()
+			slog.Error(gotext.Get("Unable to create new cache directory"), "err", err)
+			os.Exit(1)
 		}
 
 		err = repos.Pull(ctx, config.Config(ctx).Repos)
 		if err != nil {
-			log.Fatal("Error pulling repos").Err(err).Send()
+			slog.Error(gotext.Get("Error pulling repos"), "err", err)
+			os.Exit(1)
 		}
 
-		log.Info("Done").Send()
+		slog.Info(gotext.Get("Done"))
 
 		return nil
 	},

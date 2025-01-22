@@ -21,13 +21,15 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
 
+	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/exp/slices"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
@@ -44,17 +46,18 @@ var listCmd = &cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		log := loggerctx.From(ctx)
 		cfg := config.New()
 		db := database.New(cfg)
 		err := db.Init(ctx)
 		if err != nil {
-			log.Fatal("Error initialization database").Err(err).Send()
+			slog.Error(gotext.Get("Error initialization database"), "err", err)
+			os.Exit(1)
 		}
 		rs := repos.New(cfg, db)
 		err = rs.Pull(ctx, cfg.Repos(ctx))
 		if err != nil {
-			log.Fatal("Error pulling repositories").Err(err).Send()
+			slog.Error(gotext.Get("Error pulling repositories"), "err", err)
+			os.Exit(1)
 		}
 
 		where := "true"
@@ -66,7 +69,8 @@ var listCmd = &cli.Command{
 
 		result, err := db.GetPkgs(ctx, where, args...)
 		if err != nil {
-			log.Fatal("Error getting packages").Err(err).Send()
+			slog.Error(gotext.Get("Error getting packages"), "err", err)
+			os.Exit(1)
 		}
 		defer result.Close()
 
@@ -74,12 +78,14 @@ var listCmd = &cli.Command{
 		if c.Bool("installed") {
 			mgr := manager.Detect()
 			if mgr == nil {
-				log.Fatal("Unable to detect a supported package manager on the system").Send()
+				slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
+				os.Exit(1)
 			}
 
 			installed, err = mgr.ListInstalled(&manager.Opts{AsRoot: false})
 			if err != nil {
-				log.Fatal("Error listing installed packages").Err(err).Send()
+				slog.Error(gotext.Get("Error listing installed packages"), "err", err)
+				os.Exit(1)
 			}
 		}
 
@@ -108,7 +114,8 @@ var listCmd = &cli.Command{
 		}
 
 		if err != nil {
-			log.Fatal("Error iterating over packages").Err(err).Send()
+			slog.Error(gotext.Get("Error iterating over packages"), "err", err)
+			os.Exit(1)
 		}
 
 		return nil
