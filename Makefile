@@ -13,6 +13,7 @@ INSTALLED_ZSH_COMPLETION := $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_$(NAME
 
 ADD_LICENSE_BIN := go run github.com/google/addlicense@4caba19b7ed7818bb86bc4cd20411a246aa4a524
 GOLANGCI_LINT_BIN := go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.2
+XGOTEXT_BIN := go run github.com/Tom5521/xgotext@v1.2.0
 
 .PHONY: build install clean clear uninstall check-no-root
 
@@ -60,3 +61,7 @@ update-license:
 
 fmt:
 	$(GOLANGCI_LINT_BIN) run --fix
+
+i18n:
+	$(XGOTEXT_BIN)  --output ./internal/translations/default.pot
+	msgmerge --backup=off -U ./internal/translations/po/ru/default.po ./internal/translations/default.pot

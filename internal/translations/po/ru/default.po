@@ -1,0 +1,88 @@
+#
+# Maxim Slipenko <maks1ms@alt-gnome.ru>, 2025.
+#
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2025-01-22 14:23+0300\n"
+"Last-Translator: Maxim Slipenko <maks1ms@alt-gnome.ru>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Gtranslator 47.1\n"
+"Project-Id-Version: \n"
+"Language-Team: Russian\n"
+
+#: info.go:42
+msgid "Print information about a package"
+msgstr "Напечатать информацию о пакете"
+
+#: info.go:47
+msgid "Show all information, not just for the current distro"
+msgstr "Показывать всю информацию, а не только для текущего дистрибутива"
+
+#: info.go:59
+msgid "Command info expected at least 1 argument, got %d"
+msgstr ""
+
+#: info.go:65
+msgid "Error pulling repositories"
+msgstr ""
+
+#: info.go:71
+msgid "Error finding packages"
+msgstr ""
+
+#: info.go:87
+msgid "Error parsing os-release file"
+msgstr ""
+
+#: info.go:96
+msgid "Error resolving overrides"
+msgstr ""
+
+#: info.go:105 info.go:111
+msgid "Error encoding script variables"
+msgstr ""
+
+#: internal/config/config.go:63
+msgid "Error opening config file, using defaults"
+msgstr ""
+
+#: internal/config/config.go:76
+msgid "Error decoding config file, using defaults"
+msgstr ""
+
+#: internal/config/config.go:88
+msgid "Unable to detect user config directory"
+msgstr ""
+
+#: internal/config/config.go:96
+msgid "Unable to create ALR config directory"
+msgstr ""
+
+#: internal/config/config.go:105
+msgid "Unable to create ALR config file"
+msgstr ""
+
+#: internal/config/config.go:111
+msgid "Error encoding default configuration"
+msgstr ""
+
+#: internal/config/config.go:120
+msgid "Unable to detect cache directory"
+msgstr ""
+
+#: internal/config/config.go:130
+msgid "Unable to create repo cache directory"
+msgstr ""
+
+#: internal/config/config.go:136
+msgid "Unable to create package cache directory"
+msgstr ""
+
+#: internal/logger/log.go:44
+msgid "ERROR"
+msgstr "ОШИБКА"

@@ -22,8 +22,13 @@ package translations
 import (
 	"context"
 	"embed"
+	"io/fs"
+	"os"
+	"path"
 	"sync"
 
+	"github.com/jeandeaual/go-locale"
+	"github.com/leonelquinteros/gotext"
 	"go.elara.ws/logger"
 	"go.elara.ws/translate"
 	"golang.org/x/text/language"
@@ -55,4 +60,26 @@ func Translator(ctx context.Context) *translate.Translator {
 
 func NewLogger(ctx context.Context, l logger.Logger, lang language.Tag) *translate.TranslatedLogger {
 	return translate.NewLogger(l, *Translator(ctx), lang)
+}
+
+//go:embed po
+var poFS embed.FS
+
+func Setup() {
+	userLanguage, err := locale.GetLanguage()
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = fs.Stat(poFS, path.Join("po", userLanguage))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return
+		}
+		panic(err)
+	}
+
+	loc := gotext.NewLocaleFSWithPath(userLanguage, &poFS, "po")
+	loc.SetDomain("default")
+	gotext.SetLocales([]*gotext.Locale{loc})
 }

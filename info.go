@@ -21,88 +21,102 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 
+	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
-var infoCmd = &cli.Command{
-	Name:  "info",
-	Usage: "Print information about a package",
-	Flags: []cli.Flag{
-		&cli.BoolFlag{
-			Name:    "all",
-			Aliases: []string{"a"},
-			Usage:   "Show all information, not just for the current distro",
+func GetInfoCmd() *cli.Command {
+	return &cli.Command{
+		Name:  "info",
+		Usage: gotext.Get("Print information about a package"),
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "all",
+				Aliases: []string{"a"},
+				Usage:   gotext.Get("Show all information, not just for the current distro"),
+			},
 		},
-	},
-	Action: func(c *cli.Context) error {
-		ctx := c.Context
-		log := loggerctx.From(ctx)
+		Action: func(c *cli.Context) error {
+			ctx := c.Context
 
-		args := c.Args()
-		if args.Len() < 1 {
-			log.Fatalf("Command info expected at least 1 argument, got %d", args.Len()).Send()
-		}
+			cfg := config.New()
+			db := db.New(cfg)
+			rs := repos.New(cfg, db)
 
-		err := repos.Pull(ctx, config.Config(ctx).Repos)
-		if err != nil {
-			log.Fatal("Error pulling repositories").Err(err).Send()
-		}
-
-		found, _, err := repos.FindPkgs(ctx, args.Slice())
-		if err != nil {
-			log.Fatal("Error finding packages").Err(err).Send()
-		}
-
-		if len(found) == 0 {
-			os.Exit(1)
-		}
-
-		pkgs := cliutils.FlattenPkgs(ctx, found, "show", c.Bool("interactive"))
-
-		var names []string
-		all := c.Bool("all")
-
-		if !all {
-			info, err := distro.ParseOSRelease(ctx)
-			if err != nil {
-				log.Fatal("Error parsing os-release file").Err(err).Send()
+			args := c.Args()
+			if args.Len() < 1 {
+				slog.Error(gotext.Get("Command info expected at least 1 argument, got %d", args.Len()))
+				os.Exit(1)
 			}
-			names, err = overrides.Resolve(
-				info,
-				overrides.DefaultOpts.
-					WithLanguages([]string{config.SystemLang()}),
-			)
-			if err != nil {
-				log.Fatal("Error resolving overrides").Err(err).Send()
-			}
-		}
 
-		for _, pkg := range pkgs {
+			err := rs.Pull(ctx, cfg.Repos(ctx))
+			if err != nil {
+				slog.Error(gotext.Get("Error pulling repositories"))
+				os.Exit(1)
+			}
+
+			found, _, err := rs.FindPkgs(ctx, args.Slice())
+			if err != nil {
+				slog.Error(gotext.Get("Error finding packages"), "err", err)
+				os.Exit(1)
+			}
+
+			if len(found) == 0 {
+				os.Exit(1)
+			}
+
+			pkgs := cliutils.FlattenPkgs(ctx, found, "show", c.Bool("interactive"))
+
+			var names []string
+			all := c.Bool("all")
+
 			if !all {
-				err = yaml.NewEncoder(os.Stdout).Encode(overrides.ResolvePackage(&pkg, names))
+				info, err := distro.ParseOSRelease(ctx)
 				if err != nil {
-					log.Fatal("Error encoding script variables").Err(err).Send()
+					slog.Error(gotext.Get("Error parsing os-release file"), "err", err)
+					os.Exit(1)
 				}
-			} else {
-				err = yaml.NewEncoder(os.Stdout).Encode(pkg)
+				names, err = overrides.Resolve(
+					info,
+					overrides.DefaultOpts.
+						WithLanguages([]string{config.SystemLang()}),
+				)
 				if err != nil {
-					log.Fatal("Error encoding script variables").Err(err).Send()
+					slog.Error(gotext.Get("Error resolving overrides"), "err", err)
+					os.Exit(1)
 				}
 			}
 
-			fmt.Println("---")
-		}
+			for _, pkg := range pkgs {
+				if !all {
+					err = yaml.NewEncoder(os.Stdout).Encode(overrides.ResolvePackage(&pkg, names))
+					if err != nil {
+						slog.Error(gotext.Get("Error encoding script variables"), "err", err)
+						os.Exit(1)
+					}
+				} else {
+					err = yaml.NewEncoder(os.Stdout).Encode(pkg)
+					if err != nil {
+						slog.Error(gotext.Get("Error encoding script variables"), "err", err)
+						os.Exit(1)
+					}
+				}
 
-		return nil
-	},
+				fmt.Println("---")
+			}
+
+			return nil
+		},
+	}
 }

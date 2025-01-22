@@ -21,14 +21,16 @@ package config
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sync"
 
 	"github.com/pelletier/go-toml/v2"
 
+	"github.com/leonelquinteros/gotext"
+
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 type ALRConfig struct {
@@ -56,10 +58,9 @@ func New() *ALRConfig {
 }
 
 func (c *ALRConfig) Load(ctx context.Context) {
-	log := loggerctx.From(ctx)
 	cfgFl, err := os.Open(c.GetPaths(ctx).ConfigPath)
 	if err != nil {
-		log.Warn("Error opening config file, using defaults").Err(err).Send()
+		slog.Warn(gotext.Get("Error opening config file, using defaults"), "err", err)
 		c.cfg = defaultConfig
 		return
 	}
@@ -72,27 +73,28 @@ func (c *ALRConfig) Load(ctx context.Context) {
 
 	err = toml.NewDecoder(cfgFl).Decode(config)
 	if err != nil {
-		log.Warn("Error decoding config file, using defaults").Err(err).Send()
+		slog.Warn(gotext.Get("Error decoding config file, using defaults"), "err", err)
 		c.cfg = defaultConfig
 		return
 	}
 	c.cfg = config
 }
 
-func (c *ALRConfig) initPaths(ctx context.Context) {
-	log := loggerctx.From(ctx)
+func (c *ALRConfig) initPaths() {
 	paths := &Paths{}
 
 	cfgDir, err := os.UserConfigDir()
 	if err != nil {
-		log.Fatal("Unable to detect user config directory").Err(err).Send()
+		slog.Error(gotext.Get("Unable to detect user config directory"), "err", err)
+		os.Exit(1)
 	}
 
 	paths.ConfigDir = filepath.Join(cfgDir, "alr")
 
 	err = os.MkdirAll(paths.ConfigDir, 0o755)
 	if err != nil {
-		log.Fatal("Unable to create ALR config directory").Err(err).Send()
+		slog.Error(gotext.Get("Unable to create ALR config directory"), "err", err)
+		os.Exit(1)
 	}
 
 	paths.ConfigPath = filepath.Join(paths.ConfigDir, "alr.toml")
@@ -100,12 +102,14 @@ func (c *ALRConfig) initPaths(ctx context.Context) {
 	if _, err := os.Stat(paths.ConfigPath); err != nil {
 		cfgFl, err := os.Create(paths.ConfigPath)
 		if err != nil {
-			log.Fatal("Unable to create ALR config file").Err(err).Send()
+			slog.Error(gotext.Get("Unable to create ALR config file"), "err", err)
+			os.Exit(1)
 		}
 
 		err = toml.NewEncoder(cfgFl).Encode(&defaultConfig)
 		if err != nil {
-			log.Fatal("Error encoding default configuration").Err(err).Send()
+			slog.Error(gotext.Get("Error encoding default configuration"), "err", err)
+			os.Exit(1)
 		}
 
 		cfgFl.Close()
@@ -113,7 +117,8 @@ func (c *ALRConfig) initPaths(ctx context.Context) {
 
 	cacheDir, err := os.UserCacheDir()
 	if err != nil {
-		log.Fatal("Unable to detect cache directory").Err(err).Send()
+		slog.Error(gotext.Get("Unable to detect cache directory"), "err", err)
+		os.Exit(1)
 	}
 
 	paths.CacheDir = filepath.Join(cacheDir, "alr")
@@ -122,12 +127,14 @@ func (c *ALRConfig) initPaths(ctx context.Context) {
 
 	err = os.MkdirAll(paths.RepoDir, 0o755)
 	if err != nil {
-		log.Fatal("Unable to create repo cache directory").Err(err).Send()
+		slog.Error(gotext.Get("Unable to create repo cache directory"), "err", err)
+		os.Exit(1)
 	}
 
 	err = os.MkdirAll(paths.PkgsDir, 0o755)
 	if err != nil {
-		log.Fatal("Unable to create package cache directory").Err(err).Send()
+		slog.Error(gotext.Get("Unable to create package cache directory"), "err", err)
+		os.Exit(1)
 	}
 
 	paths.DBPath = filepath.Join(paths.CacheDir, "db")
@@ -137,7 +144,7 @@ func (c *ALRConfig) initPaths(ctx context.Context) {
 
 func (c *ALRConfig) GetPaths(ctx context.Context) *Paths {
 	c.pathsOnce.Do(func() {
-		c.initPaths(ctx)
+		c.initPaths()
 	})
 	return c.paths
 }
