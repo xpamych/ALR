@@ -27,7 +27,6 @@ import (
 
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
-	"go.elara.ws/logger/log"
 	"go.elara.ws/vercmp"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
@@ -91,7 +90,7 @@ func UpgradeCmd() *cli.Command {
 					Interactive: c.Bool("interactive"),
 				})
 			} else {
-				log.Info("There is nothing to do.").Send()
+				slog.Info(gotext.Get("There is nothing to do."))
 			}
 
 			return nil
