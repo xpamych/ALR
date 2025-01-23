@@ -27,8 +27,6 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/vmihailenco/msgpack/v5 v5.3.5
-	go.elara.ws/logger v0.0.0-20230421022458-e80700db2090
-	go.elara.ws/translate v0.0.0-20230421025926-32ccfcd110e6
 	go.elara.ws/vercmp v0.0.0-20230622214216-0b2b067575c4
 	golang.org/x/crypto v0.27.0
 	golang.org/x/exp v0.0.0-20231206192017-f3f8817b8deb
@@ -72,7 +70,6 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/rpmpack v0.6.1-0.20240329070804-c2247cbb881a // indirect
 	github.com/google/uuid v1.4.0 // indirect
-	github.com/gookit/color v1.5.1 // indirect
 	github.com/goreleaser/chglog v0.6.1 // indirect
 	github.com/goreleaser/fileglob v1.3.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
@@ -110,7 +107,6 @@ require (
 	github.com/ulikunitz/xz v0.5.12 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
-	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	gitlab.com/digitalxero/go-conventional-commit v1.0.7 // indirect
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect

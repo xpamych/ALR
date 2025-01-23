@@ -34,6 +34,9 @@ type Logger struct {
 func setupOutLogger() *log.Logger {
 	styles := log.DefaultStyles()
 	logger := log.New(os.Stdout)
+	styles.Levels[log.InfoLevel] = lipgloss.NewStyle().
+		SetString("-->").
+		Foreground(lipgloss.Color("35"))
 	logger.SetStyles(styles)
 	return logger
 }
