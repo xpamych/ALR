@@ -19,21 +19,20 @@ package build
 import (
 	"bytes"
 	"context"
+	"log/slog"
 	"os/exec"
 	"path"
 	"strings"
 
 	"github.com/goreleaser/nfpm/v2"
+	"github.com/leonelquinteros/gotext"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 func rpmFindDependencies(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Directories, command string, updateFunc func(string)) error {
-	log := loggerctx.From(ctx)
-
 	if _, err := exec.LookPath(command); err != nil {
-		log.Info("Command not found on the system").Str("command", command).Send()
+		slog.Info(gotext.Get("Command not found on the system"), "command", command)
 		return nil
 	}
 
@@ -64,7 +63,7 @@ func rpmFindDependencies(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Dir
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
-		log.Error(stderr.String()).Send()
+		slog.Error(stderr.String())
 		return err
 	}
 
@@ -79,19 +78,15 @@ func rpmFindDependencies(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Dir
 }
 
 func rpmFindProvides(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Directories) error {
-	log := loggerctx.From(ctx)
-
 	return rpmFindDependencies(ctx, pkgInfo, dirs, "/usr/lib/rpm/find-provides", func(dep string) {
-		log.Info("Provided dependency found").Str("dep", dep).Send()
+		slog.Info(gotext.Get("Provided dependency found"), "dep", dep)
 		pkgInfo.Overridables.Provides = append(pkgInfo.Overridables.Provides, dep)
 	})
 }
 
 func rpmFindRequires(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Directories) error {
-	log := loggerctx.From(ctx)
-
 	return rpmFindDependencies(ctx, pkgInfo, dirs, "/usr/lib/rpm/find-requires", func(dep string) {
-		log.Info("Required dependency found").Str("dep", dep).Send()
+		slog.Info(gotext.Get("Required dependency found"), "dep", dep)
 		pkgInfo.Overridables.Depends = append(pkgInfo.Overridables.Depends, dep)
 	})
 }

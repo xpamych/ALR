@@ -21,13 +21,13 @@ package config
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"strings"
 	"sync"
 
+	"github.com/leonelquinteros/gotext"
 	"golang.org/x/text/language"
-
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 var (
@@ -43,12 +43,12 @@ var (
 func Language(ctx context.Context) language.Tag {
 	langMtx.Lock()
 	defer langMtx.Unlock()
-	log := loggerctx.From(ctx)
 	if !langSet {
 		syslang := SystemLang()
 		tag, err := language.Parse(syslang)
 		if err != nil {
-			log.Fatal("Error parsing system language").Err(err).Send()
+			slog.Error(gotext.Get("Error parsing system language"), "err", err)
+			os.Exit(1)
 		}
 		base, _ := tag.Base()
 		lang = language.Make(base.String())

@@ -21,16 +21,15 @@ package cliutils
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/leonelquinteros/gotext"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/pager"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/translations"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 // YesNoPrompt asks the user a yes or no question, using def as the default answer
@@ -39,7 +38,7 @@ func YesNoPrompt(ctx context.Context, msg string, interactive, def bool) (bool, 
 		var answer bool
 		err := survey.AskOne(
 			&survey.Confirm{
-				Message: translations.Translator(ctx).TranslateTo(msg, config.Language(ctx)),
+				Message: msg,
 				Default: def,
 			},
 			&answer,
@@ -54,14 +53,11 @@ func YesNoPrompt(ctx context.Context, msg string, interactive, def bool) (bool, 
 // shows it if they answer yes, then asks if they'd still like to
 // continue, and exits if they answer no.
 func PromptViewScript(ctx context.Context, script, name, style string, interactive bool) error {
-	log := loggerctx.From(ctx)
-
 	if !interactive {
 		return nil
 	}
 
-	scriptPrompt := translations.Translator(ctx).TranslateTo("Would you like to view the build script for", config.Language(ctx)) + " " + name
-	view, err := YesNoPrompt(ctx, scriptPrompt, interactive, false)
+	view, err := YesNoPrompt(ctx, gotext.Get("Would you like to view the build script for %s", name), interactive, false)
 	if err != nil {
 		return err
 	}
@@ -72,13 +68,14 @@ func PromptViewScript(ctx context.Context, script, name, style string, interacti
 			return err
 		}
 
-		cont, err := YesNoPrompt(ctx, "Would you still like to continue?", interactive, false)
+		cont, err := YesNoPrompt(ctx, gotext.Get("Would you still like to continue?"), interactive, false)
 		if err != nil {
 			return err
 		}
 
 		if !cont {
-			log.Fatal(translations.Translator(ctx).TranslateTo("User chose not to continue after reading script", config.Language(ctx))).Send()
+			slog.Error(gotext.Get("User chose not to continue after reading script"))
+			os.Exit(1)
 		}
 	}
 
@@ -106,13 +103,13 @@ func ShowScript(path, name, style string) error {
 // FlattenPkgs attempts to flatten the a map of slices of packages into a single slice
 // of packages by prompting the user if multiple packages match.
 func FlattenPkgs(ctx context.Context, found map[string][]db.Package, verb string, interactive bool) []db.Package {
-	log := loggerctx.From(ctx)
 	var outPkgs []db.Package
 	for _, pkgs := range found {
 		if len(pkgs) > 1 && interactive {
 			choice, err := PkgPrompt(ctx, pkgs, verb, interactive)
 			if err != nil {
-				log.Fatal("Error prompting for choice of package").Send()
+				slog.Error(gotext.Get("Error prompting for choice of package"))
+				os.Exit(1)
 			}
 			outPkgs = append(outPkgs, choice)
 		} else if len(pkgs) == 1 || !interactive {
@@ -135,7 +132,7 @@ func PkgPrompt(ctx context.Context, options []db.Package, verb string, interacti
 
 	prompt := &survey.Select{
 		Options: names,
-		Message: translations.Translator(ctx).TranslateTo("Choose which package to "+verb, config.Language(ctx)),
+		Message: gotext.Get("Choose which package to %s", verb),
 	}
 
 	var choice int
@@ -156,7 +153,7 @@ func ChooseOptDepends(ctx context.Context, options []string, verb string, intera
 
 	prompt := &survey.MultiSelect{
 		Options: options,
-		Message: translations.Translator(ctx).TranslateTo("Choose which optional package(s) to install", config.Language(ctx)),
+		Message: gotext.Get("Choose which optional package(s) to install"),
 	}
 
 	var choices []int

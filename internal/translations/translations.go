@@ -20,39 +20,33 @@
 package translations
 
 import (
-	"context"
 	"embed"
-	"sync"
+	"io/fs"
+	"os"
+	"path"
 
-	"go.elara.ws/logger"
-	"go.elara.ws/translate"
-	"golang.org/x/text/language"
-
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
+	"github.com/jeandeaual/go-locale"
+	"github.com/leonelquinteros/gotext"
 )
 
-//go:embed files
-var translationFS embed.FS
+//go:embed po
+var poFS embed.FS
 
-var (
-	mu         sync.Mutex
-	translator *translate.Translator
-)
-
-func Translator(ctx context.Context) *translate.Translator {
-	mu.Lock()
-	defer mu.Unlock()
-	log := loggerctx.From(ctx)
-	if translator == nil {
-		t, err := translate.NewFromFS(translationFS)
-		if err != nil {
-			log.Fatal("Error creating new translator").Err(err).Send()
-		}
-		translator = &t
+func Setup() {
+	userLanguage, err := locale.GetLanguage()
+	if err != nil {
+		panic(err)
 	}
-	return translator
-}
 
-func NewLogger(ctx context.Context, l logger.Logger, lang language.Tag) *translate.TranslatedLogger {
-	return translate.NewLogger(l, *Translator(ctx), lang)
+	_, err = fs.Stat(poFS, path.Join("po", userLanguage))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return
+		}
+		panic(err)
+	}
+
+	loc := gotext.NewLocaleFSWithPath(userLanguage, &poFS, "po")
+	loc.SetDomain("default")
+	gotext.SetLocales([]*gotext.Locale{loc})
 }

@@ -21,7 +21,10 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
 
+	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
@@ -29,96 +32,106 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
-var installCmd = &cli.Command{
-	Name:    "install",
-	Usage:   "Install a new package",
-	Aliases: []string{"in"},
-	Flags: []cli.Flag{
-		&cli.BoolFlag{
-			Name:    "clean",
-			Aliases: []string{"c"},
-			Usage:   "Build package from scratch even if there's an already built package available",
+func InstallCmd() *cli.Command {
+	return &cli.Command{
+		Name:    "install",
+		Usage:   gotext.Get("Install a new package"),
+		Aliases: []string{"in"},
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "clean",
+				Aliases: []string{"c"},
+				Usage:   "Build package from scratch even if there's an already built package available",
+			},
 		},
-	},
-	Action: func(c *cli.Context) error {
-		ctx := c.Context
-		log := loggerctx.From(ctx)
+		Action: func(c *cli.Context) error {
+			ctx := c.Context
 
-		args := c.Args()
-		if args.Len() < 1 {
-			log.Fatalf("Command install expected at least 1 argument, got %d", args.Len()).Send()
-		}
-
-		mgr := manager.Detect()
-		if mgr == nil {
-			log.Fatal("Unable to detect a supported package manager on the system").Send()
-		}
-
-		err := repos.Pull(ctx, config.Config(ctx).Repos)
-		if err != nil {
-			log.Fatal("Error pulling repositories").Err(err).Send()
-		}
-
-		found, notFound, err := repos.FindPkgs(ctx, args.Slice())
-		if err != nil {
-			log.Fatal("Error finding packages").Err(err).Send()
-		}
-
-		pkgs := cliutils.FlattenPkgs(ctx, found, "install", c.Bool("interactive"))
-		build.InstallPkgs(ctx, pkgs, notFound, types.BuildOpts{
-			Manager:     mgr,
-			Clean:       c.Bool("clean"),
-			Interactive: c.Bool("interactive"),
-		})
-		return nil
-	},
-	BashComplete: func(c *cli.Context) {
-		log := loggerctx.From(c.Context)
-		result, err := db.GetPkgs(c.Context, "true")
-		if err != nil {
-			log.Fatal("Error getting packages").Err(err).Send()
-		}
-		defer result.Close()
-
-		for result.Next() {
-			var pkg db.Package
-			err = result.StructScan(&pkg)
-			if err != nil {
-				log.Fatal("Error iterating over packages").Err(err).Send()
+			args := c.Args()
+			if args.Len() < 1 {
+				slog.Error(gotext.Get("Command install expected at least 1 argument, got %d", args.Len()))
+				os.Exit(1)
 			}
 
-			fmt.Println(pkg.Name)
-		}
-	},
+			mgr := manager.Detect()
+			if mgr == nil {
+				slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
+				os.Exit(1)
+			}
+
+			if config.GetInstance(ctx).AutoPull(ctx) {
+				err := repos.Pull(ctx, config.Config(ctx).Repos)
+				if err != nil {
+					slog.Error(gotext.Get("Error pulling repositories"), "err", err)
+					os.Exit(1)
+				}
+			}
+
+			found, notFound, err := repos.FindPkgs(ctx, args.Slice())
+			if err != nil {
+				slog.Error(gotext.Get("Error finding packages"), "err", err)
+				os.Exit(1)
+			}
+
+			pkgs := cliutils.FlattenPkgs(ctx, found, "install", c.Bool("interactive"))
+			build.InstallPkgs(ctx, pkgs, notFound, types.BuildOpts{
+				Manager:     mgr,
+				Clean:       c.Bool("clean"),
+				Interactive: c.Bool("interactive"),
+			})
+			return nil
+		},
+		BashComplete: func(c *cli.Context) {
+			result, err := db.GetPkgs(c.Context, "true")
+			if err != nil {
+				slog.Error(gotext.Get("Error getting packages"), "err", err)
+				os.Exit(1)
+			}
+			defer result.Close()
+
+			for result.Next() {
+				var pkg db.Package
+				err = result.StructScan(&pkg)
+				if err != nil {
+					slog.Error(gotext.Get("Error iterating over packages"), "err", err)
+					os.Exit(1)
+				}
+
+				fmt.Println(pkg.Name)
+			}
+		},
+	}
 }
 
-var removeCmd = &cli.Command{
-	Name:    "remove",
-	Usage:   "Remove an installed package",
-	Aliases: []string{"rm"},
-	Action: func(c *cli.Context) error {
-		log := loggerctx.From(c.Context)
+func RemoveCmd() *cli.Command {
+	return &cli.Command{
+		Name:    "remove",
+		Usage:   gotext.Get("Remove an installed package"),
+		Aliases: []string{"rm"},
+		Action: func(c *cli.Context) error {
+			args := c.Args()
+			if args.Len() < 1 {
+				slog.Error(gotext.Get("Command remove expected at least 1 argument, got %d", args.Len()))
+				os.Exit(1)
+			}
 
-		args := c.Args()
-		if args.Len() < 1 {
-			log.Fatalf("Command remove expected at least 1 argument, got %d", args.Len()).Send()
-		}
+			mgr := manager.Detect()
+			if mgr == nil {
+				slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
+				os.Exit(1)
+			}
 
-		mgr := manager.Detect()
-		if mgr == nil {
-			log.Fatal("Unable to detect a supported package manager on the system").Send()
-		}
+			err := mgr.Remove(nil, c.Args().Slice()...)
+			if err != nil {
+				slog.Error(gotext.Get("Error removing packages"), "err", err)
+				os.Exit(1)
+			}
 
-		err := mgr.Remove(nil, c.Args().Slice()...)
-		if err != nil {
-			log.Fatal("Error removing packages").Err(err).Send()
-		}
-
-		return nil
-	},
+			return nil
+		},
+	}
 }

@@ -20,83 +20,92 @@
 package main
 
 import (
+	"log/slog"
 	"os"
 	"path/filepath"
 
+	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/osutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
-var buildCmd = &cli.Command{
-	Name:  "build",
-	Usage: "Build a local package",
-	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:    "script",
-			Aliases: []string{"s"},
-			Value:   "alr.sh",
-			Usage:   "Path to the build script",
+func BuildCmd() *cli.Command {
+	return &cli.Command{
+		Name:  "build",
+		Usage: gotext.Get("Build a local package"),
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "script",
+				Aliases: []string{"s"},
+				Value:   "alr.sh",
+				Usage:   gotext.Get("Path to the build script"),
+			},
+			&cli.StringFlag{
+				Name:    "package",
+				Aliases: []string{"p"},
+				Usage:   gotext.Get("Name of the package to build and its repo (example: default/go-bin)"),
+			},
+			&cli.BoolFlag{
+				Name:    "clean",
+				Aliases: []string{"c"},
+				Usage:   gotext.Get("Build package from scratch even if there's an already built package available"),
+			},
 		},
-		&cli.StringFlag{
-			Name:    "package",
-			Aliases: []string{"p"},
-			Usage:   "Name of the package to build and its repo (example: default/go-bin)",
-		},
-		&cli.BoolFlag{
-			Name:    "clean",
-			Aliases: []string{"c"},
-			Usage:   "Build package from scratch even if there's an already built package available",
-		},
-	},
-	Action: func(c *cli.Context) error {
-		ctx := c.Context
-		log := loggerctx.From(ctx)
+		Action: func(c *cli.Context) error {
+			ctx := c.Context
 
-		script := c.String("script")
-		if c.String("package") != "" {
-			script = filepath.Join(config.GetPaths(ctx).RepoDir, c.String("package"), "alr.sh")
-		}
-
-		err := repos.Pull(ctx, config.Config(ctx).Repos)
-		if err != nil {
-			log.Fatal("Error pulling repositories").Err(err).Send()
-		}
-
-		mgr := manager.Detect()
-		if mgr == nil {
-			log.Fatal("Unable to detect a supported package manager on the system").Send()
-		}
-
-		pkgPaths, _, err := build.BuildPackage(ctx, types.BuildOpts{
-			Script:      script,
-			Manager:     mgr,
-			Clean:       c.Bool("clean"),
-			Interactive: c.Bool("interactive"),
-		})
-		if err != nil {
-			log.Fatal("Error building package").Err(err).Send()
-		}
-
-		wd, err := os.Getwd()
-		if err != nil {
-			log.Fatal("Error getting working directory").Err(err).Send()
-		}
-
-		for _, pkgPath := range pkgPaths {
-			name := filepath.Base(pkgPath)
-			err = osutils.Move(pkgPath, filepath.Join(wd, name))
-			if err != nil {
-				log.Fatal("Error moving the package").Err(err).Send()
+			script := c.String("script")
+			if c.String("package") != "" {
+				script = filepath.Join(config.GetPaths(ctx).RepoDir, c.String("package"), "alr.sh")
 			}
-		}
 
-		return nil
-	},
+			if config.GetInstance(ctx).AutoPull(ctx) {
+				err := repos.Pull(ctx, config.Config(ctx).Repos)
+				if err != nil {
+					slog.Error(gotext.Get("Error pulling repositories"), "err", err)
+					os.Exit(1)
+				}
+			}
+
+			mgr := manager.Detect()
+			if mgr == nil {
+				slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
+				os.Exit(1)
+			}
+
+			pkgPaths, _, err := build.BuildPackage(ctx, types.BuildOpts{
+				Script:      script,
+				Manager:     mgr,
+				Clean:       c.Bool("clean"),
+				Interactive: c.Bool("interactive"),
+			})
+			if err != nil {
+				slog.Error(gotext.Get("Error building package"), "err", err)
+				os.Exit(1)
+			}
+
+			wd, err := os.Getwd()
+			if err != nil {
+				slog.Error(gotext.Get("Error getting working directory"), "err", err)
+				os.Exit(1)
+			}
+
+			for _, pkgPath := range pkgPaths {
+				name := filepath.Base(pkgPath)
+				err = osutils.Move(pkgPath, filepath.Join(wd, name))
+				if err != nil {
+					slog.Error(gotext.Get("Error moving the package"), "err", err)
+					os.Exit(1)
+				}
+			}
+
+			return nil
+		},
+	}
 }

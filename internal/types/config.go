@@ -26,6 +26,7 @@ type Config struct {
 	IgnorePkgUpdates []string `toml:"ignorePkgUpdates"`
 	Repos            []Repo   `toml:"repo"`
 	Unsafe           Unsafe   `toml:"unsafe"`
+	AutoPull         bool     `toml:"autoPull"`
 }
 
 // Repo represents a ALR repo within a configuration file

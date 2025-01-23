@@ -21,96 +21,108 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
 
+	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/exp/slices"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
-var listCmd = &cli.Command{
-	Name:    "list",
-	Usage:   "List ALR repo packages",
-	Aliases: []string{"ls"},
-	Flags: []cli.Flag{
-		&cli.BoolFlag{
-			Name:    "installed",
-			Aliases: []string{"I"},
+func ListCmd() *cli.Command {
+	return &cli.Command{
+		Name:    "list",
+		Usage:   gotext.Get("List ALR repo packages"),
+		Aliases: []string{"ls"},
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "installed",
+				Aliases: []string{"I"},
+			},
 		},
-	},
-	Action: func(c *cli.Context) error {
-		ctx := c.Context
-		log := loggerctx.From(ctx)
-		cfg := config.New()
-		db := database.New(cfg)
-		err := db.Init(ctx)
-		if err != nil {
-			log.Fatal("Error initialization database").Err(err).Send()
-		}
-		rs := repos.New(cfg, db)
-		err = rs.Pull(ctx, cfg.Repos(ctx))
-		if err != nil {
-			log.Fatal("Error pulling repositories").Err(err).Send()
-		}
-
-		where := "true"
-		args := []any(nil)
-		if c.NArg() > 0 {
-			where = "name LIKE ? OR json_array_contains(provides, ?)"
-			args = []any{c.Args().First(), c.Args().First()}
-		}
-
-		result, err := db.GetPkgs(ctx, where, args...)
-		if err != nil {
-			log.Fatal("Error getting packages").Err(err).Send()
-		}
-		defer result.Close()
-
-		var installed map[string]string
-		if c.Bool("installed") {
-			mgr := manager.Detect()
-			if mgr == nil {
-				log.Fatal("Unable to detect a supported package manager on the system").Send()
-			}
-
-			installed, err = mgr.ListInstalled(&manager.Opts{AsRoot: false})
+		Action: func(c *cli.Context) error {
+			ctx := c.Context
+			cfg := config.New()
+			db := database.New(cfg)
+			err := db.Init(ctx)
 			if err != nil {
-				log.Fatal("Error listing installed packages").Err(err).Send()
+				slog.Error(gotext.Get("Error initialization database"), "err", err)
+				os.Exit(1)
 			}
-		}
+			rs := repos.New(cfg, db)
 
-		for result.Next() {
-			var pkg database.Package
-			err := result.StructScan(&pkg)
-			if err != nil {
-				return err
-			}
-
-			if slices.Contains(cfg.IgnorePkgUpdates(ctx), pkg.Name) {
-				continue
-			}
-
-			version := pkg.Version
-			if c.Bool("installed") {
-				instVersion, ok := installed[pkg.Name]
-				if !ok {
-					continue
-				} else {
-					version = instVersion
+			if cfg.AutoPull(ctx) {
+				err = rs.Pull(ctx, cfg.Repos(ctx))
+				if err != nil {
+					slog.Error(gotext.Get("Error pulling repositories"), "err", err)
+					os.Exit(1)
 				}
 			}
 
-			fmt.Printf("%s/%s %s\n", pkg.Repository, pkg.Name, version)
-		}
+			where := "true"
+			args := []any(nil)
+			if c.NArg() > 0 {
+				where = "name LIKE ? OR json_array_contains(provides, ?)"
+				args = []any{c.Args().First(), c.Args().First()}
+			}
 
-		if err != nil {
-			log.Fatal("Error iterating over packages").Err(err).Send()
-		}
+			result, err := db.GetPkgs(ctx, where, args...)
+			if err != nil {
+				slog.Error(gotext.Get("Error getting packages"), "err", err)
+				os.Exit(1)
+			}
+			defer result.Close()
 
-		return nil
-	},
+			var installed map[string]string
+			if c.Bool("installed") {
+				mgr := manager.Detect()
+				if mgr == nil {
+					slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
+					os.Exit(1)
+				}
+
+				installed, err = mgr.ListInstalled(&manager.Opts{AsRoot: false})
+				if err != nil {
+					slog.Error(gotext.Get("Error listing installed packages"), "err", err)
+					os.Exit(1)
+				}
+			}
+
+			for result.Next() {
+				var pkg database.Package
+				err := result.StructScan(&pkg)
+				if err != nil {
+					return err
+				}
+
+				if slices.Contains(cfg.IgnorePkgUpdates(ctx), pkg.Name) {
+					continue
+				}
+
+				version := pkg.Version
+				if c.Bool("installed") {
+					instVersion, ok := installed[pkg.Name]
+					if !ok {
+						continue
+					} else {
+						version = instVersion
+					}
+				}
+
+				fmt.Printf("%s/%s %s\n", pkg.Repository, pkg.Name, version)
+			}
+
+			if err != nil {
+				slog.Error(gotext.Get("Error iterating over packages"), "err", err)
+				os.Exit(1)
+			}
+
+			return nil
+		},
+	}
 }

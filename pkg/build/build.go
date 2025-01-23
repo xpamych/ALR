@@ -25,6 +25,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -38,7 +39,7 @@ import (
 	_ "github.com/goreleaser/nfpm/v2/arch"
 	_ "github.com/goreleaser/nfpm/v2/deb"
 	_ "github.com/goreleaser/nfpm/v2/rpm"
-	"go.elara.ws/logger/log"
+	"github.com/leonelquinteros/gotext"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
@@ -56,7 +57,6 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/helpers"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
@@ -64,7 +64,6 @@ import (
 // Функция BuildPackage выполняет сборку скрипта по указанному пути. Возвращает два среза.
 // Один содержит пути к собранным пакетам, другой - имена собранных пакетов.
 func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string, error) {
-	log := loggerctx.From(ctx)
 	reposInstance := repos.GetInstance(ctx)
 
 	info, err := distro.ParseOSRelease(ctx)
@@ -102,10 +101,11 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 	// Спрашиваем у пользователя, хочет ли он увидеть скрипт сборки.
 	err = cliutils.PromptViewScript(ctx, opts.Script, vars.Name, config.Config(ctx).PagerStyle, opts.Interactive)
 	if err != nil {
-		log.Fatal("Failed to prompt user to view build script").Err(err).Send()
+		slog.Error(gotext.Get("Failed to prompt user to view build script"), "err", err)
+		os.Exit(1)
 	}
 
-	log.Info("Building package").Str("name", vars.Name).Str("version", vars.Version).Send()
+	slog.Info(gotext.Get("Building package"), "name", vars.Name, "version", vars.Version)
 
 	// Второй проход будет использоваться для выполнения реального кода,
 	// поэтому он не ограничен. Скрипт уже был показан
@@ -149,7 +149,7 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 		return nil, nil, err
 	}
 
-	log.Info("Downloading sources").Send() // Записываем в лог загрузку источников
+	slog.Info(gotext.Get("Downloading sources")) // Записываем в лог загрузку источников
 
 	err = getSources(ctx, dirs, vars) // Загружаем исходники
 	if err != nil {
@@ -161,7 +161,7 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 		return nil, nil, err
 	}
 
-	log.Info("Building package metadata").Str("name", vars.Name).Send() // Логгируем сборку метаданных пакета
+	slog.Info(gotext.Get("Building package metadata"), "name", vars.Name)
 
 	pkgFormat := getPkgFormat(opts.Manager) // Получаем формат пакета
 
@@ -183,7 +183,7 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 		return nil, nil, err
 	}
 
-	log.Info("Compressing package").Str("name", pkgName).Send() // Логгируем сжатие пакета
+	slog.Info(gotext.Get("Compressing package"), "name", pkgName) // Логгируем сжатие пакета
 
 	err = packager.Package(pkgInfo, pkgFile) // Упаковываем пакет
 	if err != nil {
@@ -308,9 +308,8 @@ func prepareDirs(dirs types.Directories) error {
 
 // Функция performChecks проверяет различные аспекты в системе, чтобы убедиться, что пакет может быть установлен.
 func performChecks(ctx context.Context, vars *types.BuildVars, interactive bool, installed map[string]string) (bool, error) {
-	log := loggerctx.From(ctx)
 	if !cpu.IsCompatibleWith(cpu.Arch(), vars.Architectures) { // Проверяем совместимость архитектуры
-		cont, err := cliutils.YesNoPrompt(ctx, "Your system's CPU architecture doesn't match this package. Do you want to build anyway?", interactive, true)
+		cont, err := cliutils.YesNoPrompt(ctx, gotext.Get("Your system's CPU architecture doesn't match this package. Do you want to build anyway?"), interactive, true)
 		if err != nil {
 			return false, err
 		}
@@ -321,10 +320,10 @@ func performChecks(ctx context.Context, vars *types.BuildVars, interactive bool,
 	}
 
 	if instVer, ok := installed[vars.Name]; ok { // Если пакет уже установлен, выводим предупреждение
-		log.Warn("This package is already installed").
-			Str("name", vars.Name).
-			Str("version", instVer).
-			Send()
+		slog.Warn(gotext.Get("This package is already installed"),
+			"name", vars.Name,
+			"version", instVer,
+		)
 	}
 
 	return true, nil
@@ -337,7 +336,6 @@ type PackageFinder interface {
 // Функция installBuildDeps устанавливает все зависимости сборки, которые еще не установлены, и возвращает
 // срез, содержащий имена всех установленных пакетов.
 func installBuildDeps(ctx context.Context, repos PackageFinder, vars *types.BuildVars, opts types.BuildOpts) ([]string, error) {
-	log := loggerctx.From(ctx)
 	var buildDeps []string
 	if len(vars.BuildDepends) > 0 {
 		deps, err := removeAlreadyInstalled(opts, vars.BuildDepends)
@@ -350,7 +348,7 @@ func installBuildDeps(ctx context.Context, repos PackageFinder, vars *types.Buil
 			return nil, err
 		}
 
-		log.Info("Installing build dependencies").Send() // Логгируем установку зависимостей
+		slog.Info(gotext.Get("Installing build dependencies")) // Логгируем установку зависимостей
 
 		flattened := cliutils.FlattenPkgs(ctx, found, "install", opts.Interactive) // Уплощаем список зависимостей
 		buildDeps = packageNames(flattened)
@@ -391,9 +389,8 @@ func installOptDeps(ctx context.Context, repos PackageFinder, vars *types.BuildV
 // пакетов, которые она собрала, а также все зависимости, которые не были найдены в ALR репозитории,
 // чтобы они могли быть установлены из системных репозиториев.
 func buildALRDeps(ctx context.Context, opts types.BuildOpts, vars *types.BuildVars) (builtPaths, builtNames, repoDeps []string, err error) {
-	log := loggerctx.From(ctx)
 	if len(vars.Depends) > 0 {
-		log.Info("Installing dependencies").Send()
+		slog.Info(gotext.Get("Installing dependencies"))
 
 		found, notFound, err := repos.FindPkgs(ctx, vars.Depends) // Поиск зависимостей
 		if err != nil {
@@ -433,10 +430,9 @@ func buildALRDeps(ctx context.Context, opts types.BuildOpts, vars *types.BuildVa
 
 // Функция executeFunctions выполняет специальные функции ALR, такие как version(), prepare() и т.д.
 func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Directories, vars *types.BuildVars) (err error) {
-	log := loggerctx.From(ctx)
 	version, ok := dec.GetFunc("version")
 	if ok {
-		log.Info("Executing version()").Send()
+		slog.Info(gotext.Get("Executing version()"))
 
 		buf := &bytes.Buffer{}
 
@@ -456,12 +452,12 @@ func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Dire
 		}
 		vars.Version = newVer
 
-		log.Info("Updating version").Str("new", newVer).Send()
+		slog.Info("Updating version", "new", newVer)
 	}
 
 	prepare, ok := dec.GetFunc("prepare")
 	if ok {
-		log.Info("Executing prepare()").Send()
+		slog.Info(gotext.Get("Executing prepare()"))
 
 		err = prepare(ctx, interp.Dir(dirs.SrcDir))
 		if err != nil {
@@ -471,7 +467,7 @@ func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Dire
 
 	build, ok := dec.GetFunc("build")
 	if ok {
-		log.Info("Executing build()").Send()
+		slog.Info(gotext.Get("Executing build()"))
 
 		err = build(ctx, interp.Dir(dirs.SrcDir))
 		if err != nil {
@@ -483,24 +479,27 @@ func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Dire
 	for {
 		packageFn, ok := dec.GetFunc("package")
 		if ok {
-			log.Info("Executing package()").Send()
+			slog.Info(gotext.Get("Executing package()"))
 			err = packageFn(ctx, interp.Dir(dirs.SrcDir))
 			if err != nil {
 				return err
 			}
 		}
 
-		// Проверка на наличие дополнительных функций package_*
-		packageFuncName := "package_"
-		if packageFunc, ok := dec.GetFunc(packageFuncName); ok {
-			log.Info("Executing " + packageFuncName).Send()
-			err = packageFunc(ctx, interp.Dir(dirs.SrcDir))
-			if err != nil {
-				return err
+		/*
+			// Проверка на наличие дополнительных функций package_*
+			packageFuncName := "package_"
+			if packageFunc, ok := dec.GetFunc(packageFuncName); ok {
+				slog.Info("Executing " + packageFuncName)
+				err = packageFunc(ctx, interp.Dir(dirs.SrcDir))
+				if err != nil {
+					return err
+				}
+			} else {
+				break // Если больше нет функций package_*, выходим из цикла
 			}
-		} else {
-			break // Если больше нет функций package_*, выходим из цикла
-		}
+		*/
+		break
 	}
 
 	return nil
@@ -555,7 +554,7 @@ func buildPkgMetadata(ctx context.Context, vars *types.BuildVars, dirs types.Dir
 				return nil, err
 			}
 		} else {
-			log.Info("AutoProv is not implemented for this package format, so it's skiped").Send()
+			slog.Info(gotext.Get("AutoProv is not implemented for this package format, so it's skiped"))
 		}
 	}
 
@@ -566,7 +565,7 @@ func buildPkgMetadata(ctx context.Context, vars *types.BuildVars, dirs types.Dir
 				return nil, err
 			}
 		} else {
-			log.Info("AutoReq is not implemented for this package format, so it's skiped").Send()
+			slog.Info(gotext.Get("AutoReq is not implemented for this package format, so it's skiped"))
 		}
 	}
 
@@ -651,7 +650,7 @@ func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Cont
 // установленные для сборки. Если да, использует менеджер пакетов для их удаления.
 func removeBuildDeps(ctx context.Context, buildDeps []string, opts types.BuildOpts) error {
 	if len(buildDeps) > 0 {
-		remove, err := cliutils.YesNoPrompt(ctx, "Would you like to remove the build dependencies?", opts.Interactive, false)
+		remove, err := cliutils.YesNoPrompt(ctx, gotext.Get("Would you like to remove the build dependencies?"), opts.Interactive, false)
 		if err != nil {
 			return err
 		}
@@ -756,9 +755,9 @@ func createBuildEnvVars(info *distro.OSRelease, dirs types.Directories) []string
 
 // Функция getSources загружает исходники скрипта.
 func getSources(ctx context.Context, dirs types.Directories, bv *types.BuildVars) error {
-	log := loggerctx.From(ctx)
 	if len(bv.Sources) != len(bv.Checksums) {
-		log.Fatal("The checksums array must be the same length as sources").Send()
+		slog.Error(gotext.Get("The checksums array must be the same length as sources"))
+		os.Exit(1)
 	}
 
 	for i, src := range bv.Sources {

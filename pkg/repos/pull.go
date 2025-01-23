@@ -22,6 +22,7 @@ package repos
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -31,6 +32,7 @@ import (
 	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/leonelquinteros/gotext"
 	"github.com/pelletier/go-toml/v2"
 	"go.elara.ws/vercmp"
 	"mvdan.cc/sh/v3/expand"
@@ -41,7 +43,6 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 type actionType uint8
@@ -61,8 +62,6 @@ type action struct {
 // In this case, only changed packages will be processed if possible.
 // If repos is set to nil, the repos in the ALR config will be used.
 func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
-	log := loggerctx.From(ctx)
-
 	if repos == nil {
 		repos = rs.cfg.Repos(ctx)
 	}
@@ -73,7 +72,7 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 			return err
 		}
 
-		log.Info("Pulling repository").Str("name", repo.Name).Send()
+		slog.Info(gotext.Get("Pulling repository"), "name", repo.Name)
 		repoDir := filepath.Join(config.GetPaths(ctx).RepoDir, repo.Name)
 
 		var repoFS billy.Filesystem
@@ -97,7 +96,7 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 
 			err = w.PullContext(ctx, &git.PullOptions{Progress: os.Stderr})
 			if errors.Is(err, git.NoErrAlreadyUpToDate) {
-				log.Info("Repository up to date").Str("name", repo.Name).Send()
+				slog.Info(gotext.Get("Repository up to date"), "name", repo.Name)
 			} else if err != nil {
 				return err
 			}
@@ -154,7 +153,7 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 
 		fl, err := repoFS.Open("alr-repo.toml")
 		if err != nil {
-			log.Warn("Git repository does not appear to be a valid ALR repo").Str("repo", repo.Name).Send()
+			slog.Warn(gotext.Get("Git repository does not appear to be a valid ALR repo"), "repo", repo.Name)
 			continue
 		}
 
@@ -170,7 +169,7 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 		// to compare it to the repo version, so only compare versions with the "v".
 		if strings.HasPrefix(config.Version, "v") {
 			if vercmp.Compare(config.Version, repoCfg.Repo.MinVersion) == -1 {
-				log.Warn("ALR repo's minumum ALR version is greater than the current version. Try updating ALR if something doesn't work.").Str("repo", repo.Name).Send()
+				slog.Warn(gotext.Get("ALR repo's minumum ALR version is greater than the current version. Try updating ALR if something doesn't work."), "repo", repo.Name)
 			}
 		}
 	}

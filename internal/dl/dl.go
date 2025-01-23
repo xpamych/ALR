@@ -31,11 +31,13 @@ import (
 	"fmt"
 	"hash"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/PuerkitoBio/purell"
+	"github.com/leonelquinteros/gotext"
 	"github.com/vmihailenco/msgpack/v5"
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/blake2s"
@@ -43,7 +45,6 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/dlcache"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 // Константа для имени файла манифеста кэша
@@ -144,7 +145,6 @@ type UpdatingDownloader interface {
 
 // Функция Download загружает файл или каталог с использованием указанных параметров
 func Download(ctx context.Context, opts Options) (err error) {
-	log := loggerctx.From(ctx)
 	cfg := config.GetInstance(ctx)
 	dc := dlcache.New(cfg)
 
@@ -166,7 +166,11 @@ func Download(ctx context.Context, opts Options) (err error) {
 	if ok {
 		var updated bool
 		if d, ok := d.(UpdatingDownloader); ok {
-			log.Info("Source can be updated, updating if required").Str("source", opts.Name).Str("downloader", d.Name()).Send()
+			slog.Info(
+				gotext.Get("Source can be updated, updating if required"),
+				"source", opts.Name,
+				"downloader", d.Name(),
+			)
 
 			updated, err = d.Update(Options{
 				Hash:          opts.Hash,
@@ -193,10 +197,18 @@ func Download(ctx context.Context, opts Options) (err error) {
 			}
 
 			if ok && !updated {
-				log.Info("Source found in cache and linked to destination").Str("source", opts.Name).Stringer("type", t).Send()
+				slog.Info(
+					gotext.Get("Source found in cache and linked to destination"),
+					"source", opts.Name,
+					"type", t,
+				)
 				return nil
 			} else if ok {
-				log.Info("Source updated and linked to destination").Str("source", opts.Name).Stringer("type", t).Send()
+				slog.Info(
+					gotext.Get("Source updated and linked to destination"),
+					"source", opts.Name,
+					"type", t,
+				)
 				return nil
 			}
 		} else {
@@ -207,7 +219,7 @@ func Download(ctx context.Context, opts Options) (err error) {
 		}
 	}
 
-	log.Info("Downloading source").Str("source", opts.Name).Str("downloader", d.Name()).Send()
+	slog.Info(gotext.Get("Downloading source"), "source", opts.Name, "downloader", d.Name())
 
 	cacheDir, err = dc.New(ctx, opts.URL)
 	if err != nil {

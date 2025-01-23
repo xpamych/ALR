@@ -21,24 +21,26 @@ package build
 
 import (
 	"context"
+	"log/slog"
+	"os"
 	"path/filepath"
+
+	"github.com/leonelquinteros/gotext"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 )
 
 // InstallPkgs устанавливает нативные пакеты с использованием менеджера пакетов,
 // затем строит и устанавливает пакеты ALR
 func InstallPkgs(ctx context.Context, alrPkgs []db.Package, nativePkgs []string, opts types.BuildOpts) {
-	log := loggerctx.From(ctx) // Инициализируем логгер из контекста
-
 	if len(nativePkgs) > 0 {
 		err := opts.Manager.Install(nil, nativePkgs...)
 		// Если есть нативные пакеты, выполняем их установку
 		if err != nil {
-			log.Fatal("Error installing native packages").Err(err).Send()
+			slog.Error(gotext.Get("Error installing native packages"), "err", err)
+			os.Exit(1)
 			// Логируем и завершаем выполнение при ошибке
 		}
 	}
@@ -61,20 +63,21 @@ func GetScriptPaths(ctx context.Context, pkgs []db.Package) []string {
 
 // InstallScripts строит и устанавливает переданные alr скрипты сборки
 func InstallScripts(ctx context.Context, scripts []string, opts types.BuildOpts) {
-	log := loggerctx.From(ctx) // Получаем логгер из контекста
 	for _, script := range scripts {
 		opts.Script = script // Устанавливаем текущий скрипт в опции
 		builtPkgs, _, err := BuildPackage(ctx, opts)
 		// Выполняем сборку пакета
 		if err != nil {
-			log.Fatal("Error building package").Err(err).Send()
+			slog.Error(gotext.Get("Error building package"), "err", err)
+			os.Exit(1)
 			// Логируем и завершаем выполнение при ошибке сборки
 		}
 
 		err = opts.Manager.InstallLocal(nil, builtPkgs...)
 		// Устанавливаем локально собранные пакеты
 		if err != nil {
-			log.Fatal("Error installing package").Err(err).Send()
+			slog.Error(gotext.Get("Error installing package"), "err", err)
+			os.Exit(1)
 			// Логируем и завершаем выполнение при ошибке установки
 		}
 	}

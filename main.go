@@ -21,88 +21,97 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 
+	"github.com/leonelquinteros/gotext"
 	"github.com/mattn/go-isatty"
 	"github.com/urfave/cli/v2"
-	"go.elara.ws/logger"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/translations"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/loggerctx"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
+
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/logger"
 )
 
-var app = &cli.App{
-	Name:  "alr",
-	Usage: "Any Linux Repository",
-	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:    "pm-args",
-			Aliases: []string{"P"},
-			Usage:   "Arguments to be passed on to the package manager",
+func VersionCmd() *cli.Command {
+	return &cli.Command{
+		Name:  "version",
+		Usage: gotext.Get("Print the current ALR version and exit"),
+		Action: func(ctx *cli.Context) error {
+			println(config.Version)
+			return nil
 		},
-		&cli.BoolFlag{
-			Name:    "interactive",
-			Aliases: []string{"i"},
-			Value:   isatty.IsTerminal(os.Stdin.Fd()),
-			Usage:   "Enable interactive questions and prompts",
-		},
-	},
-	Commands: []*cli.Command{
-		installCmd,
-		removeCmd,
-		upgradeCmd,
-		infoCmd,
-		listCmd,
-		buildCmd,
-		addrepoCmd,
-		removerepoCmd,
-		refreshCmd,
-		fixCmd,
-		genCmd,
-		helperCmd,
-		versionCmd,
-	},
-	Before: func(c *cli.Context) error {
-		ctx := c.Context
-		log := loggerctx.From(ctx)
-
-		cmd := c.Args().First()
-		if cmd != "helper" && !config.Config(ctx).Unsafe.AllowRunAsRoot && os.Geteuid() == 0 {
-			log.Fatal("Running ALR as root is forbidden as it may cause catastrophic damage to your system").Send()
-		}
-
-		if trimmed := strings.TrimSpace(c.String("pm-args")); trimmed != "" {
-			args := strings.Split(trimmed, " ")
-			manager.Args = append(manager.Args, args...)
-		}
-
-		return nil
-	},
-	After: func(ctx *cli.Context) error {
-		return db.Close()
-	},
-	EnableBashCompletion: true,
+	}
 }
 
-var versionCmd = &cli.Command{
-	Name:  "version",
-	Usage: "Print the current ALR version and exit",
-	Action: func(ctx *cli.Context) error {
-		println(config.Version)
-		return nil
-	},
+func GetApp() *cli.App {
+	return &cli.App{
+		Name:  "alr",
+		Usage: "Any Linux Repository",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "pm-args",
+				Aliases: []string{"P"},
+				Usage:   gotext.Get("Arguments to be passed on to the package manager"),
+			},
+			&cli.BoolFlag{
+				Name:    "interactive",
+				Aliases: []string{"i"},
+				Value:   isatty.IsTerminal(os.Stdin.Fd()),
+				Usage:   gotext.Get("Enable interactive questions and prompts"),
+			},
+		},
+		Commands: []*cli.Command{
+			InstallCmd(),
+			RemoveCmd(),
+			UpgradeCmd(),
+			InfoCmd(),
+			ListCmd(),
+			BuildCmd(),
+			AddRepoCmd(),
+			RemoveRepoCmd(),
+			RefreshCmd(),
+			FixCmd(),
+			GenCmd(),
+			HelperCmd(),
+			VersionCmd(),
+		},
+		Before: func(c *cli.Context) error {
+			ctx := c.Context
+
+			cmd := c.Args().First()
+			if cmd != "helper" && !config.Config(ctx).Unsafe.AllowRunAsRoot && os.Geteuid() == 0 {
+				slog.Error(gotext.Get("Running ALR as root is forbidden as it may cause catastrophic damage to your system"))
+				os.Exit(1)
+			}
+
+			if trimmed := strings.TrimSpace(c.String("pm-args")); trimmed != "" {
+				args := strings.Split(trimmed, " ")
+				manager.Args = append(manager.Args, args...)
+			}
+
+			return nil
+		},
+		After: func(ctx *cli.Context) error {
+			return db.Close()
+		},
+		EnableBashCompletion: true,
+	}
 }
 
 func main() {
+	translations.Setup()
+	logger.SetupDefault()
+
+	app := GetApp()
+
 	ctx := context.Background()
-	log := translations.NewLogger(ctx, logger.NewCLI(os.Stderr), config.Language(ctx))
-	ctx = loggerctx.With(ctx, log)
 
 	// Set the root command to the one set in the ALR config
 	manager.DefaultRootCmd = config.Config(ctx).RootCmd
@@ -112,6 +121,6 @@ func main() {
 
 	err := app.RunContext(ctx, os.Args)
 	if err != nil {
-		log.Error("Error while running app").Err(err).Send()
+		slog.Error(gotext.Get("Error while running app"), "err", err)
 	}
 }
