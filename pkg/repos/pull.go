@@ -169,7 +169,7 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 		// to compare it to the repo version, so only compare versions with the "v".
 		if strings.HasPrefix(config.Version, "v") {
 			if vercmp.Compare(config.Version, repoCfg.Repo.MinVersion) == -1 {
-				slog.Warn(gotext.Get("ALR repo's minumum ALR version is greater than the current version. Try updating ALR if something doesn't work."), "repo", repo.Name)
+				slog.Warn(gotext.Get("ALR repo's minimum ALR version is greater than the current version. Try updating ALR if something doesn't work."), "repo", repo.Name)
 			}
 		}
 	}
