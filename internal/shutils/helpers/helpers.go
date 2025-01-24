@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -55,12 +56,17 @@ var Helpers = handlers.ExecFuncs{
 	"install-completion":   installCompletionCmd,
 	"install-library":      installLibraryCmd,
 	"git-version":          gitVersionCmd,
+
+	"files-find-lang": filesFindLangCmd,
+	"files-find-doc":  filesFindDocCmd,
 }
 
 // Restricted contains restricted read-only helper commands
 // that don't modify any state
 var Restricted = handlers.ExecFuncs{
-	"git-version": gitVersionCmd,
+	"git-version":     gitVersionCmd,
+	"files-find-lang": filesFindLangCmd,
+	"files-find-doc":  filesFindDocCmd,
 }
 
 func installHelperCmd(prefix string, perms os.FileMode) handlers.ExecFunc {
@@ -254,6 +260,114 @@ func gitVersionCmd(hc interp.HandlerContext, cmd string, args []string) error {
 	fmt.Fprintf(hc.Stdout, "%d.%s\n", revNum, hash[:7])
 
 	return nil
+}
+
+func filesFindLangCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*.mo"
+	if len(args) > 0 {
+		namePattern = args[0] + ".mo"
+	}
+
+	localePath := "./usr/share/locale/"
+	realPath := path.Join(hc.Dir, localePath)
+
+	info, err := os.Stat(realPath)
+	if err != nil {
+		return fmt.Errorf("files-find-lang: %w", err)
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("files-find-lang: %s is not a directory", localePath)
+	}
+
+	var langFiles []string
+	err = filepath.Walk(realPath, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && matchNamePattern(info.Name(), namePattern) {
+			relPath, relErr := filepath.Rel(hc.Dir, p)
+			if relErr != nil {
+				return relErr
+			}
+			langFiles = append(langFiles, "./"+relPath)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("files-find-lang: %w", err)
+	}
+
+	for _, file := range langFiles {
+		fmt.Fprintln(hc.Stdout, file)
+	}
+
+	return nil
+}
+
+func filesFindDocCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*"
+	if len(args) > 0 {
+		namePattern = args[0]
+	}
+
+	docPath := "./usr/share/doc/"
+	docRealPath := path.Join(hc.Dir, docPath)
+
+	info, err := os.Stat(docRealPath)
+	if err != nil {
+		return fmt.Errorf("files-find-doc: %w", err)
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("files-find-doc: %s is not a directory", docPath)
+	}
+
+	var docFiles []string
+
+	entries, err := os.ReadDir(docRealPath)
+	if err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		if matchNamePattern(entry.Name(), namePattern) {
+			targetPath := filepath.Join(docRealPath, entry.Name())
+			targetInfo, err := os.Stat(targetPath)
+			if err != nil {
+				return err
+			}
+			if targetInfo.IsDir() {
+				err := filepath.Walk(targetPath, func(subPath string, subInfo os.FileInfo, subErr error) error {
+					relPath, err := filepath.Rel(hc.Dir, subPath)
+					if err != nil {
+						return err
+					}
+					docFiles = append(docFiles, "./"+relPath)
+					return nil
+				})
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	if err != nil {
+		return fmt.Errorf("files-find-doc: %w", err)
+	}
+
+	for _, file := range docFiles {
+		fmt.Fprintln(hc.Stdout, file)
+	}
+
+	return nil
+}
+
+func matchNamePattern(name, pattern string) bool {
+	matched, err := filepath.Match(pattern, name)
+	if err != nil {
+		return false
+	}
+	return matched
 }
 
 func helperInstall(from, to string, perms os.FileMode) error {

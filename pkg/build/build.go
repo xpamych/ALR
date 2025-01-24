@@ -156,7 +156,7 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 		return nil, nil, err
 	}
 
-	err = executeFunctions(ctx, dec, dirs, vars) // Выполняем специальные функции
+	funcOut, err := executeFunctions(ctx, dec, dirs, vars) // Выполняем специальные функции
 	if err != nil {
 		return nil, nil, err
 	}
@@ -165,7 +165,7 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 
 	pkgFormat := getPkgFormat(opts.Manager) // Получаем формат пакета
 
-	pkgInfo, err := buildPkgMetadata(ctx, vars, dirs, pkgFormat, info, append(repoDeps, builtNames...)) // Собираем метаданные пакета
+	pkgInfo, err := buildPkgMetadata(ctx, vars, dirs, pkgFormat, info, append(repoDeps, builtNames...), funcOut.Contents) // Собираем метаданные пакета
 	if err != nil {
 		return nil, nil, err
 	}
@@ -428,40 +428,44 @@ func buildALRDeps(ctx context.Context, opts types.BuildOpts, vars *types.BuildVa
 	return builtPaths, builtNames, repoDeps, nil
 }
 
+type FunctionsOutput struct {
+	Contents *[]string
+}
+
 // Функция executeFunctions выполняет специальные функции ALR, такие как version(), prepare() и т.д.
-func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Directories, vars *types.BuildVars) (err error) {
+func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Directories, vars *types.BuildVars) (*FunctionsOutput, error) {
 	version, ok := dec.GetFunc("version")
 	if ok {
 		slog.Info(gotext.Get("Executing version()"))
 
 		buf := &bytes.Buffer{}
 
-		err = version(
+		err := version(
 			ctx,
 			interp.Dir(dirs.SrcDir),
 			interp.StdIO(os.Stdin, buf, os.Stderr),
 		)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		newVer := strings.TrimSpace(buf.String())
 		err = setVersion(ctx, dec.Runner, newVer)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		vars.Version = newVer
 
-		slog.Info("Updating version", "new", newVer)
+		slog.Info(gotext.Get("Updating version"), "new", newVer)
 	}
 
 	prepare, ok := dec.GetFunc("prepare")
 	if ok {
 		slog.Info(gotext.Get("Executing prepare()"))
 
-		err = prepare(ctx, interp.Dir(dirs.SrcDir))
+		err := prepare(ctx, interp.Dir(dirs.SrcDir))
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -469,9 +473,9 @@ func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Dire
 	if ok {
 		slog.Info(gotext.Get("Executing build()"))
 
-		err = build(ctx, interp.Dir(dirs.SrcDir))
+		err := build(ctx, interp.Dir(dirs.SrcDir))
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -480,9 +484,9 @@ func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Dire
 		packageFn, ok := dec.GetFunc("package")
 		if ok {
 			slog.Info(gotext.Get("Executing package()"))
-			err = packageFn(ctx, interp.Dir(dirs.SrcDir))
+			err := packageFn(ctx, interp.Dir(dirs.SrcDir))
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 
@@ -502,11 +506,51 @@ func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Dire
 		break
 	}
 
-	return nil
+	output := &FunctionsOutput{}
+
+	files, ok := dec.GetFuncP("files", func(ctx context.Context, s *interp.Runner) error {
+		// It should be done via interp.RunnerOption,
+		// but due to the issues below, it cannot be done.
+		// - https://github.com/mvdan/sh/issues/962
+		// - https://github.com/mvdan/sh/issues/1125
+		script, err := syntax.NewParser().Parse(strings.NewReader("cd $pkgdir && shopt -s globstar"), "")
+		if err != nil {
+			return err
+		}
+		return s.Run(ctx, script)
+	})
+
+	if ok {
+		slog.Info(gotext.Get("Executing files()"))
+
+		buf := &bytes.Buffer{}
+
+		err := files(
+			ctx,
+			interp.Dir(dirs.PkgDir),
+			interp.StdIO(os.Stdin, buf, os.Stderr),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		contents := strings.Fields(strings.TrimSpace(buf.String()))
+		output.Contents = &contents
+	}
+
+	return output, nil
 }
 
 // Функция buildPkgMetadata создает метаданные для пакета, который будет собран.
-func buildPkgMetadata(ctx context.Context, vars *types.BuildVars, dirs types.Directories, pkgFormat string, info *distro.OSRelease, deps []string) (*nfpm.Info, error) {
+func buildPkgMetadata(
+	ctx context.Context,
+	vars *types.BuildVars,
+	dirs types.Directories,
+	pkgFormat string,
+	info *distro.OSRelease,
+	deps []string,
+	preferedContents *[]string,
+) (*nfpm.Info, error) {
 	pkgInfo := getBasePkgInfo(vars)
 	pkgInfo.Description = vars.Description
 	pkgInfo.Platform = "linux"
@@ -541,7 +585,7 @@ func buildPkgMetadata(ctx context.Context, vars *types.BuildVars, dirs types.Dir
 		pkgInfo.Arch = "all"
 	}
 
-	contents, err := buildContents(vars, dirs)
+	contents, err := buildContents(vars, dirs, preferedContents)
 	if err != nil {
 		return nil, err
 	}
@@ -574,21 +618,27 @@ func buildPkgMetadata(ctx context.Context, vars *types.BuildVars, dirs types.Dir
 
 // Функция buildContents создает секцию содержимого пакета, которая содержит файлы,
 // которые будут включены в конечный пакет.
-func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Content, error) {
+func buildContents(vars *types.BuildVars, dirs types.Directories, preferedContents *[]string) ([]*files.Content, error) {
 	contents := []*files.Content{}
-	err := filepath.Walk(dirs.PkgDir, func(path string, fi os.FileInfo, err error) error {
-		trimmed := strings.TrimPrefix(path, dirs.PkgDir)
+
+	processPath := func(path, trimmed string, prefered bool) error {
+		fi, err := os.Lstat(path)
+		if err != nil {
+			return err
+		}
 
 		if fi.IsDir() {
 			f, err := os.Open(path)
 			if err != nil {
 				return err
 			}
+			defer f.Close()
 
-			// Если директория пустая, пропускаем её
-			_, err = f.Readdirnames(1)
-			if err != io.EOF {
-				return nil
+			if !prefered {
+				_, err = f.Readdirnames(1)
+				if err != io.EOF {
+					return nil
+				}
 			}
 
 			contents = append(contents, &files.Content{
@@ -599,16 +649,14 @@ func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Cont
 					MTime: fi.ModTime(),
 				},
 			})
-
-			return f.Close()
+			return nil
 		}
-		// Если файл является символической ссылкой, прорабатываем это
+
 		if fi.Mode()&os.ModeSymlink != 0 {
 			link, err := os.Readlink(path)
 			if err != nil {
 				return err
 			}
-			// Удаляем pkgdir из пути символической ссылки
 			link = strings.TrimPrefix(link, dirs.PkgDir)
 
 			contents = append(contents, &files.Content{
@@ -620,10 +668,9 @@ func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Cont
 					Mode:  fi.Mode(),
 				},
 			})
-
 			return nil
 		}
-		// Обрабатываем обычные файлы
+
 		fileContent := &files.Content{
 			Source:      path,
 			Destination: trimmed,
@@ -634,16 +681,35 @@ func buildContents(vars *types.BuildVars, dirs types.Directories) ([]*files.Cont
 			},
 		}
 
-		// Если файл должен быть сохранен, установите его тип как config|noreplace
 		if slices.Contains(vars.Backup, trimmed) {
 			fileContent.Type = "config|noreplace"
 		}
 
 		contents = append(contents, fileContent)
-
 		return nil
-	})
-	return contents, err
+	}
+
+	if preferedContents != nil {
+		for _, trimmed := range *preferedContents {
+			path := filepath.Join(dirs.PkgDir, trimmed)
+			if err := processPath(path, trimmed, true); err != nil {
+				return nil, err
+			}
+		}
+	} else {
+		err := filepath.Walk(dirs.PkgDir, func(path string, fi os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			trimmed := strings.TrimPrefix(path, dirs.PkgDir)
+			return processPath(path, trimmed, false)
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return contents, nil
 }
 
 // Функция removeBuildDeps спрашивает у пользователя, хочет ли он удалить зависимости,

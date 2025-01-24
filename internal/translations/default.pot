@@ -251,7 +251,7 @@ msgstr ""
 msgid "Downloading source"
 msgstr ""
 
-#: internal/logger/log.go:44
+#: internal/logger/log.go:47
 msgid "ERROR"
 msgstr ""
 
@@ -323,35 +323,43 @@ msgstr ""
 msgid "Installing dependencies"
 msgstr ""
 
-#: pkg/build/build.go:435
+#: pkg/build/build.go:439
 msgid "Executing version()"
 msgstr ""
 
-#: pkg/build/build.go:460
+#: pkg/build/build.go:459
+msgid "Updating version"
+msgstr ""
+
+#: pkg/build/build.go:464
 msgid "Executing prepare()"
 msgstr ""
 
-#: pkg/build/build.go:470
+#: pkg/build/build.go:474
 msgid "Executing build()"
 msgstr ""
 
-#: pkg/build/build.go:482
+#: pkg/build/build.go:486
 msgid "Executing package()"
 msgstr ""
 
-#: pkg/build/build.go:557
+#: pkg/build/build.go:524
+msgid "Executing files()"
+msgstr ""
+
+#: pkg/build/build.go:601
 msgid "AutoProv is not implemented for this package format, so it's skiped"
 msgstr ""
 
-#: pkg/build/build.go:568
+#: pkg/build/build.go:612
 msgid "AutoReq is not implemented for this package format, so it's skiped"
 msgstr ""
 
-#: pkg/build/build.go:653
+#: pkg/build/build.go:719
 msgid "Would you like to remove the build dependencies?"
 msgstr ""
 
-#: pkg/build/build.go:759
+#: pkg/build/build.go:825
 msgid "The checksums array must be the same length as sources"
 msgstr ""
 
@@ -437,10 +445,14 @@ msgstr ""
 msgid "Pull all repositories that have changed"
 msgstr ""
 
-#: upgrade.go:47
+#: upgrade.go:46
 msgid "Upgrade all installed packages"
 msgstr ""
 
-#: upgrade.go:83
+#: upgrade.go:82
 msgid "Error checking for updates"
+msgstr ""
+
+#: upgrade.go:93
+msgid "There is nothing to do."
 msgstr ""
