@@ -1,8 +1,8 @@
 module gitea.plemya-x.ru/Plemya-x/ALR
 
-go 1.21
+go 1.22
 
-toolchain go1.21.3
+toolchain go1.23.5
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
@@ -34,7 +34,7 @@ require (
 	golang.org/x/text v0.21.0
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.25.0
-	mvdan.cc/sh/v3 v3.7.0
+	mvdan.cc/sh/v3 v3.10.0
 	plemya-x.ru/fakeroot v0.0.0-20240601131003-c638a3543283
 )
 
@@ -110,11 +110,11 @@ require (
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	gitlab.com/digitalxero/go-conventional-commit v1.0.7 // indirect
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
-	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/net v0.25.0 // indirect
+	golang.org/x/mod v0.18.0 // indirect
+	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/term v0.24.0 // indirect
-	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
+	golang.org/x/term v0.25.0 // indirect
+	golang.org/x/tools v0.22.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect
 	modernc.org/cc/v3 v3.40.0 // indirect

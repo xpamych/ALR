@@ -177,7 +177,35 @@ func (d *Decoder) GetFunc(name string) (ScriptFunc, bool) {
 	return func(ctx context.Context, opts ...interp.RunnerOption) error {
 		sub := d.Runner.Subshell()
 		for _, opt := range opts {
-			opt(sub)
+			err := opt(sub)
+			if err != nil {
+				return err
+			}
+		}
+		return sub.Run(ctx, fn)
+	}, true
+}
+
+type PrepareFunc func(context.Context, *interp.Runner) error
+
+func (d *Decoder) GetFuncP(name string, prepare PrepareFunc) (ScriptFunc, bool) {
+	fn := d.getFunc(name)
+	if fn == nil {
+		return nil, false
+	}
+
+	return func(ctx context.Context, opts ...interp.RunnerOption) error {
+		sub := d.Runner.Subshell()
+		for _, opt := range opts {
+			err := opt(sub)
+			if err != nil {
+				return err
+			}
+		}
+		if prepare != nil {
+			if err := prepare(ctx, sub); err != nil {
+				return err
+			}
 		}
 		return sub.Run(ctx, fn)
 	}, true
