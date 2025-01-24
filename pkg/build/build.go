@@ -598,7 +598,7 @@ func buildPkgMetadata(
 				return nil, err
 			}
 		} else {
-			slog.Info(gotext.Get("AutoProv is not implemented for this package format, so it's skiped"))
+			slog.Info(gotext.Get("AutoProv is not implemented for this package format, so it's skipped"))
 		}
 	}
 
@@ -609,7 +609,7 @@ func buildPkgMetadata(
 				return nil, err
 			}
 		} else {
-			slog.Info(gotext.Get("AutoReq is not implemented for this package format, so it's skiped"))
+			slog.Info(gotext.Get("AutoReq is not implemented for this package format, so it's skipped"))
 		}
 	}
 

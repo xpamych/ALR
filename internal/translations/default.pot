@@ -348,11 +348,11 @@ msgid "Executing files()"
 msgstr ""
 
 #: pkg/build/build.go:601
-msgid "AutoProv is not implemented for this package format, so it's skiped"
+msgid "AutoProv is not implemented for this package format, so it's skipped"
 msgstr ""
 
 #: pkg/build/build.go:612
-msgid "AutoReq is not implemented for this package format, so it's skiped"
+msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 
 #: pkg/build/build.go:719
@@ -397,7 +397,7 @@ msgstr ""
 
 #: pkg/repos/pull.go:172
 msgid ""
-"ALR repo's minumum ALR version is greater than the current version. Try "
+"ALR repo's minimum ALR version is greater than the current version. Try "
 "updating ALR if something doesn't work."
 msgstr ""
 
