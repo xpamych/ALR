@@ -44,6 +44,7 @@ type OSRelease struct {
 	SupportURL       string
 	BugReportURL     string
 	Logo             string
+	PlatformID       string
 }
 
 var parsed *OSRelease
@@ -102,6 +103,7 @@ func ParseOSRelease(ctx context.Context) (*OSRelease, error) {
 		SupportURL:       runner.Vars["SUPPORT_URL"].Str,
 		BugReportURL:     runner.Vars["BUG_REPORT_URL"].Str,
 		Logo:             runner.Vars["LOGO"].Str,
+		PlatformID:       runner.Vars["PLATFORM_ID"].Str,
 	}
 
 	distroUpdated := false
