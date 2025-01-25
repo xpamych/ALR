@@ -231,13 +231,11 @@ func ReleasePlatformSpecific(release int, info *distro.OSRelease) string {
 		return fmt.Sprintf("alt%d", release)
 	}
 
-	for _, v := range info.Like {
-		if v == "fedora" {
-			re := regexp.MustCompile(`platform:(\S+)`)
-			match := re.FindStringSubmatch(info.PlatformID)
-			if len(match) > 1 {
-				return fmt.Sprintf("%d.%s", release, match[0])
-			}
+	if info.ID == "fedora" || slices.Contains(info.Like, "fedora") {
+		re := regexp.MustCompile(`platform:(\S+)`)
+		match := re.FindStringSubmatch(info.PlatformID)
+		if len(match) > 1 {
+			return fmt.Sprintf("%d.%s", release, match[1])
 		}
 	}
 

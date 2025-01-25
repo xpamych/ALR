@@ -24,6 +24,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"golang.org/x/text/language"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
@@ -193,5 +194,45 @@ func TestResolveLangs(t *testing.T) {
 
 	if !reflect.DeepEqual(names, expected) {
 		t.Errorf("expected %v, got %v", expected, names)
+	}
+}
+
+func TestReleasePlatformSpecific(t *testing.T) {
+
+	type testCase struct {
+		info     *distro.OSRelease
+		expected string
+	}
+
+	for _, tc := range []testCase{
+		{
+			info: &distro.OSRelease{
+				ID:         "centos",
+				Like:       []string{"rhel", "fedora"},
+				PlatformID: "platform:el8",
+			},
+			expected: "1.el8",
+		},
+		{
+			info: &distro.OSRelease{
+				ID:         "fedora",
+				PlatformID: "platform:f42",
+			},
+			expected: "1.f42",
+		},
+		{
+			info: &distro.OSRelease{
+				ID: "altlinux",
+			},
+			expected: "alt1",
+		},
+		{
+			info: &distro.OSRelease{
+				ID: "ubuntu",
+			},
+			expected: "1",
+		},
+	} {
+		assert.Equal(t, tc.expected, overrides.ReleasePlatformSpecific(1, tc.info))
 	}
 }
