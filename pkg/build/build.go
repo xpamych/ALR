@@ -35,6 +35,7 @@ import (
 	"time"
 
 	// Импортируем пакеты для поддержки различных форматов пакетов (APK, DEB, RPM и ARCH).
+
 	_ "github.com/goreleaser/nfpm/v2/apk"
 	_ "github.com/goreleaser/nfpm/v2/arch"
 	_ "github.com/goreleaser/nfpm/v2/deb"
@@ -42,6 +43,7 @@ import (
 	"github.com/leonelquinteros/gotext"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
+	"mvdan.cc/sh/v3/shell"
 	"mvdan.cc/sh/v3/syntax"
 
 	"github.com/goreleaser/nfpm/v2"
@@ -534,7 +536,10 @@ func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Dire
 			return nil, err
 		}
 
-		contents := strings.Fields(strings.TrimSpace(buf.String()))
+		contents, err := shell.Fields(buf.String(), func(s string) string { return "" })
+		if err != nil {
+			return nil, err
+		}
 		output.Contents = &contents
 	}
 
