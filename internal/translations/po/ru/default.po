@@ -361,7 +361,7 @@ msgstr "Исполнение package()"
 
 #: pkg/build/build.go:525
 msgid "Executing files()"
-msgstr "Исполнение package()"
+msgstr "Исполнение files()"
 
 #: pkg/build/build.go:600
 msgid "AutoProv is not implemented for this package format, so it's skipped"
