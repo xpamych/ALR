@@ -285,81 +285,81 @@ msgstr ""
 msgid "Error while running app"
 msgstr ""
 
-#: pkg/build/build.go:104
+#: pkg/build/build.go:105
 msgid "Failed to prompt user to view build script"
 msgstr ""
 
-#: pkg/build/build.go:108
+#: pkg/build/build.go:109
 msgid "Building package"
 msgstr ""
 
-#: pkg/build/build.go:152
+#: pkg/build/build.go:153
 msgid "Downloading sources"
 msgstr ""
 
-#: pkg/build/build.go:164
+#: pkg/build/build.go:165
 msgid "Building package metadata"
 msgstr ""
 
-#: pkg/build/build.go:186
+#: pkg/build/build.go:187
 msgid "Compressing package"
 msgstr ""
 
-#: pkg/build/build.go:312
+#: pkg/build/build.go:313
 msgid ""
 "Your system's CPU architecture doesn't match this package. Do you want to "
 "build anyway?"
 msgstr ""
 
-#: pkg/build/build.go:323
+#: pkg/build/build.go:324
 msgid "This package is already installed"
 msgstr ""
 
-#: pkg/build/build.go:351
+#: pkg/build/build.go:352
 msgid "Installing build dependencies"
 msgstr ""
 
-#: pkg/build/build.go:393
+#: pkg/build/build.go:394
 msgid "Installing dependencies"
 msgstr ""
 
-#: pkg/build/build.go:439
+#: pkg/build/build.go:440
 msgid "Executing version()"
 msgstr ""
 
-#: pkg/build/build.go:459
+#: pkg/build/build.go:460
 msgid "Updating version"
 msgstr ""
 
-#: pkg/build/build.go:464
+#: pkg/build/build.go:465
 msgid "Executing prepare()"
 msgstr ""
 
-#: pkg/build/build.go:474
+#: pkg/build/build.go:475
 msgid "Executing build()"
 msgstr ""
 
-#: pkg/build/build.go:486
+#: pkg/build/build.go:487
 msgid "Executing package()"
 msgstr ""
 
-#: pkg/build/build.go:524
+#: pkg/build/build.go:525
 msgid "Executing files()"
 msgstr ""
 
-#: pkg/build/build.go:601
+#: pkg/build/build.go:600
 msgid "AutoProv is not implemented for this package format, so it's skipped"
 msgstr ""
 
-#: pkg/build/build.go:612
+#: pkg/build/build.go:611
 msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 
-#: pkg/build/build.go:719
+#: pkg/build/build.go:718
 msgid "Would you like to remove the build dependencies?"
 msgstr ""
 
-#: pkg/build/build.go:825
+#: pkg/build/build.go:824
 msgid "The checksums array must be the same length as sources"
 msgstr ""
 
@@ -445,14 +445,14 @@ msgstr ""
 msgid "Pull all repositories that have changed"
 msgstr ""
 
-#: upgrade.go:46
+#: upgrade.go:47
 msgid "Upgrade all installed packages"
 msgstr ""
 
-#: upgrade.go:82
+#: upgrade.go:83
 msgid "Error checking for updates"
 msgstr ""
 
-#: upgrade.go:93
+#: upgrade.go:94
 msgid "There is nothing to do."
 msgstr ""

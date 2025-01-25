@@ -20,7 +20,9 @@
 package overrides
 
 import (
+	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"golang.org/x/exp/slices"
@@ -222,4 +224,22 @@ func parseLangs(langs []string, tags []language.Tag) ([]string, error) {
 	slices.Sort(out)
 	out = slices.Compact(out)
 	return out, nil
+}
+
+func ReleasePlatformSpecific(release int, info *distro.OSRelease) string {
+	if info.ID == "altlinux" {
+		return fmt.Sprintf("alt%d", release)
+	}
+
+	for _, v := range info.Like {
+		if v == "fedora" {
+			re := regexp.MustCompile(`platform:(\S+)`)
+			match := re.FindStringSubmatch(info.PlatformID)
+			if len(match) > 1 {
+				return fmt.Sprintf("%d.%s", release, match[0])
+			}
+		}
+	}
+
+	return fmt.Sprintf("%d", release)
 }

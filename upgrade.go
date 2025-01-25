@@ -33,6 +33,7 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
@@ -127,10 +128,12 @@ func checkForUpdates(ctx context.Context, mgr manager.Manager, info *distro.OSRe
 		pkg := pkgs[0]
 
 		repoVer := pkg.Version
+		releaseStr := overrides.ReleasePlatformSpecific(pkg.Release, info)
+
 		if pkg.Release != 0 && pkg.Epoch == 0 {
-			repoVer = fmt.Sprintf("%s-%d", pkg.Version, pkg.Release)
+			repoVer = fmt.Sprintf("%s-%s", pkg.Version, releaseStr)
 		} else if pkg.Release != 0 && pkg.Epoch != 0 {
-			repoVer = fmt.Sprintf("%d:%s-%d", pkg.Epoch, pkg.Version, pkg.Release)
+			repoVer = fmt.Sprintf("%d:%s-%s", pkg.Epoch, pkg.Version, releaseStr)
 		}
 
 		c := vercmp.Compare(repoVer, installed[pkgName])

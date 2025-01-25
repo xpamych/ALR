@@ -52,6 +52,7 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/dl"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/helpers"
@@ -571,9 +572,7 @@ func buildPkgMetadata(
 		})
 	}
 
-	if pkgFormat == "rpm" && info.ID == "altlinux" {
-		pkgInfo.Release = "alt" + pkgInfo.Release
-	}
+	pkgInfo.Release = overrides.ReleasePlatformSpecific(vars.Release, info)
 
 	if vars.Epoch != 0 {
 		pkgInfo.Epoch = strconv.FormatUint(uint64(vars.Epoch), 10)
