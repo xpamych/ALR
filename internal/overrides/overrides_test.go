@@ -198,7 +198,6 @@ func TestResolveLangs(t *testing.T) {
 }
 
 func TestReleasePlatformSpecific(t *testing.T) {
-
 	type testCase struct {
 		info     *distro.OSRelease
 		expected string

@@ -57,64 +57,64 @@ func BuildCmd() *cli.Command {
 				Usage:   gotext.Get("Build package from scratch even if there's an already built package available"),
 			},
 		},
-        Action: func(c *cli.Context) error {
-            ctx := c.Context
+		Action: func(c *cli.Context) error {
+			ctx := c.Context
 
-            var script string
-            packageInput := c.String("package")
+			var script string
+			packageInput := c.String("package")
 
-            if packageInput != "" {
-                // If the package input contains a '/', use it as the full path.
-                if filepath.Dir(packageInput) == "." {
-                    // No directory specified, use 'default' as a prefix.
-                    script = filepath.Join(config.GetPaths(ctx).RepoDir, "default", packageInput, "alr.sh")
-                } else {
-                    // Use the full path specified by the user.
-                    script = filepath.Join(config.GetPaths(ctx).RepoDir, packageInput, "alr.sh")
-                }
-            }
+			if packageInput != "" {
+				// If the package input contains a '/', use it as the full path.
+				if filepath.Dir(packageInput) == "." {
+					// No directory specified, use 'default' as a prefix.
+					script = filepath.Join(config.GetPaths(ctx).RepoDir, "default", packageInput, "alr.sh")
+				} else {
+					// Use the full path specified by the user.
+					script = filepath.Join(config.GetPaths(ctx).RepoDir, packageInput, "alr.sh")
+				}
+			}
 
-            if config.GetInstance(ctx).AutoPull(ctx) {
-                err := repos.Pull(ctx, config.Config(ctx).Repos)
-                if err != nil {
-                    slog.Error(gotext.Get("Error pulling repositories"), "err", err)
-                    os.Exit(1)
-                }
-            }
+			if config.GetInstance(ctx).AutoPull(ctx) {
+				err := repos.Pull(ctx, config.Config(ctx).Repos)
+				if err != nil {
+					slog.Error(gotext.Get("Error pulling repositories"), "err", err)
+					os.Exit(1)
+				}
+			}
 
-            mgr := manager.Detect()
-            if mgr == nil {
-                slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
-                os.Exit(1)
-            }
+			mgr := manager.Detect()
+			if mgr == nil {
+				slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
+				os.Exit(1)
+			}
 
-            pkgPaths, _, err := build.BuildPackage(ctx, types.BuildOpts{
-                Script:      script,
-                Manager:     mgr,
-                Clean:       c.Bool("clean"),
-                Interactive: c.Bool("interactive"),
-            })
-            if err != nil {
-                slog.Error(gotext.Get("Error building package"), "err", err)
-                os.Exit(1)
-            }
+			pkgPaths, _, err := build.BuildPackage(ctx, types.BuildOpts{
+				Script:      script,
+				Manager:     mgr,
+				Clean:       c.Bool("clean"),
+				Interactive: c.Bool("interactive"),
+			})
+			if err != nil {
+				slog.Error(gotext.Get("Error building package"), "err", err)
+				os.Exit(1)
+			}
 
-            wd, err := os.Getwd()
-            if err != nil {
-                slog.Error(gotext.Get("Error getting working directory"), "err", err)
-                os.Exit(1)
-            }
+			wd, err := os.Getwd()
+			if err != nil {
+				slog.Error(gotext.Get("Error getting working directory"), "err", err)
+				os.Exit(1)
+			}
 
-            for _, pkgPath := range pkgPaths {
-                name := filepath.Base(pkgPath)
-                err = osutils.Move(pkgPath, filepath.Join(wd, name))
-                if err != nil {
-                    slog.Error(gotext.Get("Error moving the package"), "err", err)
-                    os.Exit(1)
-                }
-            }
+			for _, pkgPath := range pkgPaths {
+				name := filepath.Base(pkgPath)
+				err = osutils.Move(pkgPath, filepath.Join(wd, name))
+				if err != nil {
+					slog.Error(gotext.Get("Error moving the package"), "err", err)
+					os.Exit(1)
+				}
+			}
 
-            return nil
-        },
+			return nil
+		},
 	}
 }

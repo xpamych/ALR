@@ -20,6 +20,7 @@
 package dl
 
 import (
+	"context"
 	"errors"
 	"net/url"
 	"path"
@@ -47,7 +48,7 @@ func (GitDownloader) MatchURL(u string) bool {
 // Download uses git to clone the repository from the specified URL.
 // It allows specifying the revision, depth and recursion options
 // via query string
-func (GitDownloader) Download(opts Options) (Type, string, error) {
+func (GitDownloader) Download(ctx context.Context, opts Options) (Type, string, error) {
 	u, err := url.Parse(opts.URL)
 	if err != nil {
 		return 0, "", err
@@ -89,7 +90,7 @@ func (GitDownloader) Download(opts Options) (Type, string, error) {
 		co.RecurseSubmodules = git.DefaultSubmoduleRecursionDepth
 	}
 
-	r, err := git.PlainClone(opts.Destination, false, co)
+	r, err := git.PlainCloneContext(ctx, opts.Destination, false, co)
 	if err != nil {
 		return 0, "", err
 	}

@@ -134,7 +134,7 @@ type Manifest struct {
 type Downloader interface {
 	Name() string
 	MatchURL(string) bool
-	Download(Options) (Type, string, error)
+	Download(context.Context, Options) (Type, string, error)
 }
 
 // Интерфейс UpdatingDownloader расширяет Downloader методом Update
@@ -157,7 +157,7 @@ func Download(ctx context.Context, opts Options) (err error) {
 	d := getDownloader(opts.URL)
 
 	if opts.CacheDisabled {
-		_, _, err = d.Download(opts)
+		_, _, err = d.Download(ctx, opts)
 		return err
 	}
 
@@ -226,7 +226,7 @@ func Download(ctx context.Context, opts Options) (err error) {
 		return err
 	}
 
-	t, name, err := d.Download(Options{
+	t, name, err := d.Download(ctx, Options{
 		Hash:          opts.Hash,
 		HashAlgorithm: opts.HashAlgorithm,
 		Name:          opts.Name,
