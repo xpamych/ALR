@@ -251,11 +251,11 @@ msgstr ""
 msgid "Downloading source"
 msgstr ""
 
-#: internal/dl/progress_tui.go:99
+#: internal/dl/progress_tui.go:100
 msgid "%s: done!\n"
 msgstr ""
 
-#: internal/dl/progress_tui.go:103
+#: internal/dl/progress_tui.go:104
 msgid "%s %s downloading at %s/s\n"
 msgstr ""
 
