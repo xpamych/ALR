@@ -22,6 +22,7 @@ package dl
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
@@ -30,12 +31,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/mholt/archiver/v4"
-	"github.com/schollz/progressbar/v3"
-
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
 )
 
 // FileDownloader загружает файлы с использованием HTTP
@@ -54,7 +51,7 @@ func (FileDownloader) MatchURL(string) bool {
 
 // Download загружает файл с использованием HTTP. Если файл
 // сжат в поддерживаемом формате, он будет распакован
-func (FileDownloader) Download(opts Options) (Type, string, error) {
+func (FileDownloader) Download(ctx context.Context, opts Options) (Type, string, error) {
 	// Разбор URL
 	u, err := url.Parse(opts.URL)
 	if err != nil {
@@ -94,8 +91,12 @@ func (FileDownloader) Download(opts Options) (Type, string, error) {
 		}
 		r = localFl
 	} else {
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+		if err != nil {
+			return 0, "", fmt.Errorf("failed to create request: %w", err)
+		}
 		// Выполнение HTTP GET запроса
-		res, err := http.Get(u.String())
+		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return 0, "", err
 		}
@@ -114,29 +115,13 @@ func (FileDownloader) Download(opts Options) (Type, string, error) {
 	if err != nil {
 		return 0, "", err
 	}
-	defer fl.Close()
 
-	var bar io.WriteCloser
+	var out io.WriteCloser
 	// Настройка индикатора прогресса
 	if opts.Progress != nil {
-		bar = progressbar.NewOptions64(
-			size,
-			progressbar.OptionSetDescription(name),
-			progressbar.OptionSetWriter(opts.Progress),
-			progressbar.OptionShowBytes(true),
-			progressbar.OptionSetWidth(10),
-			progressbar.OptionThrottle(65*time.Millisecond),
-			progressbar.OptionShowCount(),
-			progressbar.OptionOnCompletion(func() {
-				_, _ = io.WriteString(opts.Progress, "\n")
-			}),
-			progressbar.OptionSpinnerType(14),
-			progressbar.OptionFullWidth(),
-			progressbar.OptionSetRenderBlankState(true),
-		)
-		defer bar.Close()
+		out = NewProgressWriter(fl, size, name, opts.Progress)
 	} else {
-		bar = handlers.NopRWC{}
+		out = fl
 	}
 
 	h, err := opts.NewHash()
@@ -147,9 +132,9 @@ func (FileDownloader) Download(opts Options) (Type, string, error) {
 	var w io.Writer
 	// Настройка MultiWriter для записи в файл, хеш и индикатор прогресса
 	if opts.Hash != nil {
-		w = io.MultiWriter(fl, h, bar)
+		w = io.MultiWriter(h, out)
 	} else {
-		w = io.MultiWriter(fl, bar)
+		w = io.MultiWriter(out)
 	}
 
 	// Копирование содержимого из источника в файл назначения
@@ -158,6 +143,7 @@ func (FileDownloader) Download(opts Options) (Type, string, error) {
 		return 0, "", err
 	}
 	r.Close()
+	out.Close()
 
 	// Проверка контрольной суммы
 	if opts.Hash != nil {

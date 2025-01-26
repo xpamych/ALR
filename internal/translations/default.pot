@@ -26,23 +26,23 @@ msgid ""
 "Build package from scratch even if there's an already built package available"
 msgstr ""
 
-#: build.go:71
+#: build.go:80
 msgid "Error pulling repositories"
 msgstr ""
 
-#: build.go:78
+#: build.go:87
 msgid "Unable to detect a supported package manager on the system"
 msgstr ""
 
-#: build.go:89
+#: build.go:98
 msgid "Error building package"
 msgstr ""
 
-#: build.go:95
+#: build.go:104
 msgid "Error getting working directory"
 msgstr ""
 
-#: build.go:103
+#: build.go:112
 msgid "Error moving the package"
 msgstr ""
 
@@ -251,6 +251,14 @@ msgstr ""
 msgid "Downloading source"
 msgstr ""
 
+#: internal/dl/progress_tui.go:99
+msgid "%s: done!\n"
+msgstr ""
+
+#: internal/dl/progress_tui.go:103
+msgid "%s %s downloading at %s/s\n"
+msgstr ""
+
 #: internal/logger/log.go:47
 msgid "ERROR"
 msgstr ""
@@ -285,81 +293,81 @@ msgstr ""
 msgid "Error while running app"
 msgstr ""
 
-#: pkg/build/build.go:105
+#: pkg/build/build.go:107
 msgid "Failed to prompt user to view build script"
 msgstr ""
 
-#: pkg/build/build.go:109
+#: pkg/build/build.go:111
 msgid "Building package"
 msgstr ""
 
-#: pkg/build/build.go:153
+#: pkg/build/build.go:155
 msgid "Downloading sources"
 msgstr ""
 
-#: pkg/build/build.go:165
+#: pkg/build/build.go:167
 msgid "Building package metadata"
 msgstr ""
 
-#: pkg/build/build.go:187
+#: pkg/build/build.go:189
 msgid "Compressing package"
 msgstr ""
 
-#: pkg/build/build.go:313
+#: pkg/build/build.go:315
 msgid ""
 "Your system's CPU architecture doesn't match this package. Do you want to "
 "build anyway?"
 msgstr ""
 
-#: pkg/build/build.go:324
+#: pkg/build/build.go:326
 msgid "This package is already installed"
 msgstr ""
 
-#: pkg/build/build.go:352
+#: pkg/build/build.go:354
 msgid "Installing build dependencies"
 msgstr ""
 
-#: pkg/build/build.go:394
+#: pkg/build/build.go:396
 msgid "Installing dependencies"
 msgstr ""
 
-#: pkg/build/build.go:440
+#: pkg/build/build.go:442
 msgid "Executing version()"
 msgstr ""
 
-#: pkg/build/build.go:460
+#: pkg/build/build.go:462
 msgid "Updating version"
 msgstr ""
 
-#: pkg/build/build.go:465
+#: pkg/build/build.go:467
 msgid "Executing prepare()"
 msgstr ""
 
-#: pkg/build/build.go:475
+#: pkg/build/build.go:477
 msgid "Executing build()"
 msgstr ""
 
-#: pkg/build/build.go:487
+#: pkg/build/build.go:489
 msgid "Executing package()"
 msgstr ""
 
-#: pkg/build/build.go:525
+#: pkg/build/build.go:527
 msgid "Executing files()"
 msgstr ""
 
-#: pkg/build/build.go:600
+#: pkg/build/build.go:605
 msgid "AutoProv is not implemented for this package format, so it's skipped"
 msgstr ""
 
-#: pkg/build/build.go:611
+#: pkg/build/build.go:616
 msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 
-#: pkg/build/build.go:718
+#: pkg/build/build.go:723
 msgid "Would you like to remove the build dependencies?"
 msgstr ""
 
-#: pkg/build/build.go:824
+#: pkg/build/build.go:829
 msgid "The checksums array must be the same length as sources"
 msgstr ""
 

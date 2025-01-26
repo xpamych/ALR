@@ -20,6 +20,7 @@
 package dl
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -49,7 +50,7 @@ func (TorrentDownloader) MatchURL(u string) bool {
 }
 
 // Download downloads a file over the BitTorrent protocol.
-func (TorrentDownloader) Download(opts Options) (Type, string, error) {
+func (TorrentDownloader) Download(ctx context.Context, opts Options) (Type, string, error) {
 	aria2Path, err := exec.LookPath("aria2c")
 	if err != nil {
 		return 0, "", ErrAria2NotFound
@@ -57,7 +58,7 @@ func (TorrentDownloader) Download(opts Options) (Type, string, error) {
 
 	opts.URL = strings.TrimPrefix(opts.URL, "torrent+")
 
-	cmd := exec.Command(aria2Path, "--summary-interval=0", "--log-level=warn", "--seed-time=0", "--dir="+opts.Destination, opts.URL)
+	cmd := exec.CommandContext(ctx, aria2Path, "--summary-interval=0", "--log-level=warn", "--seed-time=0", "--dir="+opts.Destination, opts.URL)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()

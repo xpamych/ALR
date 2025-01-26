@@ -33,23 +33,23 @@ msgid ""
 "Build package from scratch even if there's an already built package available"
 msgstr "Создайте пакет с нуля, даже если уже имеется готовый пакет"
 
-#: build.go:71
+#: build.go:80
 msgid "Error pulling repositories"
 msgstr "Ошибка при извлечении репозиториев"
 
-#: build.go:78
+#: build.go:87
 msgid "Unable to detect a supported package manager on the system"
 msgstr "Не удалось обнаружить поддерживаемый менеджер пакетов в системе"
 
-#: build.go:89
+#: build.go:98
 msgid "Error building package"
 msgstr "Ошибка при сборке пакета"
 
-#: build.go:95
+#: build.go:104
 msgid "Error getting working directory"
 msgstr "Ошибка при получении рабочего каталога"
 
-#: build.go:103
+#: build.go:112
 msgid "Error moving the package"
 msgstr "Ошибка при перемещении пакета"
 
@@ -263,6 +263,14 @@ msgstr "Источник обновлён и связан с пунктом на
 msgid "Downloading source"
 msgstr "Скачивание источника"
 
+#: internal/dl/progress_tui.go:99
+msgid "%s: done!\n"
+msgstr ""
+
+#: internal/dl/progress_tui.go:103
+msgid "%s %s downloading at %s/s\n"
+msgstr ""
+
 #: internal/logger/log.go:47
 msgid "ERROR"
 msgstr "ОШИБКА"
@@ -299,27 +307,27 @@ msgstr ""
 msgid "Error while running app"
 msgstr "Ошибка при запуске приложения"
 
-#: pkg/build/build.go:105
+#: pkg/build/build.go:107
 msgid "Failed to prompt user to view build script"
 msgstr "Не удалось предложить пользователю просмотреть скрипт сборки"
 
-#: pkg/build/build.go:109
+#: pkg/build/build.go:111
 msgid "Building package"
 msgstr "Сборка пакета"
 
-#: pkg/build/build.go:153
+#: pkg/build/build.go:155
 msgid "Downloading sources"
 msgstr "Скачивание источников"
 
-#: pkg/build/build.go:165
+#: pkg/build/build.go:167
 msgid "Building package metadata"
 msgstr "Сборка метаданных пакета"
 
-#: pkg/build/build.go:187
+#: pkg/build/build.go:189
 msgid "Compressing package"
 msgstr "Сжатие пакета"
 
-#: pkg/build/build.go:313
+#: pkg/build/build.go:315
 msgid ""
 "Your system's CPU architecture doesn't match this package. Do you want to "
 "build anyway?"
@@ -327,57 +335,57 @@ msgstr ""
 "Архитектура процессора вашей системы не соответствует этому пакету. Вы все "
 "равно хотите выполнить сборку?"
 
-#: pkg/build/build.go:324
+#: pkg/build/build.go:326
 msgid "This package is already installed"
 msgstr "Этот пакет уже установлен"
 
-#: pkg/build/build.go:352
+#: pkg/build/build.go:354
 msgid "Installing build dependencies"
 msgstr "Установка зависимостей сборки"
 
-#: pkg/build/build.go:394
+#: pkg/build/build.go:396
 msgid "Installing dependencies"
 msgstr "Установка зависимостей"
 
-#: pkg/build/build.go:440
+#: pkg/build/build.go:442
 msgid "Executing version()"
 msgstr "Исполнение версия()"
 
-#: pkg/build/build.go:460
+#: pkg/build/build.go:462
 msgid "Updating version"
 msgstr "Обновление версии"
 
-#: pkg/build/build.go:465
+#: pkg/build/build.go:467
 msgid "Executing prepare()"
 msgstr "Исполнение prepare()"
 
-#: pkg/build/build.go:475
+#: pkg/build/build.go:477
 msgid "Executing build()"
 msgstr "Исполнение build()"
 
-#: pkg/build/build.go:487
+#: pkg/build/build.go:489
 msgid "Executing package()"
 msgstr "Исполнение package()"
 
-#: pkg/build/build.go:525
+#: pkg/build/build.go:527
 msgid "Executing files()"
 msgstr "Исполнение files()"
 
-#: pkg/build/build.go:600
+#: pkg/build/build.go:605
 msgid "AutoProv is not implemented for this package format, so it's skipped"
 msgstr ""
 "AutoProv не реализовано для этого формата пакета, поэтому будет пропущено"
 
-#: pkg/build/build.go:611
+#: pkg/build/build.go:616
 msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 "AutoReq не реализовано для этого формата пакета, поэтому будет пропущено"
 
-#: pkg/build/build.go:718
+#: pkg/build/build.go:723
 msgid "Would you like to remove the build dependencies?"
 msgstr "Хотели бы вы удалить зависимости сборки?"
 
-#: pkg/build/build.go:824
+#: pkg/build/build.go:829
 msgid "The checksums array must be the same length as sources"
 msgstr "Массив контрольных сумм должен быть той же длины, что и источники"
 
