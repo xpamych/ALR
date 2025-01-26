@@ -68,6 +68,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.remaining = time.Duration(msg.remaining) * time.Second
 		if m.percent >= 1.0 {
 			m.done = true
+			return m, tea.Quit
 		}
 		return m, nil
 	case tea.WindowSizeMsg:
