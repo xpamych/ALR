@@ -61,19 +61,27 @@ func BuildCmd() *cli.Command {
 			ctx := c.Context
 
 			var script string
-			packageInput := c.String("package")
 
-			if packageInput != "" {
-				// If the package input contains a '/', use it as the full path.
+			// Проверяем, установлен ли флаг script (-s)
+			if c.IsSet("script") {
+				script = c.String("script")
+			} else if c.IsSet("package") {
+				// Если флаг script не установлен, проверяем флаг package (-p)
+				packageInput := c.String("package")
+				// Определяем, содержит ли packageInput символ '/'
 				if filepath.Dir(packageInput) == "." {
-					// No directory specified, use 'default' as a prefix.
+					// Не указана директория репозитория, используем 'default' как префикс
 					script = filepath.Join(config.GetPaths(ctx).RepoDir, "default", packageInput, "alr.sh")
 				} else {
-					// Use the full path specified by the user.
+					// Используем путь с указанным репозиторием
 					script = filepath.Join(config.GetPaths(ctx).RepoDir, packageInput, "alr.sh")
 				}
+			} else {
+				// Ни флаги script, ни package не установлены, используем дефолтный скрипт
+				script = filepath.Join(config.GetPaths(ctx).RepoDir, "alr.sh")
 			}
 
+			// Проверка автоматического пулла репозиториев
 			if config.GetInstance(ctx).AutoPull(ctx) {
 				err := repos.Pull(ctx, config.Config(ctx).Repos)
 				if err != nil {
@@ -82,12 +90,14 @@ func BuildCmd() *cli.Command {
 				}
 			}
 
+			// Обнаружение менеджера пакетов
 			mgr := manager.Detect()
 			if mgr == nil {
 				slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
 				os.Exit(1)
 			}
 
+			// Сборка пакета
 			pkgPaths, _, err := build.BuildPackage(ctx, types.BuildOpts{
 				Script:      script,
 				Manager:     mgr,
@@ -99,12 +109,14 @@ func BuildCmd() *cli.Command {
 				os.Exit(1)
 			}
 
+			// Получение текущей рабочей директории
 			wd, err := os.Getwd()
 			if err != nil {
 				slog.Error(gotext.Get("Error getting working directory"), "err", err)
 				os.Exit(1)
 			}
 
+			// Перемещение собранных пакетов в рабочую директорию
 			for _, pkgPath := range pkgPaths {
 				name := filepath.Base(pkgPath)
 				err = osutils.Move(pkgPath, filepath.Join(wd, name))
