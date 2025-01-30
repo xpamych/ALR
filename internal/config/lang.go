@@ -42,18 +42,19 @@ var (
 // Subsequent calls will just return the same value.
 func Language(ctx context.Context) language.Tag {
 	langMtx.Lock()
-	defer langMtx.Unlock()
 	if !langSet {
 		syslang := SystemLang()
 		tag, err := language.Parse(syslang)
 		if err != nil {
 			slog.Error(gotext.Get("Error parsing system language"), "err", err)
+			langMtx.Unlock()
 			os.Exit(1)
 		}
 		base, _ := tag.Base()
 		lang = language.Make(base.String())
 		langSet = true
 	}
+	langMtx.Unlock()
 	return lang
 }
 

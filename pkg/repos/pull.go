@@ -201,34 +201,33 @@ func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git
 			continue
 		}
 
-		if to == nil {
+		switch {
+		case to == nil:
 			actions = append(actions, action{
 				Type: actionDelete,
 				File: from.Path(),
 			})
-		} else if from == nil {
+		case from == nil:
 			actions = append(actions, action{
 				Type: actionUpdate,
 				File: to.Path(),
 			})
-		} else {
-			if from.Path() != to.Path() {
-				actions = append(actions,
-					action{
-						Type: actionDelete,
-						File: from.Path(),
-					},
-					action{
-						Type: actionUpdate,
-						File: to.Path(),
-					},
-				)
-			} else {
-				actions = append(actions, action{
+		case from.Path() != to.Path():
+			actions = append(actions,
+				action{
+					Type: actionDelete,
+					File: from.Path(),
+				},
+				action{
 					Type: actionUpdate,
 					File: to.Path(),
-				})
-			}
+				},
+			)
+		default:
+			actions = append(actions, action{
+				Type: actionUpdate,
+				File: to.Path(),
+			})
 		}
 	}
 

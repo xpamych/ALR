@@ -38,7 +38,7 @@ type Paths struct {
 // using information from the system.
 // Subsequent calls will return the same value.
 //
-// Depreacted: use struct API
+// Deprecated: use struct API
 func GetPaths(ctx context.Context) *Paths {
 	alrConfig := GetInstance(ctx)
 	return alrConfig.GetPaths(ctx)

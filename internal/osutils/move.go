@@ -55,12 +55,12 @@ func copyDirOrFile(sourcePath, destPath string) error {
 		return err
 	}
 
-	if sourceInfo.IsDir() {
+	switch {
+	case sourceInfo.IsDir():
 		return copyDir(sourcePath, destPath, sourceInfo)
-	} else if sourceInfo.Mode().IsRegular() {
+	case sourceInfo.Mode().IsRegular():
 		return copyFile(sourcePath, destPath, sourceInfo)
-	} else {
-		// ignore non-regular files
+	default:
 		return nil
 	}
 }

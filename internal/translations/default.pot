@@ -26,23 +26,23 @@ msgid ""
 "Build package from scratch even if there's an already built package available"
 msgstr ""
 
-#: build.go:80
+#: build.go:87
 msgid "Error pulling repositories"
 msgstr ""
 
-#: build.go:87
+#: build.go:95
 msgid "Unable to detect a supported package manager on the system"
 msgstr ""
 
-#: build.go:98
+#: build.go:107
 msgid "Error building package"
 msgstr ""
 
-#: build.go:104
+#: build.go:114
 msgid "Error getting working directory"
 msgstr ""
 
-#: build.go:112
+#: build.go:123
 msgid "Error moving the package"
 msgstr ""
 
@@ -218,7 +218,7 @@ msgstr ""
 msgid "Unable to create package cache directory"
 msgstr ""
 
-#: internal/config/lang.go:50
+#: internal/config/lang.go:49
 msgid "Error parsing system language"
 msgstr ""
 
@@ -226,7 +226,7 @@ msgstr ""
 msgid "Database version mismatch; resetting"
 msgstr ""
 
-#: internal/db/db.go:135
+#: internal/db/db.go:138
 msgid ""
 "Database version does not exist. Run alr fix if something isn't working."
 msgstr ""
@@ -347,27 +347,27 @@ msgstr ""
 msgid "Executing build()"
 msgstr ""
 
-#: pkg/build/build.go:489
+#: pkg/build/build.go:487
 msgid "Executing package()"
 msgstr ""
 
-#: pkg/build/build.go:527
+#: pkg/build/build.go:509
 msgid "Executing files()"
 msgstr ""
 
-#: pkg/build/build.go:605
+#: pkg/build/build.go:587
 msgid "AutoProv is not implemented for this package format, so it's skipped"
 msgstr ""
 
-#: pkg/build/build.go:616
+#: pkg/build/build.go:598
 msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 
-#: pkg/build/build.go:723
+#: pkg/build/build.go:705
 msgid "Would you like to remove the build dependencies?"
 msgstr ""
 
-#: pkg/build/build.go:829
+#: pkg/build/build.go:811
 msgid "The checksums array must be the same length as sources"
 msgstr ""
 

@@ -3,6 +3,8 @@
 </p>
 <b></b>
 
+[![Go Report Card](https://goreportcard.com/badge/gitea.plemya-x.ru/Plemya-x/ALR)](https://goreportcard.com/report/gitea.plemya-x.ru/Plemya-x/ALR) ![Test coverage](./coverage-badge.svg)
+
 # ALR (Any Linux Repository)
 
 ALR - это независимая от дистрибутива система сборки для Linux, аналогичная [AUR](https://wiki.archlinux.org/title/Arch_User_Repository). В настоящее время она находится в стадии бета-тестирования. Исправлено большинство основных ошибок и добавлено большинство важных функций. alr готов к общему использованию, но все еще может время от времени ломаться или заменяться.
