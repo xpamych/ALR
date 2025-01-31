@@ -307,27 +307,27 @@ msgstr ""
 msgid "Error while running app"
 msgstr "Ошибка при запуске приложения"
 
-#: pkg/build/build.go:107
+#: pkg/build/build.go:108
 msgid "Failed to prompt user to view build script"
 msgstr "Не удалось предложить пользователю просмотреть скрипт сборки"
 
-#: pkg/build/build.go:111
+#: pkg/build/build.go:112
 msgid "Building package"
 msgstr "Сборка пакета"
 
-#: pkg/build/build.go:155
+#: pkg/build/build.go:156
 msgid "Downloading sources"
 msgstr "Скачивание источников"
 
-#: pkg/build/build.go:167
+#: pkg/build/build.go:168
 msgid "Building package metadata"
 msgstr "Сборка метаданных пакета"
 
-#: pkg/build/build.go:189
+#: pkg/build/build.go:190
 msgid "Compressing package"
 msgstr "Сжатие пакета"
 
-#: pkg/build/build.go:315
+#: pkg/build/build.go:316
 msgid ""
 "Your system's CPU architecture doesn't match this package. Do you want to "
 "build anyway?"
@@ -335,57 +335,57 @@ msgstr ""
 "Архитектура процессора вашей системы не соответствует этому пакету. Вы все "
 "равно хотите выполнить сборку?"
 
-#: pkg/build/build.go:326
+#: pkg/build/build.go:327
 msgid "This package is already installed"
 msgstr "Этот пакет уже установлен"
 
-#: pkg/build/build.go:354
+#: pkg/build/build.go:355
 msgid "Installing build dependencies"
 msgstr "Установка зависимостей сборки"
 
-#: pkg/build/build.go:396
+#: pkg/build/build.go:397
 msgid "Installing dependencies"
 msgstr "Установка зависимостей"
 
-#: pkg/build/build.go:442
+#: pkg/build/build.go:443
 msgid "Executing version()"
 msgstr "Исполнение версия()"
 
-#: pkg/build/build.go:462
+#: pkg/build/build.go:463
 msgid "Updating version"
 msgstr "Обновление версии"
 
-#: pkg/build/build.go:467
+#: pkg/build/build.go:468
 msgid "Executing prepare()"
 msgstr "Исполнение prepare()"
 
-#: pkg/build/build.go:477
+#: pkg/build/build.go:478
 msgid "Executing build()"
 msgstr "Исполнение build()"
 
-#: pkg/build/build.go:487
+#: pkg/build/build.go:488
 msgid "Executing package()"
 msgstr "Исполнение package()"
 
-#: pkg/build/build.go:509
+#: pkg/build/build.go:510
 msgid "Executing files()"
 msgstr "Исполнение files()"
 
-#: pkg/build/build.go:587
+#: pkg/build/build.go:588
 msgid "AutoProv is not implemented for this package format, so it's skipped"
 msgstr ""
 "AutoProv не реализовано для этого формата пакета, поэтому будет пропущено"
 
-#: pkg/build/build.go:598
+#: pkg/build/build.go:599
 msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 "AutoReq не реализовано для этого формата пакета, поэтому будет пропущено"
 
-#: pkg/build/build.go:705
+#: pkg/build/build.go:706
 msgid "Would you like to remove the build dependencies?"
 msgstr "Хотели бы вы удалить зависимости сборки?"
 
-#: pkg/build/build.go:811
+#: pkg/build/build.go:812
 msgid "The checksums array must be the same length as sources"
 msgstr "Массив контрольных сумм должен быть той же длины, что и источники"
 
