@@ -6,3 +6,5 @@
 .fleet
 .idea
 .gigaide
+
+*.out

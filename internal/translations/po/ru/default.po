@@ -33,23 +33,23 @@ msgid ""
 "Build package from scratch even if there's an already built package available"
 msgstr "Создайте пакет с нуля, даже если уже имеется готовый пакет"
 
-#: build.go:80
+#: build.go:87
 msgid "Error pulling repositories"
 msgstr "Ошибка при извлечении репозиториев"
 
-#: build.go:87
+#: build.go:95
 msgid "Unable to detect a supported package manager on the system"
 msgstr "Не удалось обнаружить поддерживаемый менеджер пакетов в системе"
 
-#: build.go:98
+#: build.go:107
 msgid "Error building package"
 msgstr "Ошибка при сборке пакета"
 
-#: build.go:104
+#: build.go:114
 msgid "Error getting working directory"
 msgstr "Ошибка при получении рабочего каталога"
 
-#: build.go:112
+#: build.go:123
 msgid "Error moving the package"
 msgstr "Ошибка при перемещении пакета"
 
@@ -229,7 +229,7 @@ msgstr "Не удалось создать каталог кэша репози�
 msgid "Unable to create package cache directory"
 msgstr "Не удалось создать каталог кэша пакетов"
 
-#: internal/config/lang.go:50
+#: internal/config/lang.go:49
 msgid "Error parsing system language"
 msgstr "Ошибка при парсинге языка системы"
 
@@ -237,7 +237,7 @@ msgstr "Ошибка при парсинге языка системы"
 msgid "Database version mismatch; resetting"
 msgstr "Несоответствие версий базы данных; сброс настроек"
 
-#: internal/db/db.go:135
+#: internal/db/db.go:138
 msgid ""
 "Database version does not exist. Run alr fix if something isn't working."
 msgstr ""
@@ -363,29 +363,29 @@ msgstr "Исполнение prepare()"
 msgid "Executing build()"
 msgstr "Исполнение build()"
 
-#: pkg/build/build.go:489
+#: pkg/build/build.go:487
 msgid "Executing package()"
 msgstr "Исполнение package()"
 
-#: pkg/build/build.go:527
+#: pkg/build/build.go:509
 msgid "Executing files()"
 msgstr "Исполнение files()"
 
-#: pkg/build/build.go:605
+#: pkg/build/build.go:587
 msgid "AutoProv is not implemented for this package format, so it's skipped"
 msgstr ""
 "AutoProv не реализовано для этого формата пакета, поэтому будет пропущено"
 
-#: pkg/build/build.go:616
+#: pkg/build/build.go:598
 msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 "AutoReq не реализовано для этого формата пакета, поэтому будет пропущено"
 
-#: pkg/build/build.go:723
+#: pkg/build/build.go:705
 msgid "Would you like to remove the build dependencies?"
 msgstr "Хотели бы вы удалить зависимости сборки?"
 
-#: pkg/build/build.go:829
+#: pkg/build/build.go:811
 msgid "The checksums array must be the same length as sources"
 msgstr "Массив контрольных сумм должен быть той же длины, что и источники"
 

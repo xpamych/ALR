@@ -200,14 +200,14 @@ func BuildPackage(ctx context.Context, opts types.BuildOpts) ([]string, []string
 
 	// Добавляем путь и имя только что собранного пакета в
 	// соответствующие срезы
-	pkgPaths := append(builtPaths, pkgPath)
-	pkgNames := append(builtNames, vars.Name)
+	builtPaths = append(builtPaths, pkgPath)
+	builtNames = append(builtNames, vars.Name)
 
 	// Удаляем дубликаты из pkgPaths и pkgNames.
 	// Дубликаты могут появиться, если несколько зависимостей
 	// зависят от одних и тех же пакетов.
-	pkgPaths = removeDuplicates(pkgPaths)
-	pkgNames = removeDuplicates(pkgNames)
+	pkgPaths := removeDuplicates(builtPaths)
+	pkgNames := removeDuplicates(builtNames)
 
 	return pkgPaths, pkgNames, nil // Возвращаем пути и имена пакетов
 }
@@ -482,31 +482,13 @@ func executeFunctions(ctx context.Context, dec *decoder.Decoder, dirs types.Dire
 		}
 	}
 
-	// Выполнение всех функций, начинающихся с package_
-	for {
-		packageFn, ok := dec.GetFunc("package")
-		if ok {
-			slog.Info(gotext.Get("Executing package()"))
-			err := packageFn(ctx, interp.Dir(dirs.SrcDir))
-			if err != nil {
-				return nil, err
-			}
+	packageFn, ok := dec.GetFunc("package")
+	if ok {
+		slog.Info(gotext.Get("Executing package()"))
+		err := packageFn(ctx, interp.Dir(dirs.SrcDir))
+		if err != nil {
+			return nil, err
 		}
-
-		/*
-			// Проверка на наличие дополнительных функций package_*
-			packageFuncName := "package_"
-			if packageFunc, ok := dec.GetFunc(packageFuncName); ok {
-				slog.Info("Executing " + packageFuncName)
-				err = packageFunc(ctx, interp.Dir(dirs.SrcDir))
-				if err != nil {
-					return err
-				}
-			} else {
-				break // Если больше нет функций package_*, выходим из цикла
-			}
-		*/
-		break
 	}
 
 	output := &FunctionsOutput{}

@@ -63,12 +63,12 @@ func BuildCmd() *cli.Command {
 			var script string
 
 			// Проверяем, установлен ли флаг script (-s)
-			if c.IsSet("script") {
+
+			switch {
+			case c.IsSet("script"):
 				script = c.String("script")
-			} else if c.IsSet("package") {
-				// Если флаг script не установлен, проверяем флаг package (-p)
+			case c.IsSet("package"):
 				packageInput := c.String("package")
-				// Определяем, содержит ли packageInput символ '/'
 				if filepath.Dir(packageInput) == "." {
 					// Не указана директория репозитория, используем 'default' как префикс
 					script = filepath.Join(config.GetPaths(ctx).RepoDir, "default", packageInput, "alr.sh")
@@ -76,8 +76,7 @@ func BuildCmd() *cli.Command {
 					// Используем путь с указанным репозиторием
 					script = filepath.Join(config.GetPaths(ctx).RepoDir, packageInput, "alr.sh")
 				}
-			} else {
-				// Ни флаги script, ни package не установлены, используем дефолтный скрипт
+			default:
 				script = filepath.Join(config.GetPaths(ctx).RepoDir, "alr.sh")
 			}
 

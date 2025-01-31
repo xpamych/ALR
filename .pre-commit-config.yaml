@@ -14,37 +14,29 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-run:
-  timeout: 5m
+repos:
+  - repo: local
+    hooks:
+      - id: test-coverage
+        name: Run test coverage
+        entry: make test-coverage
+        language: system
+        pass_filenames: false
 
-linters-settings:
-  goimports:
-    local-prefixes: "gitea.plemya-x.ru/Plemya-x/ALR"
-  gofmt:
-    simplify: true
-  gofumpt:
-    extra-rules: true
+      - id: fmt
+        name: Format code
+        entry: make fmt
+        language: system
+        pass_filenames: false
 
-linters:
-  enable:
-    - gofmt
-    - gofumpt
-    - goimports
-    - gocritic
-    - govet
-    - staticcheck
-    - unused
-    - errcheck
-    - typecheck
-#    - forbidigo
+      - id: update-license
+        name: Update license
+        entry: make update-license
+        language: system
+        pass_filenames: false
 
-issues:
-  fix: true
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck
-    # TODO: remove
-    - linters:
-        - staticcheck
-      text: "SA1019:"
+      - id: i18n
+        name: Update i18n
+        entry: make i18n
+        language: system
+        pass_filenames: false

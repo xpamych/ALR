@@ -38,11 +38,12 @@ func armVariant() string {
 		return armEnv
 	}
 
-	if cpu.ARM.HasVFPv3 {
+	switch {
+	case cpu.ARM.HasVFPv3:
 		return "arm7"
-	} else if cpu.ARM.HasVFP {
+	case cpu.ARM.HasVFP:
 		return "arm6"
-	} else {
+	default:
 		return "arm5"
 	}
 }

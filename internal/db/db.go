@@ -129,7 +129,10 @@ func (d *Database) initDB(ctx context.Context) error {
 	ver, ok := d.GetVersion(ctx)
 	if ok && ver != CurrentVersion {
 		slog.Warn(gotext.Get("Database version mismatch; resetting"), "version", ver, "expected", CurrentVersion)
-		d.reset(ctx)
+		err = d.reset(ctx)
+		if err != nil {
+			return err
+		}
 		return d.initDB(ctx)
 	} else if !ok {
 		slog.Warn(gotext.Get("Database version does not exist. Run alr fix if something isn't working."), "version", ver, "expected", CurrentVersion)

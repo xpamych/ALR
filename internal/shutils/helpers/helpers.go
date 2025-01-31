@@ -245,10 +245,13 @@ func gitVersionCmd(hc interp.HandlerContext, cmd string, args []string) error {
 		return fmt.Errorf("git-version: %w", err)
 	}
 
-	commits.ForEach(func(*object.Commit) error {
+	err = commits.ForEach(func(*object.Commit) error {
 		revNum++
 		return nil
 	})
+	if err != nil {
+		return fmt.Errorf("git-version: %w", err)
+	}
 
 	HEAD, err := r.Head()
 	if err != nil {
