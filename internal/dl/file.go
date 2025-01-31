@@ -143,7 +143,6 @@ func (FileDownloader) Download(ctx context.Context, opts Options) (Type, string,
 		return 0, "", err
 	}
 	r.Close()
-	// out.Close()
 
 	// Проверка контрольной суммы
 	if opts.Hash != nil {
