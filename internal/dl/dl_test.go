@@ -18,10 +18,15 @@ package dl_test
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,48 +36,6 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/dlcache"
 )
 
-func TestDownloadFileWithoutCache(t *testing.T) {
-	type testCase struct {
-		name        string
-		expectedErr error
-	}
-
-	for _, tc := range []testCase{
-		{
-			name:        "simple download",
-			expectedErr: nil,
-		},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				switch {
-				case r.URL.Path == "/file":
-					w.WriteHeader(http.StatusOK)
-					w.Write([]byte("Hello, World!"))
-				default:
-					w.WriteHeader(http.StatusNotFound)
-				}
-			}))
-			defer server.Close()
-
-			tmpdir, err := os.MkdirTemp("", "test-download")
-			assert.NoError(t, err)
-			defer os.RemoveAll(tmpdir)
-
-			opts := dl.Options{
-				CacheDisabled: true,
-				URL:           server.URL + "/file",
-				Destination:   tmpdir,
-			}
-
-			err = dl.Download(context.Background(), opts)
-			assert.ErrorIs(t, err, tc.expectedErr)
-			_, err = os.Stat(path.Join(tmpdir, "file"))
-			assert.NoError(t, err)
-		})
-	}
-}
-
 type TestALRConfig struct{}
 
 func (c *TestALRConfig) GetPaths(ctx context.Context) *config.Paths {
@@ -81,21 +44,95 @@ func (c *TestALRConfig) GetPaths(ctx context.Context) *config.Paths {
 	}
 }
 
-func TestDownloadFileWithCache(t *testing.T) {
+func TestDownloadWithoutCache(t *testing.T) {
 	type testCase struct {
-		name        string
-		expectedErr error
+		name     string
+		path     string
+		expected func(*testing.T, error, string)
+	}
+
+	prepareServer := func() *httptest.Server {
+		// URL вашего Git-сервера
+		gitServerURL, err := url.Parse("https://gitea.plemya-x.ru")
+		if err != nil {
+			log.Fatalf("Failed to parse git server URL: %v", err)
+		}
+
+		proxy := httputil.NewSingleHostReverseProxy(gitServerURL)
+
+		return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch {
+			case r.URL.Path == "/file-downloader/file":
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("Hello, World!"))
+			case strings.HasPrefix(r.URL.Path, "/git-downloader/git"):
+				r.URL.Host = gitServerURL.Host
+				r.URL.Scheme = gitServerURL.Scheme
+				r.Host = gitServerURL.Host
+				r.URL.Path, _ = strings.CutPrefix(r.URL.Path, "/git-downloader/git")
+
+				proxy.ServeHTTP(w, r)
+			default:
+				w.WriteHeader(http.StatusNotFound)
+			}
+		}))
 	}
 
 	for _, tc := range []testCase{
 		{
-			name:        "simple download",
-			expectedErr: nil,
+			name: "simple file download",
+			path: "%s/file-downloader/file",
+			expected: func(t *testing.T, err error, tmpdir string) {
+				assert.NoError(t, err)
+
+				_, err = os.Stat(path.Join(tmpdir, "file"))
+				assert.NoError(t, err)
+			},
+		},
+		{
+			name: "git download",
+			path: "git+%s/git-downloader/git/Plemya-x/xpamych-alr-repo",
+			expected: func(t *testing.T, err error, tmpdir string) {
+				assert.NoError(t, err)
+
+				_, err = os.Stat(path.Join(tmpdir, "alr-repo.toml"))
+				assert.NoError(t, err)
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			server := prepareServer()
+			defer server.Close()
+
+			tmpdir, err := os.MkdirTemp("", "test-download")
+			assert.NoError(t, err)
+			defer os.RemoveAll(tmpdir)
+
+			opts := dl.Options{
+				CacheDisabled: true,
+				URL:           fmt.Sprintf(tc.path, server.URL),
+				Destination:   tmpdir,
+			}
+
+			err = dl.Download(context.Background(), opts)
+
+			tc.expected(t, err, tmpdir)
+		})
+	}
+}
+
+func TestDownloadFileWithCache(t *testing.T) {
+	type testCase struct {
+		name string
+	}
+
+	for _, tc := range []testCase{
+		{
+			name: "simple download",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			called := 0
-
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				switch {
 				case r.URL.Path == "/file":
@@ -124,7 +161,7 @@ func TestDownloadFileWithCache(t *testing.T) {
 			outputFile := path.Join(tmpdir, "file")
 
 			err = dl.Download(context.Background(), opts)
-			assert.ErrorIs(t, err, tc.expectedErr)
+			assert.NoError(t, err)
 			_, err = os.Stat(outputFile)
 			assert.NoError(t, err)
 
