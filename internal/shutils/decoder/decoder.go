@@ -169,21 +169,7 @@ type ScriptFunc func(ctx context.Context, opts ...interp.RunnerOption) error
 // GetFunc returns a function corresponding to a bash function
 // with the given name
 func (d *Decoder) GetFunc(name string) (ScriptFunc, bool) {
-	fn := d.getFunc(name)
-	if fn == nil {
-		return nil, false
-	}
-
-	return func(ctx context.Context, opts ...interp.RunnerOption) error {
-		sub := d.Runner.Subshell()
-		for _, opt := range opts {
-			err := opt(sub)
-			if err != nil {
-				return err
-			}
-		}
-		return sub.Run(ctx, fn)
-	}, true
+	return d.GetFuncP(name, nil)
 }
 
 type PrepareFunc func(context.Context, *interp.Runner) error

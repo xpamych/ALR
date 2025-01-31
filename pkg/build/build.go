@@ -54,6 +54,7 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/dl"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/dlcache"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
@@ -841,6 +842,9 @@ func getSources(ctx context.Context, dirs types.Directories, bv *types.BuildVars
 				opts.Hash = checksum
 			}
 		}
+
+		cfg := config.GetInstance(ctx)
+		opts.DlCache = dlcache.New(cfg)
 
 		err := dl.Download(ctx, opts)
 		if err != nil {

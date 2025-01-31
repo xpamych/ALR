@@ -42,9 +42,6 @@ import (
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/blake2s"
 	"golang.org/x/exp/slices"
-
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/dlcache"
 )
 
 // Константа для имени файла манифеста кэша
@@ -83,6 +80,11 @@ func (t Type) String() string {
 	return "<unknown>"
 }
 
+type DlCache interface {
+	Get(context.Context, string) (string, bool)
+	New(context.Context, string) (string, error)
+}
+
 // Структура Options содержит параметры для загрузки файлов и каталогов
 type Options struct {
 	Hash             []byte
@@ -94,6 +96,7 @@ type Options struct {
 	PostprocDisabled bool
 	Progress         io.Writer
 	LocalDir         string
+	DlCache          DlCache
 }
 
 // Метод для создания нового хеша на основе указанного алгоритма хеширования
@@ -145,9 +148,6 @@ type UpdatingDownloader interface {
 
 // Функция Download загружает файл или каталог с использованием указанных параметров
 func Download(ctx context.Context, opts Options) (err error) {
-	cfg := config.GetInstance(ctx)
-	dc := dlcache.New(cfg)
-
 	normalized, err := normalizeURL(opts.URL)
 	if err != nil {
 		return err
@@ -162,7 +162,7 @@ func Download(ctx context.Context, opts Options) (err error) {
 	}
 
 	var t Type
-	cacheDir, ok := dc.Get(ctx, opts.URL)
+	cacheDir, ok := opts.DlCache.Get(ctx, opts.URL)
 	if ok {
 		var updated bool
 		if d, ok := d.(UpdatingDownloader); ok {
@@ -221,7 +221,7 @@ func Download(ctx context.Context, opts Options) (err error) {
 
 	slog.Info(gotext.Get("Downloading source"), "source", opts.Name, "downloader", d.Name())
 
-	cacheDir, err = dc.New(ctx, opts.URL)
+	cacheDir, err = opts.DlCache.New(ctx, opts.URL)
 	if err != nil {
 		return err
 	}
