@@ -5,6 +5,7 @@ go 1.22
 toolchain go1.23.5
 
 require (
+	gitea.plemya-x.ru/Plemya-x/fakeroot v0.0.1-20250206140822-9480a710ee
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/PuerkitoBio/purell v1.2.0
 	github.com/alecthomas/chroma/v2 v2.9.1
@@ -35,7 +36,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.25.0
 	mvdan.cc/sh/v3 v3.10.0
-	plemya-x.ru/fakeroot v0.0.0-20240601131003-c638a3543283
 )
 
 require (

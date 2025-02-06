@@ -31,7 +31,7 @@ import (
 
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
-	"plemya-x.ru/fakeroot"
+	"gitea.plemya-x.ru/Plemya-x/fakeroot"
 )
 
 // FakerootExecHandler was extracted from github.com/mvdan/sh/interp/handler.go
