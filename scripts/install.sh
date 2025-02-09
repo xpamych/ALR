@@ -1,22 +1,3 @@
-# This file was originally part of the project "LURE - Linux User REpository", created by Elara Musayelyan.
-# It has been modified as part of "ALR - Any Linux Repository" by Евгений Храмов.
-#
-# ALR - Any Linux Repository
-# Copyright (C) 2025 Евгений Храмов
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 info() {
   echo $'\x1b[32m[ИНФО]\x1b[0m' $@
 }
@@ -39,7 +20,7 @@ installPkg() {
   else
     warn "Не обнаружена команда повышения привилегий (например, sudo, doas)"
   fi
-  
+
   case $1 in
   pacman) $rootCmd pacman --noconfirm -U ${@:2} ;;
   apk) $rootCmd apk add --allow-untrusted ${@:2} ;;
@@ -78,6 +59,10 @@ elif command -v apk &>/dev/null; then
   info "Обнаружен apk"
   pkgFormat="apk"
   pkgMgr="apk"
+elif command -v apt-get &>/dev/null; then
+  info "Обнаружен apt-get"
+  pkgFormat="rpm"
+  pkgMgr="apt-get"
 else
   warn "Не обнаружен поддерживаемый менеджер пакетов!"
   noPkgMgr=true
@@ -98,7 +83,10 @@ if [ -z "$noPkgMgr" ]; then
   elif [ "$pkgMgr" == "apt" ]; then
     latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*.amd64.deb' | sort -V | tail -n 1)
   elif [[ "$pkgMgr" == "dnf" || "$pkgMgr" == "yum" || "$pkgMgr" == "zypper" ]]; then
-    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*.x86_64.rpm' | sort -V | tail -n 1)
+    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*\.x86_64\.rpm' | grep -v 'alt1' | sort -V | tail -n 1)
+  elif [[ "$pkgMgr" == "apt-get"  ]]; then
+    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*alt1.x86_64.rpm' | sort -V | tail -n 1)
+
   else
     error "Не поддерживаемый менеджер пакетов для автоматической установки"
   fi
