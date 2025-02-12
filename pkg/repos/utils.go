@@ -67,6 +67,47 @@ func parseScript(ctx context.Context, parser *syntax.Parser, runner *interp.Runn
 	return d.DecodeVars(pkg)
 }
 
+type PackageInfo struct {
+	Version       string            `sh:"version,required"`
+	Release       int               `sh:"release,required"`
+	Epoch         uint              `sh:"epoch"`
+	Architectures db.JSON[[]string] `sh:"architectures"`
+	Licenses      db.JSON[[]string] `sh:"license"`
+	Provides      db.JSON[[]string] `sh:"provides"`
+	Conflicts     db.JSON[[]string] `sh:"conflicts"`
+	Replaces      db.JSON[[]string] `sh:"replaces"`
+}
+
+func (inf *PackageInfo) ToPackage(repoName string) *db.Package {
+	return &db.Package{
+		Version:       inf.Version,
+		Release:       inf.Release,
+		Epoch:         inf.Epoch,
+		Architectures: inf.Architectures,
+		Licenses:      inf.Licenses,
+		Provides:      inf.Provides,
+		Conflicts:     inf.Conflicts,
+		Replaces:      inf.Replaces,
+		Description:   db.NewJSON(map[string]string{}),
+		Homepage:      db.NewJSON(map[string]string{}),
+		Maintainer:    db.NewJSON(map[string]string{}),
+		Depends:       db.NewJSON(map[string][]string{}),
+		BuildDepends:  db.NewJSON(map[string][]string{}),
+		Repository:    repoName,
+	}
+}
+
+func EmptyPackage(repoName string) *db.Package {
+	return &db.Package{
+		Description:  db.NewJSON(map[string]string{}),
+		Homepage:     db.NewJSON(map[string]string{}),
+		Maintainer:   db.NewJSON(map[string]string{}),
+		Depends:      db.NewJSON(map[string][]string{}),
+		BuildDepends: db.NewJSON(map[string][]string{}),
+		Repository:   repoName,
+	}
+}
+
 var overridable = map[string]string{
 	"deps":       "Depends",
 	"build_deps": "BuildDepends",

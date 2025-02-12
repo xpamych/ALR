@@ -123,6 +123,7 @@ func (FileDownloader) Download(ctx context.Context, opts Options) (Type, string,
 	} else {
 		out = fl
 	}
+	defer out.Close()
 
 	h, err := opts.NewHash()
 	if err != nil {

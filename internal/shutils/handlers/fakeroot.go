@@ -29,9 +29,9 @@ import (
 	"syscall"
 	"time"
 
+	"gitea.plemya-x.ru/Plemya-x/fakeroot"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
-	"plemya-x.ru/fakeroot"
 )
 
 // FakerootExecHandler was extracted from github.com/mvdan/sh/interp/handler.go

@@ -18,10 +18,18 @@ package build
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"mvdan.cc/sh/v3/syntax"
+
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 )
 
@@ -134,93 +142,145 @@ func (m *TestManager) IsInstalled(pkg string) (bool, error) {
 	return true, nil
 }
 
-// TODO: fix test
-func TestInstallBuildDeps(t *testing.T) {
-	type testEnv struct {
-		pf   PackageFinder
-		vars *types.BuildVars
-		opts types.BuildOpts
+type TestConfig struct{}
 
-		// Contains pkgs captured by FindPkgsFunc
-		// capturedPkgs []string
+func (c *TestConfig) PagerStyle(ctx context.Context) string {
+	return "native"
+}
+
+func (c *TestConfig) GetPaths(ctx context.Context) *config.Paths {
+	return &config.Paths{
+		CacheDir: "/tmp",
+	}
+}
+
+func TestExecuteFirstPassIsSecure(t *testing.T) {
+	cfg := &TestConfig{}
+	pf := &TestPackageFinder{}
+	info := &distro.OSRelease{}
+	m := &TestManager{}
+
+	opts := types.BuildOpts{
+		Manager:     m,
+		Interactive: false,
 	}
 
+	ctx := context.Background()
+
+	b := NewBuilder(
+		ctx,
+		opts,
+		pf,
+		info,
+		cfg,
+	)
+
+	tmpFile, err := os.CreateTemp("", "testfile-")
+	assert.NoError(t, err)
+	tmpFilePath := tmpFile.Name()
+	defer os.Remove(tmpFilePath)
+
+	_, err = os.Stat(tmpFilePath)
+	assert.NoError(t, err)
+
+	testScript := fmt.Sprintf(`name='test'
+version=1.0.0
+release=1
+rm -f %s`, tmpFilePath)
+
+	fl, err := syntax.NewParser().Parse(strings.NewReader(testScript), "alr.sh")
+	assert.NoError(t, err)
+
+	_, _, err = b.executeFirstPass(fl)
+	assert.NoError(t, err)
+
+	_, err = os.Stat(tmpFilePath)
+	assert.NoError(t, err)
+}
+
+func TestExecuteFirstPassIsCorrect(t *testing.T) {
 	type testCase struct {
 		Name     string
-		Prepare  func() *testEnv
-		Expected func(t *testing.T, e *testEnv, res []string, err error)
+		Script   string
+		Opts     types.BuildOpts
+		Expected func(t *testing.T, vars []*types.BuildVars)
 	}
 
-	for _, tc := range []testCase{
-		/*
-			{
-				Name: "install only needed deps",
-				Prepare: func() *testEnv {
-					pf := TestPackageFinder{}
-					vars := types.BuildVars{}
-					m := TestManager{}
-					opts := types.BuildOpts{
-						Manager:     &m,
-						Interactive: false,
-					}
+	for _, tc := range []testCase{{
+		Name: "single package",
+		Script: `name='test'
+version='1.0.0'
+release=1
+epoch=2
+desc="Test package"
+homepage='https://example.com'
+maintainer='Ivan Ivanov'
+`,
+		Opts: types.BuildOpts{
+			Manager:     &TestManager{},
+			Interactive: false,
+		},
+		Expected: func(t *testing.T, vars []*types.BuildVars) {
+			assert.Equal(t, 1, len(vars))
+			assert.Equal(t, vars[0].Name, "test")
+			assert.Equal(t, vars[0].Version, "1.0.0")
+			assert.Equal(t, vars[0].Release, int(1))
+			assert.Equal(t, vars[0].Epoch, uint(2))
+			assert.Equal(t, vars[0].Description, "Test package")
+		},
+	}, {
+		Name: "multiple packages",
+		Script: `name=(
+	foo
+	bar
+)
 
-					env := &testEnv{
-						pf:           &pf,
-						vars:         &vars,
-						opts:         opts,
-						capturedPkgs: []string{},
-					}
+version='0.0.1'
+release=1
+epoch=2
+desc="Test package"
 
-					pf.FindPkgsFunc = func(ctx context.Context, pkgs []string) (map[string][]db.Package, []string, error) {
-						env.capturedPkgs = append(env.capturedPkgs, pkgs...)
-						result := make(map[string][]db.Package)
-						result["bar"] = []db.Package{{
-							Name: "bar-pkg",
-						}}
-						result["buz"] = []db.Package{{
-							Name: "buz-pkg",
-						}}
+meta_foo() {
+	desc="Foo package"
+}
 
-						return result, []string{}, nil
-					}
+meta_bar() {
 
-					vars.BuildDepends = []string{
-						"foo",
-						"bar",
-						"buz",
-					}
-					m.IsInstalledFunc = func(pkg string) (bool, error) {
-						if pkg == "foo" {
-							return true, nil
-						} else {
-							return false, nil
-						}
-					}
+}
+`,
+		Opts: types.BuildOpts{
+			Packages:    []string{"foo"},
+			Manager:     &TestManager{},
+			Interactive: false,
+		},
+		Expected: func(t *testing.T, vars []*types.BuildVars) {
+			assert.Equal(t, 1, len(vars))
+			assert.Equal(t, vars[0].Name, "foo")
+			assert.Equal(t, vars[0].Description, "Foo package")
+		},
+	}} {
+		t.Run(tc.Name, func(t *testing.T) {
+			cfg := &TestConfig{}
+			pf := &TestPackageFinder{}
+			info := &distro.OSRelease{}
 
-					return env
-				},
-				Expected: func(t *testing.T, e *testEnv, res []string, err error) {
-					assert.NoError(t, err)
-					assert.Len(t, res, 2)
-					assert.ElementsMatch(t, res, []string{"bar-pkg", "buz-pkg"})
-
-					assert.ElementsMatch(t, e.capturedPkgs, []string{"bar", "buz"})
-				},
-			},
-		*/
-	} {
-		t.Run(tc.Name, func(tt *testing.T) {
 			ctx := context.Background()
-			env := tc.Prepare()
 
-			result, err := installBuildDeps(
+			b := NewBuilder(
 				ctx,
-				env.pf,
-				env.vars,
-				env.opts,
+				tc.Opts,
+				pf,
+				info,
+				cfg,
 			)
 
-			tc.Expected(tt, env, result, err)
+			fl, err := syntax.NewParser().Parse(strings.NewReader(tc.Script), "alr.sh")
+			assert.NoError(t, err)
+
+			_, allVars, err := b.executeFirstPass(fl)
+			assert.NoError(t, err)
+
+			tc.Expected(t, allVars)
 		})
 	}
 }

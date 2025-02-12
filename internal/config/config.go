@@ -170,3 +170,10 @@ func (c *ALRConfig) AutoPull(ctx context.Context) bool {
 	})
 	return c.cfg.AutoPull
 }
+
+func (c *ALRConfig) PagerStyle(ctx context.Context) string {
+	c.cfgOnce.Do(func() {
+		c.Load(ctx)
+	})
+	return c.cfg.PagerStyle
+}

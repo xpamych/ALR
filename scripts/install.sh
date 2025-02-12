@@ -39,7 +39,7 @@ installPkg() {
   else
     warn "Не обнаружена команда повышения привилегий (например, sudo, doas)"
   fi
-  
+
   case $1 in
   pacman) $rootCmd pacman --noconfirm -U ${@:2} ;;
   apk) $rootCmd apk add --allow-untrusted ${@:2} ;;
@@ -78,6 +78,10 @@ elif command -v apk &>/dev/null; then
   info "Обнаружен apk"
   pkgFormat="apk"
   pkgMgr="apk"
+elif command -v apt-get &>/dev/null; then
+  info "Обнаружен apt-get"
+  pkgFormat="rpm"
+  pkgMgr="apt-get"
 else
   warn "Не обнаружен поддерживаемый менеджер пакетов!"
   noPkgMgr=true
@@ -98,7 +102,10 @@ if [ -z "$noPkgMgr" ]; then
   elif [ "$pkgMgr" == "apt" ]; then
     latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*.amd64.deb' | sort -V | tail -n 1)
   elif [[ "$pkgMgr" == "dnf" || "$pkgMgr" == "yum" || "$pkgMgr" == "zypper" ]]; then
-    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*.x86_64.rpm' | sort -V | tail -n 1)
+    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*\.x86_64\.rpm' | grep -v 'alt1' | sort -V | tail -n 1)
+  elif [[ "$pkgMgr" == "apt-get"  ]]; then
+    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*alt1.x86_64.rpm' | sort -V | tail -n 1)
+
   else
     error "Не поддерживаемый менеджер пакетов для автоматической установки"
   fi

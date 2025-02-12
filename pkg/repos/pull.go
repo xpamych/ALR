@@ -22,6 +22,8 @@ package repos
 import (
 	"context"
 	"errors"
+	"fmt"
+	"io"
 	"log/slog"
 	"net/url"
 	"os"
@@ -41,8 +43,10 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
 
 type actionType uint8
@@ -177,6 +181,96 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 	return nil
 }
 
+func (rs *Repos) updatePkg(ctx context.Context, repo types.Repo, runner *interp.Runner, scriptFl io.ReadCloser) error {
+	parser := syntax.NewParser()
+
+	defer scriptFl.Close()
+	fl, err := parser.Parse(scriptFl, "alr.sh")
+	if err != nil {
+		return err
+	}
+
+	runner.Reset()
+	err = runner.Run(ctx, fl)
+	if err != nil {
+		return err
+	}
+
+	type packages struct {
+		BasePkgName string   `sh:"basepkg_name"`
+		Names       []string `sh:"name"`
+	}
+
+	var pkgs packages
+
+	d := decoder.New(&distro.OSRelease{}, runner)
+	d.Overrides = false
+	d.LikeDistros = false
+	err = d.DecodeVars(&pkgs)
+	if err != nil {
+		return err
+	}
+
+	if len(pkgs.Names) > 1 {
+		if pkgs.BasePkgName == "" {
+			pkgs.BasePkgName = pkgs.Names[0]
+		}
+		for _, pkgName := range pkgs.Names {
+			pkgInfo := PackageInfo{}
+			funcName := fmt.Sprintf("meta_%s", pkgName)
+			runner.Reset()
+			err = runner.Run(ctx, fl)
+			if err != nil {
+				return err
+			}
+			meta, ok := d.GetFuncWithSubshell(funcName)
+			if !ok {
+				return errors.New("func is missing")
+			}
+			r, err := meta(ctx)
+			if err != nil {
+				return err
+			}
+			d := decoder.New(&distro.OSRelease{}, r)
+			d.Overrides = false
+			d.LikeDistros = false
+			err = d.DecodeVars(&pkgInfo)
+			if err != nil {
+				return err
+			}
+			pkg := pkgInfo.ToPackage(repo.Name)
+			resolveOverrides(r, pkg)
+			pkg.Name = pkgName
+			pkg.BasePkgName = pkgs.BasePkgName
+			err = rs.db.InsertPackage(ctx, *pkg)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	pkg := EmptyPackage(repo.Name)
+	err = d.DecodeVars(pkg)
+	if err != nil {
+		return err
+	}
+	resolveOverrides(runner, pkg)
+	return rs.db.InsertPackage(ctx, *pkg)
+}
+
+func (rs *Repos) processRepoChangesRunner(repoDir, scriptDir string) (*interp.Runner, error) {
+	env := append(os.Environ(), "scriptdir="+scriptDir)
+	return interp.New(
+		interp.Env(expand.ListEnviron(env...)),
+		interp.ExecHandler(handlers.NopExec),
+		interp.ReadDirHandler(handlers.RestrictedReadDir(repoDir)),
+		interp.StatHandler(handlers.RestrictedStat(repoDir)),
+		interp.OpenHandler(handlers.RestrictedOpen(repoDir)),
+		interp.StdIO(handlers.NopRWC{}, handlers.NopRWC{}, handlers.NopRWC{}),
+	)
+}
+
 func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git.Repository, w *git.Worktree, old, new *plumbing.Reference) error {
 	oldCommit, err := r.CommitObject(old.Hash())
 	if err != nil {
@@ -235,15 +329,7 @@ func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git
 	parser := syntax.NewParser()
 
 	for _, action := range actions {
-		env := append(os.Environ(), "scriptdir="+filepath.Dir(filepath.Join(repoDir, action.File)))
-		runner, err := interp.New(
-			interp.Env(expand.ListEnviron(env...)),
-			interp.ExecHandler(handlers.NopExec),
-			interp.ReadDirHandler(handlers.RestrictedReadDir(repoDir)),
-			interp.StatHandler(handlers.RestrictedStat(repoDir)),
-			interp.OpenHandler(handlers.RestrictedOpen(repoDir)),
-			interp.StdIO(handlers.NopRWC{}, handlers.NopRWC{}, handlers.NopRWC{}),
-		)
+		runner, err := rs.processRepoChangesRunner(repoDir, filepath.Dir(filepath.Join(repoDir, action.File)))
 		if err != nil {
 			return err
 		}
@@ -289,23 +375,7 @@ func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git
 				return nil
 			}
 
-			pkg := db.Package{
-				Description:  db.NewJSON(map[string]string{}),
-				Homepage:     db.NewJSON(map[string]string{}),
-				Maintainer:   db.NewJSON(map[string]string{}),
-				Depends:      db.NewJSON(map[string][]string{}),
-				BuildDepends: db.NewJSON(map[string][]string{}),
-				Repository:   repo.Name,
-			}
-
-			err = parseScript(ctx, parser, runner, r, &pkg)
-			if err != nil {
-				return err
-			}
-
-			resolveOverrides(runner, &pkg)
-
-			err = rs.db.InsertPackage(ctx, pkg)
+			err = rs.updatePkg(ctx, repo, runner, r)
 			if err != nil {
 				return err
 			}
@@ -322,18 +392,8 @@ func (rs *Repos) processRepoFull(ctx context.Context, repo types.Repo, repoDir s
 		return err
 	}
 
-	parser := syntax.NewParser()
-
 	for _, match := range matches {
-		env := append(os.Environ(), "scriptdir="+filepath.Dir(match))
-		runner, err := interp.New(
-			interp.Env(expand.ListEnviron(env...)),
-			interp.ExecHandler(handlers.NopExec),
-			interp.ReadDirHandler(handlers.RestrictedReadDir(repoDir)),
-			interp.StatHandler(handlers.RestrictedStat(repoDir)),
-			interp.OpenHandler(handlers.RestrictedOpen(repoDir)),
-			interp.StdIO(handlers.NopRWC{}, handlers.NopRWC{}, handlers.NopRWC{}),
-		)
+		runner, err := rs.processRepoChangesRunner(repoDir, filepath.Dir(match))
 		if err != nil {
 			return err
 		}
@@ -343,23 +403,7 @@ func (rs *Repos) processRepoFull(ctx context.Context, repo types.Repo, repoDir s
 			return err
 		}
 
-		pkg := db.Package{
-			Description:  db.NewJSON(map[string]string{}),
-			Homepage:     db.NewJSON(map[string]string{}),
-			Maintainer:   db.NewJSON(map[string]string{}),
-			Depends:      db.NewJSON(map[string][]string{}),
-			BuildDepends: db.NewJSON(map[string][]string{}),
-			Repository:   repo.Name,
-		}
-
-		err = parseScript(ctx, parser, runner, scriptFl, &pkg)
-		if err != nil {
-			return err
-		}
-
-		resolveOverrides(runner, &pkg)
-
-		err = rs.db.InsertPackage(ctx, pkg)
+		err = rs.updatePkg(ctx, repo, runner, scriptFl)
 		if err != nil {
 			return err
 		}
