@@ -50,7 +50,12 @@ ALR был создан потому, что упаковка программн
 
 ## Репозитории
 
-Репозитории alr - это git-хранилища, которые содержат каталог для каждого пакета с файлом `alr.sh` внутри. Файл `alr.sh` содержит все инструкции по сборке пакета и информацию о нем. Скрипты `alr.sh` аналогичны скриптам Aur PKGBUILD. Репозиторий [по-умолчанию](https://gitea.plemya-x.ru/xpamych/xpamych-alr-repo.git).
+Репозитории alr - это git-хранилища, которые содержат каталог для каждого пакета с файлом `alr.sh` внутри. Файл `alr.sh` содержит все инструкции по сборке пакета и информацию о нем. Скрипты `alr.sh` аналогичны скриптам Aur PKGBUILD. 
+
+Например, репозиторий [Plemya-x/xpamych-alr-repo](https://gitea.plemya-x.ru/Plemya-x/xpamych-alr-repo.git) можно подключить так:
+```
+alr addrepo --name xpamych-alr-repo --url https://gitea.plemya-x.ru/Plemya-x/xpamych-alr-repo.git
+```
 
 ---
 ## Соцсети
