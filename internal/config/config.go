@@ -45,13 +45,8 @@ var defaultConfig = &types.Config{
 	RootCmd:          "sudo",
 	PagerStyle:       "native",
 	IgnorePkgUpdates: []string{},
-	AutoPull:         true,
-	Repos: []types.Repo{
-		{
-			Name: "default",
-			URL:  "https://gitea.plemya-x.ru/xpamych/xpamych-alr-repo.git",
-		},
-	},
+	AutoPull:         false,
+	Repos:            []types.Repo{},
 }
 
 func New() *ALRConfig {
