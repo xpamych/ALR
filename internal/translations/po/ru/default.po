@@ -206,43 +206,43 @@ msgstr "Выберите, какой пакет использовать для 
 msgid "Choose which optional package(s) to install"
 msgstr "Выберите, какой дополнительный пакет(ы) следует установить"
 
-#: internal/config/config.go:64
+#: internal/config/config.go:59
 msgid "Error opening config file, using defaults"
 msgstr ""
 "Ошибка при открытии конфигурационного файла, используются значения по "
 "умолчанию"
 
-#: internal/config/config.go:77
+#: internal/config/config.go:72
 msgid "Error decoding config file, using defaults"
 msgstr ""
 "Ошибка при декодировании конфигурационного файла, используются значения по "
 "умолчанию"
 
-#: internal/config/config.go:89
+#: internal/config/config.go:84
 msgid "Unable to detect user config directory"
 msgstr "Не удалось обнаружить каталог конфигурации пользователя"
 
-#: internal/config/config.go:97
+#: internal/config/config.go:92
 msgid "Unable to create ALR config directory"
 msgstr "Не удалось создать каталог конфигурации ALR"
 
-#: internal/config/config.go:106
+#: internal/config/config.go:101
 msgid "Unable to create ALR config file"
 msgstr "Не удалось создать конфигурационный файл ALR"
 
-#: internal/config/config.go:112
+#: internal/config/config.go:107
 msgid "Error encoding default configuration"
 msgstr "Ошибка кодирования конфигурации по умолчанию"
 
-#: internal/config/config.go:121
+#: internal/config/config.go:116
 msgid "Unable to detect cache directory"
 msgstr "Не удалось обнаружить каталог кэша"
 
-#: internal/config/config.go:131
+#: internal/config/config.go:126
 msgid "Unable to create repo cache directory"
 msgstr "Не удалось создать каталог кэша репозитория"
 
-#: internal/config/config.go:137
+#: internal/config/config.go:132
 msgid "Unable to create package cache directory"
 msgstr "Не удалось создать каталог кэша пакетов"
 
