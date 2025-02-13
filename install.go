@@ -29,9 +29,10 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
@@ -63,22 +64,52 @@ func InstallCmd() *cli.Command {
 				os.Exit(1)
 			}
 
-			if config.GetInstance(ctx).AutoPull(ctx) {
-				err := repos.Pull(ctx, config.Config(ctx).Repos)
+			cfg := config.New()
+			db := database.New(cfg)
+			rs := repos.New(cfg, db)
+			err := db.Init(ctx)
+			if err != nil {
+				slog.Error(gotext.Get("Error db init"), "err", err)
+				os.Exit(1)
+			}
+
+			if cfg.AutoPull(ctx) {
+				err := rs.Pull(ctx, cfg.Repos(ctx))
 				if err != nil {
 					slog.Error(gotext.Get("Error pulling repositories"), "err", err)
 					os.Exit(1)
 				}
 			}
 
-			found, notFound, err := repos.FindPkgs(ctx, args.Slice())
+			found, notFound, err := rs.FindPkgs(ctx, args.Slice())
 			if err != nil {
 				slog.Error(gotext.Get("Error finding packages"), "err", err)
 				os.Exit(1)
 			}
 
 			pkgs := cliutils.FlattenPkgs(ctx, found, "install", c.Bool("interactive"))
-			build.InstallPkgs(ctx, pkgs, notFound, types.BuildOpts{
+
+			opts := types.BuildOpts{
+				Manager:     mgr,
+				Clean:       c.Bool("clean"),
+				Interactive: c.Bool("interactive"),
+			}
+
+			info, err := distro.ParseOSRelease(ctx)
+			if err != nil {
+				slog.Error(gotext.Get("Error parsing os release"), "err", err)
+				os.Exit(1)
+			}
+
+			builder := build.NewBuilder(
+				ctx,
+				opts,
+				rs,
+				info,
+				cfg,
+			)
+
+			builder.InstallPkgs(ctx, pkgs, notFound, types.BuildOpts{
 				Manager:     mgr,
 				Clean:       c.Bool("clean"),
 				Interactive: c.Bool("interactive"),
@@ -86,6 +117,8 @@ func InstallCmd() *cli.Command {
 			return nil
 		},
 		BashComplete: func(c *cli.Context) {
+			cfg := config.New()
+			db := database.New(cfg)
 			result, err := db.GetPkgs(c.Context, "true")
 			if err != nil {
 				slog.Error(gotext.Get("Error getting packages"), "err", err)
@@ -94,7 +127,7 @@ func InstallCmd() *cli.Command {
 			defer result.Close()
 
 			for result.Next() {
-				var pkg db.Package
+				var pkg database.Package
 				err = result.StructScan(&pkg)
 				if err != nil {
 					slog.Error(gotext.Get("Error iterating over packages"), "err", err)

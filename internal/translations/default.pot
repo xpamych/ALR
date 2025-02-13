@@ -9,40 +9,56 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: build.go:41
+#: build.go:44
 msgid "Build a local package"
 msgstr ""
 
-#: build.go:47
+#: build.go:50
 msgid "Path to the build script"
 msgstr ""
 
-#: build.go:52
+#: build.go:55
+msgid "Specify package in script (for multi package script only)"
+msgstr ""
+
+#: build.go:60
 msgid "Name of the package to build and its repo (example: default/go-bin)"
 msgstr ""
 
-#: build.go:57
+#: build.go:65
 msgid ""
 "Build package from scratch even if there's an already built package available"
 msgstr ""
 
-#: build.go:87
-msgid "Error pulling repositories"
+#: build.go:75
+msgid "Error db init"
 msgstr ""
 
-#: build.go:95
-msgid "Unable to detect a supported package manager on the system"
-msgstr ""
-
-#: build.go:107
-msgid "Error building package"
-msgstr ""
-
-#: build.go:114
-msgid "Error getting working directory"
+#: build.go:105
+msgid "Package not found"
 msgstr ""
 
 #: build.go:123
+msgid "Error pulling repositories"
+msgstr ""
+
+#: build.go:131
+msgid "Unable to detect a supported package manager on the system"
+msgstr ""
+
+#: build.go:137
+msgid "Error parsing os release"
+msgstr ""
+
+#: build.go:158
+msgid "Error building package"
+msgstr ""
+
+#: build.go:165
+msgid "Error getting working directory"
+msgstr ""
+
+#: build.go:174
 msgid "Error moving the package"
 msgstr ""
 
@@ -130,31 +146,31 @@ msgstr ""
 msgid "Error encoding script variables"
 msgstr ""
 
-#: install.go:42
+#: install.go:43
 msgid "Install a new package"
 msgstr ""
 
-#: install.go:56
+#: install.go:57
 msgid "Command install expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:91
+#: install.go:124
 msgid "Error getting packages"
 msgstr ""
 
-#: install.go:100
+#: install.go:133
 msgid "Error iterating over packages"
 msgstr ""
 
-#: install.go:113
+#: install.go:146
 msgid "Remove an installed package"
 msgstr ""
 
-#: install.go:118
+#: install.go:151
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:130
+#: install.go:163
 msgid "Error removing packages"
 msgstr ""
 
@@ -222,11 +238,11 @@ msgstr ""
 msgid "Error parsing system language"
 msgstr ""
 
-#: internal/db/db.go:131
+#: internal/db/db.go:133
 msgid "Database version mismatch; resetting"
 msgstr ""
 
-#: internal/db/db.go:138
+#: internal/db/db.go:140
 msgid ""
 "Database version does not exist. Run alr fix if something isn't working."
 msgstr ""
@@ -293,82 +309,70 @@ msgstr ""
 msgid "Error while running app"
 msgstr ""
 
-#: pkg/build/build.go:108
+#: pkg/build/build.go:153
 msgid "Failed to prompt user to view build script"
 msgstr ""
 
-#: pkg/build/build.go:112
+#: pkg/build/build.go:157
 msgid "Building package"
 msgstr ""
 
-#: pkg/build/build.go:156
+#: pkg/build/build.go:228
 msgid "Downloading sources"
 msgstr ""
 
-#: pkg/build/build.go:168
+#: pkg/build/build.go:246
 msgid "Building package metadata"
 msgstr ""
 
-#: pkg/build/build.go:190
+#: pkg/build/build.go:268
 msgid "Compressing package"
 msgstr ""
 
-#: pkg/build/build.go:316
+#: pkg/build/build.go:419
 msgid ""
 "Your system's CPU architecture doesn't match this package. Do you want to "
 "build anyway?"
 msgstr ""
 
-#: pkg/build/build.go:327
+#: pkg/build/build.go:433
 msgid "This package is already installed"
 msgstr ""
 
-#: pkg/build/build.go:355
+#: pkg/build/build.go:457
 msgid "Installing build dependencies"
 msgstr ""
 
-#: pkg/build/build.go:397
+#: pkg/build/build.go:498
 msgid "Installing dependencies"
 msgstr ""
 
-#: pkg/build/build.go:443
-msgid "Executing version()"
+#: pkg/build/build.go:533
+msgid "The checksums array must be the same length as sources"
 msgstr ""
 
-#: pkg/build/build.go:463
-msgid "Updating version"
-msgstr ""
-
-#: pkg/build/build.go:468
-msgid "Executing prepare()"
-msgstr ""
-
-#: pkg/build/build.go:478
-msgid "Executing build()"
-msgstr ""
-
-#: pkg/build/build.go:488
-msgid "Executing package()"
-msgstr ""
-
-#: pkg/build/build.go:510
-msgid "Executing files()"
-msgstr ""
-
-#: pkg/build/build.go:588
-msgid "AutoProv is not implemented for this package format, so it's skipped"
-msgstr ""
-
-#: pkg/build/build.go:599
-msgid "AutoReq is not implemented for this package format, so it's skipped"
-msgstr ""
-
-#: pkg/build/build.go:706
+#: pkg/build/build.go:584
 msgid "Would you like to remove the build dependencies?"
 msgstr ""
 
-#: pkg/build/build.go:812
-msgid "The checksums array must be the same length as sources"
+#: pkg/build/build.go:647
+msgid "Executing prepare()"
+msgstr ""
+
+#: pkg/build/build.go:657
+msgid "Executing build()"
+msgstr ""
+
+#: pkg/build/build.go:687 pkg/build/build.go:707
+msgid "Executing %s()"
+msgstr ""
+
+#: pkg/build/build.go:766
+msgid "Error installing native packages"
+msgstr ""
+
+#: pkg/build/build.go:790
+msgid "Error installing package"
 msgstr ""
 
 #: pkg/build/findDeps.go:35
@@ -383,27 +387,27 @@ msgstr ""
 msgid "Required dependency found"
 msgstr ""
 
-#: pkg/build/install.go:42
-msgid "Error installing native packages"
+#: pkg/build/utils.go:133
+msgid "AutoProv is not implemented for this package format, so it's skipped"
 msgstr ""
 
-#: pkg/build/install.go:79
-msgid "Error installing package"
+#: pkg/build/utils.go:144
+msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 
-#: pkg/repos/pull.go:75
+#: pkg/repos/pull.go:79
 msgid "Pulling repository"
 msgstr ""
 
-#: pkg/repos/pull.go:99
+#: pkg/repos/pull.go:103
 msgid "Repository up to date"
 msgstr ""
 
-#: pkg/repos/pull.go:156
+#: pkg/repos/pull.go:160
 msgid "Git repository does not appear to be a valid ALR repo"
 msgstr ""
 
-#: pkg/repos/pull.go:172
+#: pkg/repos/pull.go:176
 msgid ""
 "ALR repo's minimum ALR version is greater than the current version. Try "
 "updating ALR if something doesn't work."
@@ -457,10 +461,10 @@ msgstr ""
 msgid "Upgrade all installed packages"
 msgstr ""
 
-#: upgrade.go:83
+#: upgrade.go:90
 msgid "Error checking for updates"
 msgstr ""
 
-#: upgrade.go:94
+#: upgrade.go:112
 msgid "There is nothing to do."
 msgstr ""

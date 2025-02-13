@@ -16,40 +16,57 @@ msgstr ""
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 47.1\n"
 
-#: build.go:41
+#: build.go:44
 msgid "Build a local package"
 msgstr "Сборка локального пакета"
 
-#: build.go:47
+#: build.go:50
 msgid "Path to the build script"
 msgstr "Путь к скрипту сборки"
 
-#: build.go:52
+#: build.go:55
+msgid "Specify package in script (for multi package script only)"
+msgstr ""
+
+#: build.go:60
 msgid "Name of the package to build and its repo (example: default/go-bin)"
 msgstr "Имя пакета для сборки и его репозиторий (пример: default/go-bin)"
 
-#: build.go:57
+#: build.go:65
 msgid ""
 "Build package from scratch even if there's an already built package available"
 msgstr "Создайте пакет с нуля, даже если уже имеется готовый пакет"
 
-#: build.go:87
+#: build.go:75
+msgid "Error db init"
+msgstr ""
+
+#: build.go:105
+msgid "Package not found"
+msgstr ""
+
+#: build.go:123
 msgid "Error pulling repositories"
 msgstr "Ошибка при извлечении репозиториев"
 
-#: build.go:95
+#: build.go:131
 msgid "Unable to detect a supported package manager on the system"
 msgstr "Не удалось обнаружить поддерживаемый менеджер пакетов в системе"
 
-#: build.go:107
+#: build.go:137
+#, fuzzy
+msgid "Error parsing os release"
+msgstr "Ошибка при разборе файла выпуска операционной системы"
+
+#: build.go:158
 msgid "Error building package"
 msgstr "Ошибка при сборке пакета"
 
-#: build.go:114
+#: build.go:165
 msgid "Error getting working directory"
 msgstr "Ошибка при получении рабочего каталога"
 
-#: build.go:123
+#: build.go:174
 msgid "Error moving the package"
 msgstr "Ошибка при перемещении пакета"
 
@@ -137,31 +154,31 @@ msgstr "Ошибка устранения переорпеделений"
 msgid "Error encoding script variables"
 msgstr "Ошибка кодирования переменных скрита"
 
-#: install.go:42
+#: install.go:43
 msgid "Install a new package"
 msgstr "Установить новый пакет"
 
-#: install.go:56
+#: install.go:57
 msgid "Command install expected at least 1 argument, got %d"
 msgstr "Для команды install ожидался хотя бы 1 аргумент, получено %d"
 
-#: install.go:91
+#: install.go:124
 msgid "Error getting packages"
 msgstr "Ошибка при получении пакетов"
 
-#: install.go:100
+#: install.go:133
 msgid "Error iterating over packages"
 msgstr "Ошибка при переборе пакетов"
 
-#: install.go:113
+#: install.go:146
 msgid "Remove an installed package"
 msgstr "Удалить установленный пакет"
 
-#: install.go:118
+#: install.go:151
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr "Для команды remove ожидался хотя бы 1 аргумент, получено %d"
 
-#: install.go:130
+#: install.go:163
 msgid "Error removing packages"
 msgstr "Ошибка при удалении пакетов"
 
@@ -233,11 +250,11 @@ msgstr "Не удалось создать каталог кэша пакето�
 msgid "Error parsing system language"
 msgstr "Ошибка при парсинге языка системы"
 
-#: internal/db/db.go:131
+#: internal/db/db.go:133
 msgid "Database version mismatch; resetting"
 msgstr "Несоответствие версий базы данных; сброс настроек"
 
-#: internal/db/db.go:138
+#: internal/db/db.go:140
 msgid ""
 "Database version does not exist. Run alr fix if something isn't working."
 msgstr ""
@@ -307,27 +324,27 @@ msgstr ""
 msgid "Error while running app"
 msgstr "Ошибка при запуске приложения"
 
-#: pkg/build/build.go:108
+#: pkg/build/build.go:153
 msgid "Failed to prompt user to view build script"
 msgstr "Не удалось предложить пользователю просмотреть скрипт сборки"
 
-#: pkg/build/build.go:112
+#: pkg/build/build.go:157
 msgid "Building package"
 msgstr "Сборка пакета"
 
-#: pkg/build/build.go:156
+#: pkg/build/build.go:228
 msgid "Downloading sources"
 msgstr "Скачивание источников"
 
-#: pkg/build/build.go:168
+#: pkg/build/build.go:246
 msgid "Building package metadata"
 msgstr "Сборка метаданных пакета"
 
-#: pkg/build/build.go:190
+#: pkg/build/build.go:268
 msgid "Compressing package"
 msgstr "Сжатие пакета"
 
-#: pkg/build/build.go:316
+#: pkg/build/build.go:419
 msgid ""
 "Your system's CPU architecture doesn't match this package. Do you want to "
 "build anyway?"
@@ -335,59 +352,46 @@ msgstr ""
 "Архитектура процессора вашей системы не соответствует этому пакету. Вы все "
 "равно хотите выполнить сборку?"
 
-#: pkg/build/build.go:327
+#: pkg/build/build.go:433
 msgid "This package is already installed"
 msgstr "Этот пакет уже установлен"
 
-#: pkg/build/build.go:355
+#: pkg/build/build.go:457
 msgid "Installing build dependencies"
 msgstr "Установка зависимостей сборки"
 
-#: pkg/build/build.go:397
+#: pkg/build/build.go:498
 msgid "Installing dependencies"
 msgstr "Установка зависимостей"
 
-#: pkg/build/build.go:443
-msgid "Executing version()"
-msgstr "Исполнение версия()"
+#: pkg/build/build.go:533
+msgid "The checksums array must be the same length as sources"
+msgstr "Массив контрольных сумм должен быть той же длины, что и источники"
 
-#: pkg/build/build.go:463
-msgid "Updating version"
-msgstr "Обновление версии"
-
-#: pkg/build/build.go:468
-msgid "Executing prepare()"
-msgstr "Исполнение prepare()"
-
-#: pkg/build/build.go:478
-msgid "Executing build()"
-msgstr "Исполнение build()"
-
-#: pkg/build/build.go:488
-msgid "Executing package()"
-msgstr "Исполнение package()"
-
-#: pkg/build/build.go:510
-msgid "Executing files()"
-msgstr "Исполнение files()"
-
-#: pkg/build/build.go:588
-msgid "AutoProv is not implemented for this package format, so it's skipped"
-msgstr ""
-"AutoProv не реализовано для этого формата пакета, поэтому будет пропущено"
-
-#: pkg/build/build.go:599
-msgid "AutoReq is not implemented for this package format, so it's skipped"
-msgstr ""
-"AutoReq не реализовано для этого формата пакета, поэтому будет пропущено"
-
-#: pkg/build/build.go:706
+#: pkg/build/build.go:584
 msgid "Would you like to remove the build dependencies?"
 msgstr "Хотели бы вы удалить зависимости сборки?"
 
-#: pkg/build/build.go:812
-msgid "The checksums array must be the same length as sources"
-msgstr "Массив контрольных сумм должен быть той же длины, что и источники"
+#: pkg/build/build.go:647
+msgid "Executing prepare()"
+msgstr "Исполнение prepare()"
+
+#: pkg/build/build.go:657
+msgid "Executing build()"
+msgstr "Исполнение build()"
+
+#: pkg/build/build.go:687 pkg/build/build.go:707
+#, fuzzy
+msgid "Executing %s()"
+msgstr "Исполнение files()"
+
+#: pkg/build/build.go:766
+msgid "Error installing native packages"
+msgstr "Ошибка при установке нативных пакетов"
+
+#: pkg/build/build.go:790
+msgid "Error installing package"
+msgstr "Ошибка при установке пакета"
 
 #: pkg/build/findDeps.go:35
 msgid "Command not found on the system"
@@ -401,27 +405,29 @@ msgstr "Найденная предоставленная зависимость
 msgid "Required dependency found"
 msgstr "Найдена требуемая зависимость"
 
-#: pkg/build/install.go:42
-msgid "Error installing native packages"
-msgstr "Ошибка при установке нативных пакетов"
+#: pkg/build/utils.go:133
+msgid "AutoProv is not implemented for this package format, so it's skipped"
+msgstr ""
+"AutoProv не реализовано для этого формата пакета, поэтому будет пропущено"
 
-#: pkg/build/install.go:79
-msgid "Error installing package"
-msgstr "Ошибка при установке пакета"
+#: pkg/build/utils.go:144
+msgid "AutoReq is not implemented for this package format, so it's skipped"
+msgstr ""
+"AutoReq не реализовано для этого формата пакета, поэтому будет пропущено"
 
-#: pkg/repos/pull.go:75
+#: pkg/repos/pull.go:79
 msgid "Pulling repository"
 msgstr "Скачивание репозитория"
 
-#: pkg/repos/pull.go:99
+#: pkg/repos/pull.go:103
 msgid "Repository up to date"
 msgstr "Репозиторий уже обновлён"
 
-#: pkg/repos/pull.go:156
+#: pkg/repos/pull.go:160
 msgid "Git repository does not appear to be a valid ALR repo"
 msgstr "Репозиторий Git не поддерживается репозиторием ALR"
 
-#: pkg/repos/pull.go:172
+#: pkg/repos/pull.go:176
 msgid ""
 "ALR repo's minimum ALR version is greater than the current version. Try "
 "updating ALR if something doesn't work."
@@ -477,10 +483,19 @@ msgstr "Скачать все изменённые репозитории"
 msgid "Upgrade all installed packages"
 msgstr "Обновить все установленные пакеты"
 
-#: upgrade.go:83
+#: upgrade.go:90
 msgid "Error checking for updates"
 msgstr "Ошибка при проверке обновлений"
 
-#: upgrade.go:94
+#: upgrade.go:112
 msgid "There is nothing to do."
 msgstr "Здесь нечего делать."
+
+#~ msgid "Executing version()"
+#~ msgstr "Исполнение версия()"
+
+#~ msgid "Updating version"
+#~ msgstr "Обновление версии"
+
+#~ msgid "Executing package()"
+#~ msgstr "Исполнение package()"

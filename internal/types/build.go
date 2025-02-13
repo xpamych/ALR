@@ -23,9 +23,59 @@ import "gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 
 type BuildOpts struct {
 	Script      string
+	Packages    []string
 	Manager     manager.Manager
 	Clean       bool
 	Interactive bool
+}
+
+type BuildVarsPre struct {
+	Version       string   `sh:"version,required"`
+	Release       int      `sh:"release,required"`
+	Epoch         uint     `sh:"epoch"`
+	Description   string   `sh:"desc"`
+	Homepage      string   `sh:"homepage"`
+	Maintainer    string   `sh:"maintainer"`
+	Architectures []string `sh:"architectures"`
+	Licenses      []string `sh:"license"`
+	Provides      []string `sh:"provides"`
+	Conflicts     []string `sh:"conflicts"`
+	Depends       []string `sh:"deps"`
+	BuildDepends  []string `sh:"build_deps"`
+	OptDepends    []string `sh:"opt_deps"`
+	Replaces      []string `sh:"replaces"`
+	Sources       []string `sh:"sources"`
+	Checksums     []string `sh:"checksums"`
+	Backup        []string `sh:"backup"`
+	Scripts       Scripts  `sh:"scripts"`
+	AutoReq       []string `sh:"auto_req"`
+	AutoProv      []string `sh:"auto_prov"`
+}
+
+func (bv *BuildVarsPre) ToBuildVars() BuildVars {
+	return BuildVars{
+		Name:          "",
+		Version:       bv.Version,
+		Release:       bv.Release,
+		Epoch:         bv.Epoch,
+		Description:   bv.Description,
+		Homepage:      bv.Homepage,
+		Maintainer:    bv.Maintainer,
+		Architectures: bv.Architectures,
+		Licenses:      bv.Licenses,
+		Provides:      bv.Provides,
+		Conflicts:     bv.Conflicts,
+		Depends:       bv.Depends,
+		BuildDepends:  bv.BuildDepends,
+		OptDepends:    bv.OptDepends,
+		Replaces:      bv.Replaces,
+		Sources:       bv.Sources,
+		Checksums:     bv.Checksums,
+		Backup:        bv.Backup,
+		Scripts:       bv.Scripts,
+		AutoReq:       bv.AutoReq,
+		AutoProv:      bv.AutoProv,
+	}
 }
 
 // BuildVars represents the script variables required

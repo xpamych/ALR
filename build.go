@@ -23,14 +23,17 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/osutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
@@ -47,6 +50,11 @@ func BuildCmd() *cli.Command {
 				Usage:   gotext.Get("Path to the build script"),
 			},
 			&cli.StringFlag{
+				Name:    "script-package",
+				Aliases: []string{"sp"},
+				Usage:   gotext.Get("Specify package in script (for multi package script only)"),
+			},
+			&cli.StringFlag{
 				Name:    "package",
 				Aliases: []string{"p"},
 				Usage:   gotext.Get("Name of the package to build and its repo (example: default/go-bin)"),
@@ -59,30 +67,58 @@ func BuildCmd() *cli.Command {
 		},
 		Action: func(c *cli.Context) error {
 			ctx := c.Context
+			cfg := config.New()
+			db := database.New(cfg)
+			rs := repos.New(cfg, db)
+			err := db.Init(ctx)
+			if err != nil {
+				slog.Error(gotext.Get("Error db init"), "err", err)
+				os.Exit(1)
+			}
 
 			var script string
+			var packages []string
 
 			// Проверяем, установлен ли флаг script (-s)
+
+			repoDir := cfg.GetPaths(ctx).RepoDir
 
 			switch {
 			case c.IsSet("script"):
 				script = c.String("script")
+				packages = append(packages, c.String("script-package"))
 			case c.IsSet("package"):
+				// TODO: handle multiple packages
 				packageInput := c.String("package")
-				if filepath.Dir(packageInput) == "." {
-					// Не указана директория репозитория, используем 'default' как префикс
-					script = filepath.Join(config.GetPaths(ctx).RepoDir, "default", packageInput, "alr.sh")
+
+				arr := strings.Split(packageInput, "/")
+				var packageSearch string
+				if len(arr) == 2 {
+					packageSearch = arr[1]
 				} else {
-					// Используем путь с указанным репозиторием
-					script = filepath.Join(config.GetPaths(ctx).RepoDir, packageInput, "alr.sh")
+					packageSearch = arr[0]
+				}
+
+				pkgs, _, _ := rs.FindPkgs(ctx, []string{packageSearch})
+				pkg, ok := pkgs[packageSearch]
+				if len(pkg) < 1 || !ok {
+					slog.Error(gotext.Get("Package not found"))
+					os.Exit(1)
+				}
+
+				if pkg[0].BasePkgName != "" {
+					script = filepath.Join(repoDir, pkg[0].Repository, pkg[0].BasePkgName, "alr.sh")
+					packages = append(packages, pkg[0].Name)
+				} else {
+					script = filepath.Join(repoDir, pkg[0].Repository, pkg[0].Name, "alr.sh")
 				}
 			default:
-				script = filepath.Join(config.GetPaths(ctx).RepoDir, "alr.sh")
+				script = filepath.Join(repoDir, "alr.sh")
 			}
 
 			// Проверка автоматического пулла репозиториев
-			if config.GetInstance(ctx).AutoPull(ctx) {
-				err := repos.Pull(ctx, config.Config(ctx).Repos)
+			if cfg.AutoPull(ctx) {
+				err := rs.Pull(ctx, cfg.Repos(ctx))
 				if err != nil {
 					slog.Error(gotext.Get("Error pulling repositories"), "err", err)
 					os.Exit(1)
@@ -96,13 +132,28 @@ func BuildCmd() *cli.Command {
 				os.Exit(1)
 			}
 
+			info, err := distro.ParseOSRelease(ctx)
+			if err != nil {
+				slog.Error(gotext.Get("Error parsing os release"), "err", err)
+				os.Exit(1)
+			}
+
+			builder := build.NewBuilder(
+				ctx,
+				types.BuildOpts{
+					Packages:    packages,
+					Script:      script,
+					Manager:     mgr,
+					Clean:       c.Bool("clean"),
+					Interactive: c.Bool("interactive"),
+				},
+				rs,
+				info,
+				cfg,
+			)
+
 			// Сборка пакета
-			pkgPaths, _, err := build.BuildPackage(ctx, types.BuildOpts{
-				Script:      script,
-				Manager:     mgr,
-				Clean:       c.Bool("clean"),
-				Interactive: c.Bool("interactive"),
-			})
+			pkgPaths, _, err := builder.BuildPackage(ctx)
 			if err != nil {
 				slog.Error(gotext.Get("Error building package"), "err", err)
 				os.Exit(1)

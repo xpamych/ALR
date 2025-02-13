@@ -31,10 +31,11 @@ import (
 
 // CurrentVersion is the current version of the database.
 // The database is reset if its version doesn't match this.
-const CurrentVersion = 2
+const CurrentVersion = 3
 
 // Package is a ALR package's database representation
 type Package struct {
+	BasePkgName   string                    `sh:"base" db:"basepkg_name"`
 	Name          string                    `sh:"name,required" db:"name"`
 	Version       string                    `sh:"version,required" db:"version"`
 	Release       int                       `sh:"release,required" db:"release"`
@@ -99,6 +100,7 @@ func (d *Database) initDB(ctx context.Context) error {
 	conn := d.conn
 	_, err := conn.ExecContext(ctx, `
 		CREATE TABLE IF NOT EXISTS pkgs (
+			basepkg_name  TEXT NOT NULL,
 			name          TEXT NOT NULL,
 			repository    TEXT NOT NULL,
 			version       TEXT NOT NULL,
@@ -196,6 +198,7 @@ func (d *Database) IsEmpty(ctx context.Context) bool {
 func (d *Database) InsertPackage(ctx context.Context, pkg Package) error {
 	_, err := d.conn.NamedExecContext(ctx, `
 		INSERT OR REPLACE INTO pkgs (
+			basepkg_name,
 			name,
 			repository,
 			version,
@@ -213,6 +216,7 @@ func (d *Database) InsertPackage(ctx context.Context, pkg Package) error {
 			builddepends,
 			optdepends
 		) VALUES (
+		 	:basepkg_name,
 			:name,
 			:repository,
 			:version,

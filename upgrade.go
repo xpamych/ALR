@@ -32,7 +32,7 @@ import (
 	"golang.org/x/exp/slices"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
@@ -56,7 +56,14 @@ func UpgradeCmd() *cli.Command {
 		Action: func(c *cli.Context) error {
 			ctx := c.Context
 
-			cfg := config.GetInstance(ctx)
+			cfg := config.New()
+			db := database.New(cfg)
+			rs := repos.New(cfg, db)
+			err := db.Init(ctx)
+			if err != nil {
+				slog.Error(gotext.Get("Error db init"), "err", err)
+				os.Exit(1)
+			}
 
 			info, err := distro.ParseOSRelease(ctx)
 			if err != nil {
@@ -71,21 +78,32 @@ func UpgradeCmd() *cli.Command {
 			}
 
 			if cfg.AutoPull(ctx) {
-				err = repos.Pull(ctx, config.Config(ctx).Repos)
+				err = rs.Pull(ctx, cfg.Repos(ctx))
 				if err != nil {
 					slog.Error(gotext.Get("Error pulling repos"), "err", err)
 					os.Exit(1)
 				}
 			}
 
-			updates, err := checkForUpdates(ctx, mgr, info)
+			updates, err := checkForUpdates(ctx, mgr, cfg, rs, info)
 			if err != nil {
 				slog.Error(gotext.Get("Error checking for updates"), "err", err)
 				os.Exit(1)
 			}
 
 			if len(updates) > 0 {
-				build.InstallPkgs(ctx, updates, nil, types.BuildOpts{
+				builder := build.NewBuilder(
+					ctx,
+					types.BuildOpts{
+						Manager:     mgr,
+						Clean:       c.Bool("clean"),
+						Interactive: c.Bool("interactive"),
+					},
+					rs,
+					info,
+					cfg,
+				)
+				builder.InstallPkgs(ctx, updates, nil, types.BuildOpts{
 					Manager:     mgr,
 					Clean:       c.Bool("clean"),
 					Interactive: c.Bool("interactive"),
@@ -99,27 +117,33 @@ func UpgradeCmd() *cli.Command {
 	}
 }
 
-func checkForUpdates(ctx context.Context, mgr manager.Manager, info *distro.OSRelease) ([]db.Package, error) {
+func checkForUpdates(
+	ctx context.Context,
+	mgr manager.Manager,
+	cfg *config.ALRConfig,
+	rs *repos.Repos,
+	info *distro.OSRelease,
+) ([]database.Package, error) {
 	installed, err := mgr.ListInstalled(nil)
 	if err != nil {
 		return nil, err
 	}
 
 	pkgNames := maps.Keys(installed)
-	found, _, err := repos.FindPkgs(ctx, pkgNames)
+	found, _, err := rs.FindPkgs(ctx, pkgNames)
 	if err != nil {
 		return nil, err
 	}
 
-	var out []db.Package
+	var out []database.Package
 	for pkgName, pkgs := range found {
-		if slices.Contains(config.Config(ctx).IgnorePkgUpdates, pkgName) {
+		if slices.Contains(cfg.IgnorePkgUpdates(ctx), pkgName) {
 			continue
 		}
 
 		if len(pkgs) > 1 {
 			// Puts the element with the highest version first
-			slices.SortFunc(pkgs, func(a, b db.Package) int {
+			slices.SortFunc(pkgs, func(a, b database.Package) int {
 				return vercmp.Compare(a.Version, b.Version)
 			})
 		}

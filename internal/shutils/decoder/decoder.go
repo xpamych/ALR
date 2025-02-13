@@ -164,7 +164,10 @@ func (d *Decoder) DecodeVars(val any) error {
 	return nil
 }
 
-type ScriptFunc func(ctx context.Context, opts ...interp.RunnerOption) error
+type (
+	ScriptFunc             func(ctx context.Context, opts ...interp.RunnerOption) error
+	ScriptFuncWithSubshell func(ctx context.Context, opts ...interp.RunnerOption) (*interp.Runner, error)
+)
 
 // GetFunc returns a function corresponding to a bash function
 // with the given name
@@ -194,6 +197,24 @@ func (d *Decoder) GetFuncP(name string, prepare PrepareFunc) (ScriptFunc, bool) 
 			}
 		}
 		return sub.Run(ctx, fn)
+	}, true
+}
+
+func (d *Decoder) GetFuncWithSubshell(name string) (ScriptFuncWithSubshell, bool) {
+	fn := d.getFunc(name)
+	if fn == nil {
+		return nil, false
+	}
+
+	return func(ctx context.Context, opts ...interp.RunnerOption) (*interp.Runner, error) {
+		sub := d.Runner.Subshell()
+		for _, opt := range opts {
+			err := opt(sub)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return sub, sub.Run(ctx, fn)
 	}, true
 }
 
