@@ -81,6 +81,7 @@ func GetApp() *cli.App {
 			GenCmd(),
 			HelperCmd(),
 			VersionCmd(),
+			SearchCmd(),
 		},
 		Before: func(c *cli.Context) error {
 			ctx := c.Context

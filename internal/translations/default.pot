@@ -299,13 +299,13 @@ msgstr ""
 msgid "Enable interactive questions and prompts"
 msgstr ""
 
-#: main.go:90
+#: main.go:91
 msgid ""
 "Running ALR as root is forbidden as it may cause catastrophic damage to your "
 "system"
 msgstr ""
 
-#: main.go:124
+#: main.go:125
 msgid "Error while running app"
 msgstr ""
 
@@ -455,6 +455,46 @@ msgstr ""
 
 #: repo.go:166
 msgid "Pull all repositories that have changed"
+msgstr ""
+
+#: search.go:36
+msgid "Search packages"
+msgstr ""
+
+#: search.go:42
+msgid "Search by name"
+msgstr ""
+
+#: search.go:47
+msgid "Search by description"
+msgstr ""
+
+#: search.go:52
+msgid "Search by repository"
+msgstr ""
+
+#: search.go:57
+msgid "Search by provides"
+msgstr ""
+
+#: search.go:62
+msgid "Format output using a Go template"
+msgstr ""
+
+#: search.go:94
+msgid "At least one search parameter is required"
+msgstr ""
+
+#: search.go:100
+msgid "Error db search"
+msgstr ""
+
+#: search.go:109
+msgid "Error parsing format template"
+msgstr ""
+
+#: search.go:124
+msgid "Error executing template"
 msgstr ""
 
 #: upgrade.go:47
