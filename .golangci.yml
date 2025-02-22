@@ -47,4 +47,4 @@ issues:
     # TODO: remove
     - linters:
         - staticcheck
-      text: "SA1019:"
+      text: "SA1019: interp.ExecHandler"

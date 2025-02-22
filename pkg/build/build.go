@@ -306,7 +306,7 @@ func (b *Builder) executeFirstPass(
 		interp.Env(expand.ListEnviron(env...)),                               // Устанавливаем окружение
 		interp.StdIO(os.Stdin, os.Stdout, os.Stderr),                         // Устанавливаем стандартный ввод-вывод
 		interp.ExecHandler(helpers.Restricted.ExecHandler(handlers.NopExec)), // Ограничиваем выполнение
-		interp.ReadDirHandler(handlers.RestrictedReadDir(scriptDir)),         // Ограничиваем чтение директорий
+		interp.ReadDirHandler2(handlers.RestrictedReadDir(scriptDir)),        // Ограничиваем чтение директорий
 		interp.StatHandler(handlers.RestrictedStat(scriptDir)),               // Ограничиваем доступ к статистике файлов
 		interp.OpenHandler(handlers.RestrictedOpen(scriptDir)),               // Ограничиваем открытие файлов
 	)
@@ -395,9 +395,11 @@ func (b *Builder) executeSecondPass(
 
 	fakeroot := handlers.FakerootExecHandler(2 * time.Second) // Настраиваем "fakeroot" для выполнения
 	runner, err := interp.New(
-		interp.Env(expand.ListEnviron(env...)),                    // Устанавливаем окружение
-		interp.StdIO(os.Stdin, os.Stdout, os.Stderr),              // Устанавливаем стандартный ввод-вывод
-		interp.ExecHandler(helpers.Helpers.ExecHandler(fakeroot)), // Обрабатываем выполнение через fakeroot
+		interp.Env(expand.ListEnviron(env...)),       // Устанавливаем окружение
+		interp.StdIO(os.Stdin, os.Stdout, os.Stderr), // Устанавливаем стандартный ввод-вывод
+		interp.ExecHandlers(func(next interp.ExecHandlerFunc) interp.ExecHandlerFunc {
+			return helpers.Helpers.ExecHandler(fakeroot)
+		}), // Обрабатываем выполнение через fakeroot
 	)
 	if err != nil {
 		return nil, err

@@ -27,7 +27,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
@@ -37,9 +37,8 @@ func FixCmd() *cli.Command {
 		Usage: gotext.Get("Attempt to fix problems with ALR"),
 		Action: func(c *cli.Context) error {
 			ctx := c.Context
-
-			db.Close()
-			paths := config.GetPaths(ctx)
+			cfg := config.New()
+			paths := cfg.GetPaths(ctx)
 
 			slog.Info(gotext.Get("Removing cache directory"))
 
@@ -57,7 +56,15 @@ func FixCmd() *cli.Command {
 				os.Exit(1)
 			}
 
-			err = repos.Pull(ctx, config.Config(ctx).Repos)
+			cfg = config.New()
+			db := database.New(cfg)
+			err = db.Init(ctx)
+			if err != nil {
+				slog.Error(gotext.Get("Error initialization database"), "err", err)
+				os.Exit(1)
+			}
+			rs := repos.New(cfg, db)
+			err = rs.Pull(ctx, cfg.Repos(ctx))
 			if err != nil {
 				slog.Error(gotext.Get("Error pulling repos"), "err", err)
 				os.Exit(1)

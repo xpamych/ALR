@@ -72,7 +72,7 @@ func BuildCmd() *cli.Command {
 			rs := repos.New(cfg, db)
 			err := db.Init(ctx)
 			if err != nil {
-				slog.Error(gotext.Get("Error db init"), "err", err)
+				slog.Error(gotext.Get("Error initialization database"), "err", err)
 				os.Exit(1)
 			}
 

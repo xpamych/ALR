@@ -152,6 +152,13 @@ func (c *ALRConfig) Repos(ctx context.Context) []types.Repo {
 	return c.cfg.Repos
 }
 
+func (c *ALRConfig) SetRepos(ctx context.Context, repos []types.Repo) {
+	c.cfgOnce.Do(func() {
+		c.Load(ctx)
+	})
+	c.cfg.Repos = repos
+}
+
 func (c *ALRConfig) IgnorePkgUpdates(ctx context.Context) []string {
 	c.cfgOnce.Do(func() {
 		c.Load(ctx)
@@ -171,4 +178,18 @@ func (c *ALRConfig) PagerStyle(ctx context.Context) string {
 		c.Load(ctx)
 	})
 	return c.cfg.PagerStyle
+}
+
+func (c *ALRConfig) AllowRunAsRoot(ctx context.Context) bool {
+	c.cfgOnce.Do(func() {
+		c.Load(ctx)
+	})
+	return c.cfg.Unsafe.AllowRunAsRoot
+}
+
+func (c *ALRConfig) RootCmd(ctx context.Context) string {
+	c.cfgOnce.Do(func() {
+		c.Load(ctx)
+	})
+	return c.cfg.RootCmd
 }

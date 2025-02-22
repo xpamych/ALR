@@ -31,7 +31,7 @@ msgid ""
 msgstr ""
 
 #: build.go:75
-msgid "Error db init"
+msgid "Error initialization database"
 msgstr ""
 
 #: build.go:105
@@ -66,27 +66,27 @@ msgstr ""
 msgid "Attempt to fix problems with ALR"
 msgstr ""
 
-#: fix.go:44
+#: fix.go:43
 msgid "Removing cache directory"
 msgstr ""
 
-#: fix.go:48
+#: fix.go:47
 msgid "Unable to remove cache directory"
 msgstr ""
 
-#: fix.go:52
+#: fix.go:51
 msgid "Rebuilding cache"
 msgstr ""
 
-#: fix.go:56
+#: fix.go:55
 msgid "Unable to create new cache directory"
 msgstr ""
 
-#: fix.go:62
+#: fix.go:69
 msgid "Error pulling repos"
 msgstr ""
 
-#: fix.go:66
+#: fix.go:73
 msgid "Done"
 msgstr ""
 
@@ -114,35 +114,39 @@ msgstr ""
 msgid "No such helper command"
 msgstr ""
 
-#: info.go:42
+#: info.go:43
 msgid "Print information about a package"
 msgstr ""
 
-#: info.go:47
+#: info.go:48
 msgid "Show all information, not just for the current distro"
 msgstr ""
 
-#: info.go:57
-msgid "Error initialization database"
+#: info.go:63
+msgid "Error getting packages"
 msgstr ""
 
-#: info.go:64
+#: info.go:72
+msgid "Error iterating over packages"
+msgstr ""
+
+#: info.go:93
 msgid "Command info expected at least 1 argument, got %d"
 msgstr ""
 
-#: info.go:78
+#: info.go:107
 msgid "Error finding packages"
 msgstr ""
 
-#: info.go:94
+#: info.go:129
 msgid "Error parsing os-release file"
 msgstr ""
 
-#: info.go:103
+#: info.go:138
 msgid "Error resolving overrides"
 msgstr ""
 
-#: info.go:112 info.go:118
+#: info.go:147 info.go:153
 msgid "Error encoding script variables"
 msgstr ""
 
@@ -152,14 +156,6 @@ msgstr ""
 
 #: install.go:57
 msgid "Command install expected at least 1 argument, got %d"
-msgstr ""
-
-#: install.go:124
-msgid "Error getting packages"
-msgstr ""
-
-#: install.go:133
-msgid "Error iterating over packages"
 msgstr ""
 
 #: install.go:146
@@ -234,10 +230,6 @@ msgstr ""
 msgid "Unable to create package cache directory"
 msgstr ""
 
-#: internal/config/lang.go:49
-msgid "Error parsing system language"
-msgstr ""
-
 #: internal/db/db.go:133
 msgid "Database version mismatch; resetting"
 msgstr ""
@@ -245,10 +237,6 @@ msgstr ""
 #: internal/db/db.go:140
 msgid ""
 "Database version does not exist. Run alr fix if something isn't working."
-msgstr ""
-
-#: internal/db/db_legacy.go:101
-msgid "Error opening database"
 msgstr ""
 
 #: internal/dl/dl.go:170
@@ -287,15 +275,15 @@ msgstr ""
 msgid "Error listing installed packages"
 msgstr ""
 
-#: main.go:45
+#: main.go:44
 msgid "Print the current ALR version and exit"
 msgstr ""
 
-#: main.go:61
+#: main.go:60
 msgid "Arguments to be passed on to the package manager"
 msgstr ""
 
-#: main.go:67
+#: main.go:66
 msgid "Enable interactive questions and prompts"
 msgstr ""
 
@@ -305,7 +293,7 @@ msgid ""
 "system"
 msgstr ""
 
-#: main.go:125
+#: main.go:123
 msgid "Error while running app"
 msgstr ""
 
@@ -329,49 +317,49 @@ msgstr ""
 msgid "Compressing package"
 msgstr ""
 
-#: pkg/build/build.go:419
+#: pkg/build/build.go:421
 msgid ""
 "Your system's CPU architecture doesn't match this package. Do you want to "
 "build anyway?"
 msgstr ""
 
-#: pkg/build/build.go:433
+#: pkg/build/build.go:435
 msgid "This package is already installed"
 msgstr ""
 
-#: pkg/build/build.go:457
+#: pkg/build/build.go:459
 msgid "Installing build dependencies"
 msgstr ""
 
-#: pkg/build/build.go:498
+#: pkg/build/build.go:500
 msgid "Installing dependencies"
 msgstr ""
 
-#: pkg/build/build.go:533
+#: pkg/build/build.go:535
 msgid "The checksums array must be the same length as sources"
 msgstr ""
 
-#: pkg/build/build.go:584
+#: pkg/build/build.go:586
 msgid "Would you like to remove the build dependencies?"
 msgstr ""
 
-#: pkg/build/build.go:647
+#: pkg/build/build.go:649
 msgid "Executing prepare()"
 msgstr ""
 
-#: pkg/build/build.go:657
+#: pkg/build/build.go:659
 msgid "Executing build()"
 msgstr ""
 
-#: pkg/build/build.go:687 pkg/build/build.go:707
+#: pkg/build/build.go:689 pkg/build/build.go:709
 msgid "Executing %s()"
 msgstr ""
 
-#: pkg/build/build.go:766
+#: pkg/build/build.go:768
 msgid "Error installing native packages"
 msgstr ""
 
-#: pkg/build/build.go:790
+#: pkg/build/build.go:792
 msgid "Error installing package"
 msgstr ""
 
@@ -425,35 +413,35 @@ msgstr ""
 msgid "URL of the new repo"
 msgstr ""
 
-#: repo.go:79 repo.go:136
+#: repo.go:82 repo.go:147
 msgid "Error opening config file"
 msgstr ""
 
-#: repo.go:85 repo.go:142
+#: repo.go:88 repo.go:153
 msgid "Error encoding config"
 msgstr ""
 
-#: repo.go:103
+#: repo.go:113
 msgid "Remove an existing repository"
 msgstr ""
 
-#: repo.go:110
+#: repo.go:120
 msgid "Name of the repo to be deleted"
 msgstr ""
 
-#: repo.go:128
+#: repo.go:139
 msgid "Repo does not exist"
 msgstr ""
 
-#: repo.go:148
+#: repo.go:159
 msgid "Error removing repo directory"
 msgstr ""
 
-#: repo.go:154
+#: repo.go:170
 msgid "Error removing packages from database"
 msgstr ""
 
-#: repo.go:166
+#: repo.go:182
 msgid "Pull all repositories that have changed"
 msgstr ""
 
@@ -481,19 +469,11 @@ msgstr ""
 msgid "Format output using a Go template"
 msgstr ""
 
-#: search.go:94
-msgid "At least one search parameter is required"
-msgstr ""
-
-#: search.go:100
-msgid "Error db search"
-msgstr ""
-
-#: search.go:109
+#: search.go:82 search.go:99
 msgid "Error parsing format template"
 msgstr ""
 
-#: search.go:124
+#: search.go:107
 msgid "Error executing template"
 msgstr ""
 

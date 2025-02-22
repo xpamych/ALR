@@ -31,12 +31,12 @@ import (
 	"mvdan.cc/sh/v3/interp"
 )
 
-func RestrictedReadDir(allowedPrefixes ...string) interp.ReadDirHandlerFunc {
-	return func(ctx context.Context, s string) ([]fs.FileInfo, error) {
+func RestrictedReadDir(allowedPrefixes ...string) interp.ReadDirHandlerFunc2 {
+	return func(ctx context.Context, s string) ([]fs.DirEntry, error) {
 		path := filepath.Clean(s)
 		for _, allowedPrefix := range allowedPrefixes {
 			if strings.HasPrefix(path, allowedPrefix) {
-				return interp.DefaultReadDirHandler()(ctx, s)
+				return interp.DefaultReadDirHandler2()(ctx, s)
 			}
 		}
 

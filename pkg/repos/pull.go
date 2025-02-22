@@ -77,7 +77,7 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 		}
 
 		slog.Info(gotext.Get("Pulling repository"), "name", repo.Name)
-		repoDir := filepath.Join(config.GetPaths(ctx).RepoDir, repo.Name)
+		repoDir := filepath.Join(rs.cfg.GetPaths(ctx).RepoDir, repo.Name)
 
 		var repoFS billy.Filesystem
 		gitDir := filepath.Join(repoDir, ".git")
@@ -264,7 +264,7 @@ func (rs *Repos) processRepoChangesRunner(repoDir, scriptDir string) (*interp.Ru
 	return interp.New(
 		interp.Env(expand.ListEnviron(env...)),
 		interp.ExecHandler(handlers.NopExec),
-		interp.ReadDirHandler(handlers.RestrictedReadDir(repoDir)),
+		interp.ReadDirHandler2(handlers.RestrictedReadDir(repoDir)),
 		interp.StatHandler(handlers.RestrictedStat(repoDir)),
 		interp.OpenHandler(handlers.RestrictedOpen(repoDir)),
 		interp.StdIO(handlers.NopRWC{}, handlers.NopRWC{}, handlers.NopRWC{}),

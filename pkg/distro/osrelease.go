@@ -79,7 +79,7 @@ func ParseOSRelease(ctx context.Context) (*OSRelease, error) {
 	runner, err := interp.New(
 		interp.OpenHandler(handlers.NopOpen),
 		interp.ExecHandler(handlers.NopExec),
-		interp.ReadDirHandler(handlers.NopReadDir),
+		interp.ReadDirHandler2(handlers.NopReadDir),
 		interp.StatHandler(handlers.NopStat),
 		interp.Env(expand.ListEnviron()),
 	)
