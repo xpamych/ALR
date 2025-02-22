@@ -22,10 +22,11 @@ package handlers
 import (
 	"context"
 	"io"
+	"io/fs"
 	"os"
 )
 
-func NopReadDir(context.Context, string) ([]os.FileInfo, error) {
+func NopReadDir(context.Context, string) ([]fs.DirEntry, error) {
 	return nil, os.ErrNotExist
 }
 

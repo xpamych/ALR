@@ -32,7 +32,6 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/translations"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 
@@ -85,9 +84,10 @@ func GetApp() *cli.App {
 		},
 		Before: func(c *cli.Context) error {
 			ctx := c.Context
+			cfg := config.New()
 
 			cmd := c.Args().First()
-			if cmd != "helper" && !config.Config(ctx).Unsafe.AllowRunAsRoot && os.Geteuid() == 0 {
+			if cmd != "helper" && !cfg.AllowRunAsRoot(ctx) && os.Geteuid() == 0 {
 				slog.Error(gotext.Get("Running ALR as root is forbidden as it may cause catastrophic damage to your system"))
 				os.Exit(1)
 			}
@@ -99,9 +99,6 @@ func GetApp() *cli.App {
 
 			return nil
 		},
-		After: func(ctx *cli.Context) error {
-			return db.Close()
-		},
 		EnableBashCompletion: true,
 	}
 }
@@ -111,11 +108,12 @@ func main() {
 	logger.SetupDefault()
 
 	app := GetApp()
+	cfg := config.New()
 
 	ctx := context.Background()
 
 	// Set the root command to the one set in the ALR config
-	manager.DefaultRootCmd = config.Config(ctx).RootCmd
+	manager.DefaultRootCmd = cfg.RootCmd(ctx)
 
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()

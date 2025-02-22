@@ -30,7 +30,7 @@ import (
 	"golang.org/x/exp/slices"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
@@ -60,21 +60,24 @@ func AddRepoCmd() *cli.Command {
 			name := c.String("name")
 			repoURL := c.String("url")
 
-			cfg := config.Config(ctx)
+			cfg := config.New()
+			reposSlice := cfg.Repos(ctx)
 
-			for _, repo := range cfg.Repos {
+			for _, repo := range reposSlice {
 				if repo.URL == repoURL {
 					slog.Error("Repo already exists", "name", repo.Name)
 					os.Exit(1)
 				}
 			}
 
-			cfg.Repos = append(cfg.Repos, types.Repo{
+			reposSlice = append(reposSlice, types.Repo{
 				Name: name,
 				URL:  repoURL,
 			})
 
-			cfgFl, err := os.Create(config.GetPaths(ctx).ConfigPath)
+			cfg.SetRepos(ctx, reposSlice)
+
+			cfgFl, err := os.Create(cfg.GetPaths(ctx).ConfigPath)
 			if err != nil {
 				slog.Error(gotext.Get("Error opening config file"), "err", err)
 				os.Exit(1)
@@ -86,7 +89,14 @@ func AddRepoCmd() *cli.Command {
 				os.Exit(1)
 			}
 
-			err = repos.Pull(ctx, cfg.Repos)
+			db := database.New(cfg)
+			err = db.Init(ctx)
+			if err != nil {
+				slog.Error(gotext.Get("Error pulling repos"), "err", err)
+			}
+
+			rs := repos.New(cfg, db)
+			err = rs.Pull(ctx, cfg.Repos(ctx))
 			if err != nil {
 				slog.Error(gotext.Get("Error pulling repos"), "err", err)
 				os.Exit(1)
@@ -114,11 +124,12 @@ func RemoveRepoCmd() *cli.Command {
 			ctx := c.Context
 
 			name := c.String("name")
-			cfg := config.Config(ctx)
+			cfg := config.New()
 
 			found := false
 			index := 0
-			for i, repo := range cfg.Repos {
+			reposSlice := cfg.Repos(ctx)
+			for i, repo := range reposSlice {
 				if repo.Name == name {
 					index = i
 					found = true
@@ -129,9 +140,9 @@ func RemoveRepoCmd() *cli.Command {
 				os.Exit(1)
 			}
 
-			cfg.Repos = slices.Delete(cfg.Repos, index, index+1)
+			cfg.SetRepos(ctx, slices.Delete(reposSlice, index, index+1))
 
-			cfgFl, err := os.Create(config.GetPaths(ctx).ConfigPath)
+			cfgFl, err := os.Create(cfg.GetPaths(ctx).ConfigPath)
 			if err != nil {
 				slog.Error(gotext.Get("Error opening config file"), "err", err)
 				os.Exit(1)
@@ -143,12 +154,17 @@ func RemoveRepoCmd() *cli.Command {
 				os.Exit(1)
 			}
 
-			err = os.RemoveAll(filepath.Join(config.GetPaths(ctx).RepoDir, name))
+			err = os.RemoveAll(filepath.Join(cfg.GetPaths(ctx).RepoDir, name))
 			if err != nil {
 				slog.Error(gotext.Get("Error removing repo directory"), "err", err)
 				os.Exit(1)
 			}
 
+			db := database.New(cfg)
+			err = db.Init(ctx)
+			if err != nil {
+				os.Exit(1)
+			}
 			err = db.DeletePkgs(ctx, "repository = ?", name)
 			if err != nil {
 				slog.Error(gotext.Get("Error removing packages from database"), "err", err)
@@ -167,7 +183,14 @@ func RefreshCmd() *cli.Command {
 		Aliases: []string{"ref"},
 		Action: func(c *cli.Context) error {
 			ctx := c.Context
-			err := repos.Pull(ctx, config.Config(ctx).Repos)
+			cfg := config.New()
+			db := database.New(cfg)
+			err := db.Init(ctx)
+			if err != nil {
+				os.Exit(1)
+			}
+			rs := repos.New(cfg, db)
+			err = rs.Pull(ctx, cfg.Repos(ctx))
 			if err != nil {
 				slog.Error(gotext.Get("Error pulling repos"), "err", err)
 				os.Exit(1)

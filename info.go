@@ -24,13 +24,14 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/jeandeaual/go-locale"
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
@@ -47,11 +48,39 @@ func InfoCmd() *cli.Command {
 				Usage:   gotext.Get("Show all information, not just for the current distro"),
 			},
 		},
+		BashComplete: func(c *cli.Context) {
+			ctx := c.Context
+			cfg := config.New()
+			db := database.New(cfg)
+			err := db.Init(ctx)
+			if err != nil {
+				slog.Error(gotext.Get("Error initialization database"), "err", err)
+				os.Exit(1)
+			}
+
+			result, err := db.GetPkgs(c.Context, "true")
+			if err != nil {
+				slog.Error(gotext.Get("Error getting packages"), "err", err)
+				os.Exit(1)
+			}
+			defer result.Close()
+
+			for result.Next() {
+				var pkg database.Package
+				err = result.StructScan(&pkg)
+				if err != nil {
+					slog.Error(gotext.Get("Error iterating over packages"), "err", err)
+					os.Exit(1)
+				}
+
+				fmt.Println(pkg.Name)
+			}
+		},
 		Action: func(c *cli.Context) error {
 			ctx := c.Context
 
 			cfg := config.New()
-			db := db.New(cfg)
+			db := database.New(cfg)
 			err := db.Init(ctx)
 			if err != nil {
 				slog.Error(gotext.Get("Error initialization database"), "err", err)
@@ -88,6 +117,12 @@ func InfoCmd() *cli.Command {
 			var names []string
 			all := c.Bool("all")
 
+			systemLang, err := locale.GetLanguage()
+			if err != nil {
+				slog.Error("Can't detect system language", "err", err)
+				os.Exit(1)
+			}
+
 			if !all {
 				info, err := distro.ParseOSRelease(ctx)
 				if err != nil {
@@ -97,7 +132,7 @@ func InfoCmd() *cli.Command {
 				names, err = overrides.Resolve(
 					info,
 					overrides.DefaultOpts.
-						WithLanguages([]string{config.SystemLang()}),
+						WithLanguages([]string{systemLang}),
 				)
 				if err != nil {
 					slog.Error(gotext.Get("Error resolving overrides"), "err", err)

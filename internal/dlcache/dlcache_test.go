@@ -32,14 +32,6 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/dlcache"
 )
 
-func init() {
-	dir, err := os.MkdirTemp("/tmp", "alr-dlcache-test.*")
-	if err != nil {
-		panic(err)
-	}
-	config.GetPaths(context.Background()).RepoDir = dir
-}
-
 type TestALRConfig struct {
 	CacheDir string
 }

@@ -19,10 +19,6 @@
 
 package config
 
-import (
-	"context"
-)
-
 // Paths contains various paths used by ALR
 type Paths struct {
 	ConfigDir  string
@@ -31,15 +27,4 @@ type Paths struct {
 	RepoDir    string
 	PkgsDir    string
 	DBPath     string
-}
-
-// GetPaths returns a Paths struct.
-// The first time it's called, it'll generate the struct
-// using information from the system.
-// Subsequent calls will return the same value.
-//
-// Deprecated: use struct API
-func GetPaths(ctx context.Context) *Paths {
-	alrConfig := GetInstance(ctx)
-	return alrConfig.GetPaths(ctx)
 }

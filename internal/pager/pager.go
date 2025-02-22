@@ -41,7 +41,7 @@ func init() {
 
 	b2 := lipgloss.RoundedBorder()
 	b2.Left = "\u2524"
-	infoStyle = titleStyle.Copy().BorderStyle(b2)
+	infoStyle = titleStyle.BorderStyle(b2)
 }
 
 type Pager struct {

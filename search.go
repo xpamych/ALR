@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"strings"
 	"text/template"
 
 	"github.com/leonelquinteros/gotext"
@@ -28,6 +27,7 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/search"
 )
 
 func SearchCmd() *cli.Command {
@@ -70,34 +70,7 @@ func SearchCmd() *cli.Command {
 			defer db.Close()
 
 			if err != nil {
-				slog.Error(gotext.Get("Error db init"), "err", err)
-				os.Exit(1)
-			}
-
-			var conditions []string
-			if name := c.String("name"); name != "" {
-				conditions = append(conditions, fmt.Sprintf("name LIKE '%%%s%%'", name))
-			}
-			if description := c.String("description"); description != "" {
-				conditions = append(conditions, fmt.Sprintf("description LIKE '%%%s%%'", description))
-			}
-			if repo := c.String("repository"); repo != "" {
-				conditions = append(conditions, fmt.Sprintf("repository = '%s'", repo))
-			}
-			if provides := c.String("provides"); provides != "" {
-				conditions = append(conditions, fmt.Sprintf("EXISTS (SELECT 1 FROM json_each(provides) WHERE value = '%s')", provides))
-			}
-			query := ""
-			if len(conditions) > 0 {
-				query = strings.Join(conditions, " AND ")
-			} else {
-				slog.Error(gotext.Get("At least one search parameter is required"))
-				os.Exit(1)
-			}
-
-			result, err := db.GetPkgs(ctx, query)
-			if err != nil {
-				slog.Error(gotext.Get("Error db search"), "err", err)
+				slog.Error(gotext.Get("Error initialization database"), "err", err)
 				os.Exit(1)
 			}
 
@@ -111,13 +84,23 @@ func SearchCmd() *cli.Command {
 				}
 			}
 
-			for result.Next() {
-				var dbPkg database.Package
-				err = result.StructScan(&dbPkg)
-				if err != nil {
-					os.Exit(1)
-				}
+			s := search.New(db)
 
+			packages, err := s.Search(
+				ctx,
+				search.NewSearchOptions().
+					WithName(c.String("name")).
+					WithDescription(c.String("description")).
+					WithRepository(c.String("repository")).
+					WithProvides(c.String("provides")).
+					Build(),
+			)
+			if err != nil {
+				slog.Error(gotext.Get("Error parsing format template"), "err", err)
+				os.Exit(1)
+			}
+
+			for _, dbPkg := range packages {
 				if tmpl != nil {
 					err = tmpl.Execute(os.Stdout, dbPkg)
 					if err != nil {
