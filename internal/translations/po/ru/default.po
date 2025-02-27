@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: unnamed project\n"
-"PO-Revision-Date: 2025-02-27 10:10+0300\n"
+"PO-Revision-Date: 2025-02-27 11:33+0300\n"
 "Last-Translator: Maxim Slipenko <maks1ms@alt-gnome.ru>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -26,7 +26,7 @@ msgstr "Путь к скрипту сборки"
 
 #: build.go:55
 msgid "Specify package in script (for multi package script only)"
-msgstr ""
+msgstr "Укажите пакет в скрипте (только для многопакетного скрипта)"
 
 #: build.go:60
 msgid "Name of the package to build and its repo (example: default/go-bin)"
@@ -43,7 +43,7 @@ msgstr "Ошибка инициализации базы данных"
 
 #: build.go:105
 msgid "Package not found"
-msgstr ""
+msgstr "Пакет не найден"
 
 #: build.go:123
 msgid "Error pulling repositories"
@@ -54,7 +54,6 @@ msgid "Unable to detect a supported package manager on the system"
 msgstr "Не удалось обнаружить поддерживаемый менеджер пакетов в системе"
 
 #: build.go:137
-#, fuzzy
 msgid "Error parsing os release"
 msgstr "Ошибка при разборе файла выпуска операционной системы"
 
@@ -220,35 +219,35 @@ msgstr "ОПИСАНИЕ"
 
 #: internal/cliutils/template.go:74
 msgid "AUTHOR"
-msgstr ""
+msgstr "АВТОР"
 
 #: internal/cliutils/template.go:74
 msgid "COMMANDS"
-msgstr ""
+msgstr "КОМАНДЫ"
 
 #: internal/cliutils/template.go:74
 msgid "GLOBAL OPTIONS"
-msgstr ""
+msgstr "ГЛОБАЛЬНЫЕ ОПЦИИ"
 
 #: internal/cliutils/template.go:74
 msgid "COPYRIGHT"
-msgstr ""
+msgstr "АВТОРСКОЕ ПРАВО"
 
 #: internal/cliutils/template.go:95
 msgid "command options"
-msgstr ""
+msgstr "опции команды"
 
 #: internal/cliutils/template.go:96
 msgid "arguments..."
-msgstr ""
+msgstr "аргументы..."
 
 #: internal/cliutils/template.go:97
 msgid "CATEGORY"
-msgstr ""
+msgstr "КАТЕГОРИЯ"
 
 #: internal/cliutils/template.go:99 internal/cliutils/template.go:100
 msgid "OPTIONS"
-msgstr ""
+msgstr "ПАРАМЕТРЫ"
 
 #: internal/config/config.go:59
 msgid "Error opening config file, using defaults"
@@ -318,11 +317,11 @@ msgstr "Скачивание источника"
 
 #: internal/dl/progress_tui.go:100
 msgid "%s: done!\n"
-msgstr ""
+msgstr "%s: выполнено!\n"
 
 #: internal/dl/progress_tui.go:104
 msgid "%s %s downloading at %s/s\n"
-msgstr ""
+msgstr "%s %s загружается — %s/с\n"
 
 #: internal/logger/log.go:47
 msgid "ERROR"
@@ -358,7 +357,7 @@ msgstr ""
 
 #: main.go:125
 msgid "Show help"
-msgstr ""
+msgstr "Показать справку"
 
 #: main.go:129
 msgid "Error while running app"
@@ -421,9 +420,8 @@ msgid "Executing build()"
 msgstr "Исполнение build()"
 
 #: pkg/build/build.go:689 pkg/build/build.go:709
-#, fuzzy
 msgid "Executing %s()"
-msgstr "Исполнение files()"
+msgstr "Исполнение %s()"
 
 #: pkg/build/build.go:768
 msgid "Error installing native packages"
@@ -521,38 +519,35 @@ msgstr "Скачать все изменённые репозитории"
 
 #: search.go:36
 msgid "Search packages"
-msgstr ""
+msgstr "Поиск пакетов"
 
 #: search.go:42
 msgid "Search by name"
-msgstr ""
+msgstr "Искать по имени"
 
 #: search.go:47
 msgid "Search by description"
-msgstr ""
+msgstr "Искать по описанию"
 
 #: search.go:52
-#, fuzzy
 msgid "Search by repository"
-msgstr "Добавить новый репозиторий"
+msgstr "Искать по репозиторию"
 
 #: search.go:57
 msgid "Search by provides"
-msgstr ""
+msgstr "Иcкать по provides"
 
 #: search.go:62
 msgid "Format output using a Go template"
-msgstr ""
+msgstr "Формат выходных данных с использованием шаблона Go"
 
 #: search.go:82 search.go:99
-#, fuzzy
 msgid "Error parsing format template"
-msgstr "Ошибка при разборе файла выпуска операционной системы"
+msgstr "Ошибка при разборе шаблона"
 
 #: search.go:107
-#, fuzzy
 msgid "Error executing template"
-msgstr "Ошибка при получении пакетов"
+msgstr "Ошибка при выполнении шаблона"
 
 #: upgrade.go:47
 msgid "Upgrade all installed packages"

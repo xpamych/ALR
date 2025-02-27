@@ -46,7 +46,7 @@ func InstallCmd() *cli.Command {
 			&cli.BoolFlag{
 				Name:    "clean",
 				Aliases: []string{"c"},
-				Usage:   "Build package from scratch even if there's an already built package available",
+				Usage:   gotext.Get("Build package from scratch even if there's an already built package available"),
 			},
 		},
 		Action: func(c *cli.Context) error {

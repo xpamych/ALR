@@ -19,7 +19,7 @@
 TRANSLATIONS_DIR="internal/translations/po"
 
 if [ ! -d "$TRANSLATIONS_DIR" ]; then
-    echo "Ошибка: директория '$TRANSLATIONS_DIR' не найдена"
+    echo "Error: directory '$TRANSLATIONS_DIR' not found"
     exit 1
 fi
 
@@ -29,10 +29,20 @@ declare -A TRANSLATED_STRINGS_MAP
 for PO_FILE in $(find "$TRANSLATIONS_DIR" -type f -name "*.po"); do
     LANG_DIR=$(dirname "$PO_FILE")
     LANG=$(basename "$LANG_DIR")
-    
-    TOTAL_STRINGS=$(grep -c "^msgid " "$PO_FILE")
-    TRANSLATED_STRINGS=$(grep -c "^msgstr \"[^\"]\+\"" "$PO_FILE")
-    
+
+    STATS=$(LC_ALL=C msgfmt --statistics -o /dev/null "$PO_FILE" 2>&1)
+
+    NUMBERS=($(echo "$STATS" | grep -o '[0-9]\+'))
+
+    case ${#NUMBERS[@]} in
+        1) TRANSLATED_STRINGS=${NUMBERS[0]}; UNTRANSLATED_STRINGS=0 ;;  # all translated
+        2) TRANSLATED_STRINGS=${NUMBERS[0]}; UNTRANSLATED_STRINGS=${NUMBERS[1]} ;;  # no fuzzy
+        3) TRANSLATED_STRINGS=${NUMBERS[0]}; UNTRANSLATED_STRINGS=${NUMBERS[2]} ;;  # with fuzzy
+        *) TRANSLATED_STRINGS=0; UNTRANSLATED_STRINGS=0 ;; 
+    esac
+
+    TOTAL_STRINGS=$((TRANSLATED_STRINGS + UNTRANSLATED_STRINGS))
+
     TOTAL_STRINGS_MAP[$LANG]=$((TOTAL_STRINGS_MAP[$LANG] + TOTAL_STRINGS))
     TRANSLATED_STRINGS_MAP[$LANG]=$((TRANSLATED_STRINGS_MAP[$LANG] + TRANSLATED_STRINGS))
 done
