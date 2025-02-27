@@ -25,7 +25,7 @@ elif (( $(echo "$COVERAGE < 80" | bc -l) )); then
     COLOR="#dfb317"
 fi
 
-cat <<EOF > coverage-badge.svg
+cat <<EOF > assets/coverage-badge.svg
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="109" height="20">
     <linearGradient id="smooth" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
     <stop offset="1" stop-opacity=".1"/></linearGradient>

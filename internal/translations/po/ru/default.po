@@ -1,12 +1,12 @@
 #
-# Maxim Slipenko <maks1ms@alt-gnome.ru>, 2025.
 # x1z53 <x1z53@yandex.ru>, 2025.
+# Maxim Slipenko <maks1ms@alt-gnome.ru>, 2025.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: unnamed project\n"
-"PO-Revision-Date: 2025-01-24 21:20+0300\n"
-"Last-Translator: x1z53 <x1z53@yandex.ru>\n"
+"PO-Revision-Date: 2025-02-27 10:10+0300\n"
+"Last-Translator: Maxim Slipenko <maks1ms@alt-gnome.ru>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -202,6 +202,54 @@ msgstr "Выберите, какой пакет использовать для 
 msgid "Choose which optional package(s) to install"
 msgstr "Выберите, какой дополнительный пакет(ы) следует установить"
 
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:93
+msgid "NAME"
+msgstr "НАЗВАНИЕ"
+
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:94
+msgid "USAGE"
+msgstr "ИСПОЛЬЗОВАНИЕ"
+
+#: internal/cliutils/template.go:74
+msgid "VERSION"
+msgstr "ВЕРСИЯ"
+
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:98
+msgid "DESCRIPTION"
+msgstr "ОПИСАНИЕ"
+
+#: internal/cliutils/template.go:74
+msgid "AUTHOR"
+msgstr ""
+
+#: internal/cliutils/template.go:74
+msgid "COMMANDS"
+msgstr ""
+
+#: internal/cliutils/template.go:74
+msgid "GLOBAL OPTIONS"
+msgstr ""
+
+#: internal/cliutils/template.go:74
+msgid "COPYRIGHT"
+msgstr ""
+
+#: internal/cliutils/template.go:95
+msgid "command options"
+msgstr ""
+
+#: internal/cliutils/template.go:96
+msgid "arguments..."
+msgstr ""
+
+#: internal/cliutils/template.go:97
+msgid "CATEGORY"
+msgstr ""
+
+#: internal/cliutils/template.go:99 internal/cliutils/template.go:100
+msgid "OPTIONS"
+msgstr ""
+
 #: internal/config/config.go:59
 msgid "Error opening config file, using defaults"
 msgstr ""
@@ -288,19 +336,19 @@ msgstr "Список пакетов репозитория ALR"
 msgid "Error listing installed packages"
 msgstr "Ошибка при составлении списка установленных пакетов"
 
-#: main.go:44
+#: main.go:45
 msgid "Print the current ALR version and exit"
 msgstr "Показать текущую версию ALR и выйти"
 
-#: main.go:60
+#: main.go:61
 msgid "Arguments to be passed on to the package manager"
 msgstr "Аргументы, которые будут переданы менеджеру пакетов"
 
-#: main.go:66
+#: main.go:67
 msgid "Enable interactive questions and prompts"
 msgstr "Включение интерактивных вопросов и запросов"
 
-#: main.go:91
+#: main.go:92
 msgid ""
 "Running ALR as root is forbidden as it may cause catastrophic damage to your "
 "system"
@@ -308,7 +356,11 @@ msgstr ""
 "Запуск ALR от имени root запрещён, так как это может привести к "
 "катастрофическому повреждению вашей системы"
 
-#: main.go:123
+#: main.go:125
+msgid "Show help"
+msgstr ""
+
+#: main.go:129
 msgid "Error while running app"
 msgstr "Ошибка при запуске приложения"
 

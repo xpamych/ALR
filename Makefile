@@ -66,6 +66,7 @@ i18n:
 	$(XGOTEXT_BIN)  --output ./internal/translations/default.pot
 	msguniq --use-first -o ./internal/translations/default.pot ./internal/translations/default.pot
 	msgmerge --backup=off -U ./internal/translations/po/ru/default.po ./internal/translations/default.pot
+	bash scripts/i18n-badge.sh
 
 test-coverage:
 	go test ./... -v -coverpkg=./... -coverprofile=coverage.out
