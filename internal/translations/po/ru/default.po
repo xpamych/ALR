@@ -5,15 +5,15 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: unnamed project\n"
-"PO-Revision-Date: 2025-02-27 11:33+0300\n"
+"PO-Revision-Date: 2025-02-27 14:27+0300\n"
 "Last-Translator: Maxim Slipenko <maks1ms@alt-gnome.ru>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 47.1\n"
 
 #: build.go:44
@@ -210,6 +210,22 @@ msgid "USAGE"
 msgstr "ИСПОЛЬЗОВАНИЕ"
 
 #: internal/cliutils/template.go:74
+msgid "global options"
+msgstr "глобальные опции"
+
+#: internal/cliutils/template.go:74
+msgid "command"
+msgstr "команда"
+
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:95
+msgid "command options"
+msgstr "опции команды"
+
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:96
+msgid "arguments"
+msgstr "аргументы"
+
+#: internal/cliutils/template.go:74
 msgid "VERSION"
 msgstr "ВЕРСИЯ"
 
@@ -232,14 +248,6 @@ msgstr "ГЛОБАЛЬНЫЕ ОПЦИИ"
 #: internal/cliutils/template.go:74
 msgid "COPYRIGHT"
 msgstr "АВТОРСКОЕ ПРАВО"
-
-#: internal/cliutils/template.go:95
-msgid "command options"
-msgstr "опции команды"
-
-#: internal/cliutils/template.go:96
-msgid "arguments..."
-msgstr "аргументы..."
 
 #: internal/cliutils/template.go:97
 msgid "CATEGORY"

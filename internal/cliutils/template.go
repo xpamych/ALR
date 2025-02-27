@@ -52,7 +52,7 @@ func GetAppCliTemplate() string {
 	{{template "helpNameTemplate" .}}
 
 %s:
-	{{if .UsageText}}{{wrap .UsageText 3}}{{else}}{{.HelpName}} {{if .VisibleFlags}}[global options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .Version}}{{if not .HideVersion}}
+	{{if .UsageText}}{{wrap .UsageText 3}}{{else}}{{.HelpName}} {{if .VisibleFlags}}[%s]{{end}}{{if .Commands}} %s [%s]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[%s...]{{end}}{{end}}{{if .Version}}{{if not .HideVersion}}
 
 %s:
 	{{.Version}}{{end}}{{end}}{{if .Description}}
@@ -71,7 +71,7 @@ func GetAppCliTemplate() string {
 
 %s:
    {{template "copyrightTemplate" .}}{{end}}
-`, gotext.Get("NAME"), gotext.Get("USAGE"), gotext.Get("VERSION"), gotext.Get("DESCRIPTION"), gotext.Get("AUTHOR"), gotext.Get("COMMANDS"), gotext.Get("GLOBAL OPTIONS"), gotext.Get("GLOBAL OPTIONS"), gotext.Get("COPYRIGHT"))
+`, gotext.Get("NAME"), gotext.Get("USAGE"), gotext.Get("global options"), gotext.Get("command"), gotext.Get("command options"), gotext.Get("arguments"), gotext.Get("VERSION"), gotext.Get("DESCRIPTION"), gotext.Get("AUTHOR"), gotext.Get("COMMANDS"), gotext.Get("GLOBAL OPTIONS"), gotext.Get("GLOBAL OPTIONS"), gotext.Get("COPYRIGHT"))
 }
 
 func GetCommandHelpTemplate() string {
@@ -79,7 +79,7 @@ func GetCommandHelpTemplate() string {
    {{template "helpNameTemplate" .}}
 
 %s:
-   {{if .UsageText}}{{wrap .UsageText 3}}{{else}}{{.HelpName}}{{if .VisibleFlags}} [%s]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[%s]{{end}}{{end}}{{if .Category}}
+   {{if .UsageText}}{{wrap .UsageText 3}}{{else}}{{.HelpName}}{{if .VisibleFlags}} [%s]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[%s...]{{end}}{{end}}{{if .Category}}
 
 %s:
    {{.Category}}{{end}}{{if .Description}}
@@ -93,7 +93,7 @@ func GetCommandHelpTemplate() string {
 `, gotext.Get("NAME"),
 		gotext.Get("USAGE"),
 		gotext.Get("command options"),
-		gotext.Get("arguments..."),
+		gotext.Get("arguments"),
 		gotext.Get("CATEGORY"),
 		gotext.Get("DESCRIPTION"),
 		gotext.Get("OPTIONS"),
