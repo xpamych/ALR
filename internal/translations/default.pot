@@ -323,11 +323,11 @@ msgstr ""
 msgid "ERROR"
 msgstr ""
 
-#: list.go:40
+#: list.go:41
 msgid "List ALR repo packages"
 msgstr ""
 
-#: list.go:91
+#: list.go:92
 msgid "Error listing installed packages"
 msgstr ""
 

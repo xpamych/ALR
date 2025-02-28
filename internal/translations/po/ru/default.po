@@ -335,11 +335,11 @@ msgstr "%s %s загружается — %s/с\n"
 msgid "ERROR"
 msgstr "ОШИБКА"
 
-#: list.go:40
+#: list.go:41
 msgid "List ALR repo packages"
 msgstr "Список пакетов репозитория ALR"
 
-#: list.go:91
+#: list.go:92
 msgid "Error listing installed packages"
 msgstr "Ошибка при составлении списка установленных пакетов"
 

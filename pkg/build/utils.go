@@ -21,6 +21,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"slices"
 	"strconv"
@@ -169,6 +170,8 @@ func buildContents(vars *types.BuildVars, dirs types.Directories, preferedConten
 
 	return contents, nil
 }
+
+var RegexpALRPackageName = regexp.MustCompile(`^(?P<package>[^+]+)\+alr-(?P<repo>.+)$`)
 
 func getBasePkgInfo(vars *types.BuildVars, info *distro.OSRelease, opts *types.BuildOpts) *nfpm.Info {
 	return &nfpm.Info{
