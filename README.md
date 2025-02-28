@@ -3,7 +3,7 @@
 </p>
 <b></b>
 
-[![Go Report Card](https://goreportcard.com/badge/gitea.plemya-x.ru/Plemya-x/ALR)](https://goreportcard.com/report/gitea.plemya-x.ru/Plemya-x/ALR) ![Test coverage](./coverage-badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/gitea.plemya-x.ru/Plemya-x/ALR)](https://goreportcard.com/report/gitea.plemya-x.ru/Plemya-x/ALR) ![Test coverage](./assets/coverage-badge.svg) ![ru translate](./assets/i18n-ru-badge.svg)
 
 # ALR (Any Linux Repository)
 

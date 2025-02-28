@@ -194,6 +194,62 @@ msgstr ""
 msgid "Choose which optional package(s) to install"
 msgstr ""
 
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:93
+msgid "NAME"
+msgstr ""
+
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:94
+msgid "USAGE"
+msgstr ""
+
+#: internal/cliutils/template.go:74
+msgid "global options"
+msgstr ""
+
+#: internal/cliutils/template.go:74
+msgid "command"
+msgstr ""
+
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:95
+msgid "command options"
+msgstr ""
+
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:96
+msgid "arguments"
+msgstr ""
+
+#: internal/cliutils/template.go:74
+msgid "VERSION"
+msgstr ""
+
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:98
+msgid "DESCRIPTION"
+msgstr ""
+
+#: internal/cliutils/template.go:74
+msgid "AUTHOR"
+msgstr ""
+
+#: internal/cliutils/template.go:74
+msgid "COMMANDS"
+msgstr ""
+
+#: internal/cliutils/template.go:74
+msgid "GLOBAL OPTIONS"
+msgstr ""
+
+#: internal/cliutils/template.go:74
+msgid "COPYRIGHT"
+msgstr ""
+
+#: internal/cliutils/template.go:97
+msgid "CATEGORY"
+msgstr ""
+
+#: internal/cliutils/template.go:99 internal/cliutils/template.go:100
+msgid "OPTIONS"
+msgstr ""
+
 #: internal/config/config.go:59
 msgid "Error opening config file, using defaults"
 msgstr ""
@@ -275,25 +331,29 @@ msgstr ""
 msgid "Error listing installed packages"
 msgstr ""
 
-#: main.go:44
+#: main.go:45
 msgid "Print the current ALR version and exit"
 msgstr ""
 
-#: main.go:60
+#: main.go:61
 msgid "Arguments to be passed on to the package manager"
 msgstr ""
 
-#: main.go:66
+#: main.go:67
 msgid "Enable interactive questions and prompts"
 msgstr ""
 
-#: main.go:91
+#: main.go:92
 msgid ""
 "Running ALR as root is forbidden as it may cause catastrophic damage to your "
 "system"
 msgstr ""
 
-#: main.go:123
+#: main.go:125
+msgid "Show help"
+msgstr ""
+
+#: main.go:129
 msgid "Error while running app"
 msgstr ""
 

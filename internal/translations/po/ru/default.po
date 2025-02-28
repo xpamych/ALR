@@ -1,19 +1,19 @@
 #
-# Maxim Slipenko <maks1ms@alt-gnome.ru>, 2025.
 # x1z53 <x1z53@yandex.ru>, 2025.
+# Maxim Slipenko <maks1ms@alt-gnome.ru>, 2025.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: unnamed project\n"
-"PO-Revision-Date: 2025-01-24 21:20+0300\n"
-"Last-Translator: x1z53 <x1z53@yandex.ru>\n"
+"PO-Revision-Date: 2025-02-27 14:27+0300\n"
+"Last-Translator: Maxim Slipenko <maks1ms@alt-gnome.ru>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 47.1\n"
 
 #: build.go:44
@@ -26,7 +26,7 @@ msgstr "Путь к скрипту сборки"
 
 #: build.go:55
 msgid "Specify package in script (for multi package script only)"
-msgstr ""
+msgstr "Укажите пакет в скрипте (только для многопакетного скрипта)"
 
 #: build.go:60
 msgid "Name of the package to build and its repo (example: default/go-bin)"
@@ -43,7 +43,7 @@ msgstr "Ошибка инициализации базы данных"
 
 #: build.go:105
 msgid "Package not found"
-msgstr ""
+msgstr "Пакет не найден"
 
 #: build.go:123
 msgid "Error pulling repositories"
@@ -54,7 +54,6 @@ msgid "Unable to detect a supported package manager on the system"
 msgstr "Не удалось обнаружить поддерживаемый менеджер пакетов в системе"
 
 #: build.go:137
-#, fuzzy
 msgid "Error parsing os release"
 msgstr "Ошибка при разборе файла выпуска операционной системы"
 
@@ -202,6 +201,62 @@ msgstr "Выберите, какой пакет использовать для 
 msgid "Choose which optional package(s) to install"
 msgstr "Выберите, какой дополнительный пакет(ы) следует установить"
 
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:93
+msgid "NAME"
+msgstr "НАЗВАНИЕ"
+
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:94
+msgid "USAGE"
+msgstr "ИСПОЛЬЗОВАНИЕ"
+
+#: internal/cliutils/template.go:74
+msgid "global options"
+msgstr "глобальные опции"
+
+#: internal/cliutils/template.go:74
+msgid "command"
+msgstr "команда"
+
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:95
+msgid "command options"
+msgstr "опции команды"
+
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:96
+msgid "arguments"
+msgstr "аргументы"
+
+#: internal/cliutils/template.go:74
+msgid "VERSION"
+msgstr "ВЕРСИЯ"
+
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:98
+msgid "DESCRIPTION"
+msgstr "ОПИСАНИЕ"
+
+#: internal/cliutils/template.go:74
+msgid "AUTHOR"
+msgstr "АВТОР"
+
+#: internal/cliutils/template.go:74
+msgid "COMMANDS"
+msgstr "КОМАНДЫ"
+
+#: internal/cliutils/template.go:74
+msgid "GLOBAL OPTIONS"
+msgstr "ГЛОБАЛЬНЫЕ ОПЦИИ"
+
+#: internal/cliutils/template.go:74
+msgid "COPYRIGHT"
+msgstr "АВТОРСКОЕ ПРАВО"
+
+#: internal/cliutils/template.go:97
+msgid "CATEGORY"
+msgstr "КАТЕГОРИЯ"
+
+#: internal/cliutils/template.go:99 internal/cliutils/template.go:100
+msgid "OPTIONS"
+msgstr "ПАРАМЕТРЫ"
+
 #: internal/config/config.go:59
 msgid "Error opening config file, using defaults"
 msgstr ""
@@ -270,11 +325,11 @@ msgstr "Скачивание источника"
 
 #: internal/dl/progress_tui.go:100
 msgid "%s: done!\n"
-msgstr ""
+msgstr "%s: выполнено!\n"
 
 #: internal/dl/progress_tui.go:104
 msgid "%s %s downloading at %s/s\n"
-msgstr ""
+msgstr "%s %s загружается — %s/с\n"
 
 #: internal/logger/log.go:47
 msgid "ERROR"
@@ -288,19 +343,19 @@ msgstr "Список пакетов репозитория ALR"
 msgid "Error listing installed packages"
 msgstr "Ошибка при составлении списка установленных пакетов"
 
-#: main.go:44
+#: main.go:45
 msgid "Print the current ALR version and exit"
 msgstr "Показать текущую версию ALR и выйти"
 
-#: main.go:60
+#: main.go:61
 msgid "Arguments to be passed on to the package manager"
 msgstr "Аргументы, которые будут переданы менеджеру пакетов"
 
-#: main.go:66
+#: main.go:67
 msgid "Enable interactive questions and prompts"
 msgstr "Включение интерактивных вопросов и запросов"
 
-#: main.go:91
+#: main.go:92
 msgid ""
 "Running ALR as root is forbidden as it may cause catastrophic damage to your "
 "system"
@@ -308,7 +363,11 @@ msgstr ""
 "Запуск ALR от имени root запрещён, так как это может привести к "
 "катастрофическому повреждению вашей системы"
 
-#: main.go:123
+#: main.go:125
+msgid "Show help"
+msgstr "Показать справку"
+
+#: main.go:129
 msgid "Error while running app"
 msgstr "Ошибка при запуске приложения"
 
@@ -369,9 +428,8 @@ msgid "Executing build()"
 msgstr "Исполнение build()"
 
 #: pkg/build/build.go:689 pkg/build/build.go:709
-#, fuzzy
 msgid "Executing %s()"
-msgstr "Исполнение files()"
+msgstr "Исполнение %s()"
 
 #: pkg/build/build.go:768
 msgid "Error installing native packages"
@@ -469,38 +527,35 @@ msgstr "Скачать все изменённые репозитории"
 
 #: search.go:36
 msgid "Search packages"
-msgstr ""
+msgstr "Поиск пакетов"
 
 #: search.go:42
 msgid "Search by name"
-msgstr ""
+msgstr "Искать по имени"
 
 #: search.go:47
 msgid "Search by description"
-msgstr ""
+msgstr "Искать по описанию"
 
 #: search.go:52
-#, fuzzy
 msgid "Search by repository"
-msgstr "Добавить новый репозиторий"
+msgstr "Искать по репозиторию"
 
 #: search.go:57
 msgid "Search by provides"
-msgstr ""
+msgstr "Иcкать по provides"
 
 #: search.go:62
 msgid "Format output using a Go template"
-msgstr ""
+msgstr "Формат выходных данных с использованием шаблона Go"
 
 #: search.go:82 search.go:99
-#, fuzzy
 msgid "Error parsing format template"
-msgstr "Ошибка при разборе файла выпуска операционной системы"
+msgstr "Ошибка при разборе шаблона"
 
 #: search.go:107
-#, fuzzy
 msgid "Error executing template"
-msgstr "Ошибка при получении пакетов"
+msgstr "Ошибка при выполнении шаблона"
 
 #: upgrade.go:47
 msgid "Upgrade all installed packages"

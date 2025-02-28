@@ -31,6 +31,7 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/urfave/cli/v2"
 
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/translations"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
@@ -117,6 +118,11 @@ func main() {
 
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
+
+	// Make the application more internationalized
+	cli.AppHelpTemplate = cliutils.GetAppCliTemplate()
+	cli.CommandHelpTemplate = cliutils.GetCommandHelpTemplate()
+	cli.HelpFlag.(*cli.BoolFlag).Usage = gotext.Get("Show help")
 
 	err := app.RunContext(ctx, os.Args)
 	if err != nil {
