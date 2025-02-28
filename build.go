@@ -78,8 +78,7 @@ func BuildCmd() *cli.Command {
 
 			var script string
 			var packages []string
-
-			// Проверяем, установлен ли флаг script (-s)
+			repository := "default"
 
 			repoDir := cfg.GetPaths(ctx).RepoDir
 
@@ -106,11 +105,13 @@ func BuildCmd() *cli.Command {
 					os.Exit(1)
 				}
 
+				repository = pkg[0].Repository
+
 				if pkg[0].BasePkgName != "" {
-					script = filepath.Join(repoDir, pkg[0].Repository, pkg[0].BasePkgName, "alr.sh")
+					script = filepath.Join(repoDir, repository, pkg[0].BasePkgName, "alr.sh")
 					packages = append(packages, pkg[0].Name)
 				} else {
-					script = filepath.Join(repoDir, pkg[0].Repository, pkg[0].Name, "alr.sh")
+					script = filepath.Join(repoDir, repository, pkg[0].Name, "alr.sh")
 				}
 			default:
 				script = filepath.Join(repoDir, "alr.sh")
@@ -142,6 +143,7 @@ func BuildCmd() *cli.Command {
 				ctx,
 				types.BuildOpts{
 					Packages:    packages,
+					Repository:  repository,
 					Script:      script,
 					Manager:     mgr,
 					Clean:       c.Bool("clean"),
