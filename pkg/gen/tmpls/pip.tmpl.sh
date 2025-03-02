@@ -32,9 +32,9 @@ deps=("python3")
 deps_arch=("python")
 deps_alpine=("python3")
 
-build_deps=("python3" "python3-setuptools")
-build_deps_arch=("python" "python-setuptools")
-build_deps_alpine=("python3" "py3-setuptools")
+build_deps=("python3" "python3-pip")
+build_deps_arch=("python" "python-pip")
+build_deps_alpine=("python3" "py3-pip")
 
 sources=("https://files.pythonhosted.org/packages/source/{{.SourceURL.Filename | firstchar}}/{{.Info.Name}}/{{.SourceURL.Filename}}")
 checksums=('blake2b-256:{{.SourceURL.Digests.blake2b_256}}')
