@@ -12,8 +12,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 47.1\n"
 
 #: build.go:44
@@ -41,31 +41,31 @@ msgstr "Создайте пакет с нуля, даже если уже име
 msgid "Error initialization database"
 msgstr "Ошибка инициализации базы данных"
 
-#: build.go:105
+#: build.go:104
 msgid "Package not found"
 msgstr "Пакет не найден"
 
-#: build.go:123
+#: build.go:124
 msgid "Error pulling repositories"
 msgstr "Ошибка при извлечении репозиториев"
 
-#: build.go:131
+#: build.go:132
 msgid "Unable to detect a supported package manager on the system"
 msgstr "Не удалось обнаружить поддерживаемый менеджер пакетов в системе"
 
-#: build.go:137
+#: build.go:138
 msgid "Error parsing os release"
 msgstr "Ошибка при разборе файла выпуска операционной системы"
 
-#: build.go:158
+#: build.go:160
 msgid "Error building package"
 msgstr "Ошибка при сборке пакета"
 
-#: build.go:165
+#: build.go:167
 msgid "Error getting working directory"
 msgstr "Ошибка при получении рабочего каталога"
 
-#: build.go:174
+#: build.go:176
 msgid "Error moving the package"
 msgstr "Ошибка при перемещении пакета"
 
@@ -335,11 +335,11 @@ msgstr "%s %s загружается — %s/с\n"
 msgid "ERROR"
 msgstr "ОШИБКА"
 
-#: list.go:40
+#: list.go:41
 msgid "List ALR repo packages"
 msgstr "Список пакетов репозитория ALR"
 
-#: list.go:91
+#: list.go:92
 msgid "Error listing installed packages"
 msgstr "Ошибка при составлении списка установленных пакетов"
 
@@ -383,15 +383,15 @@ msgstr "Сборка пакета"
 msgid "Downloading sources"
 msgstr "Скачивание источников"
 
-#: pkg/build/build.go:246
+#: pkg/build/build.go:250
 msgid "Building package metadata"
 msgstr "Сборка метаданных пакета"
 
-#: pkg/build/build.go:268
+#: pkg/build/build.go:272
 msgid "Compressing package"
 msgstr "Сжатие пакета"
 
-#: pkg/build/build.go:421
+#: pkg/build/build.go:426
 msgid ""
 "Your system's CPU architecture doesn't match this package. Do you want to "
 "build anyway?"
@@ -399,45 +399,55 @@ msgstr ""
 "Архитектура процессора вашей системы не соответствует этому пакету. Вы все "
 "равно хотите выполнить сборку?"
 
-#: pkg/build/build.go:435
+#: pkg/build/build.go:440
 msgid "This package is already installed"
 msgstr "Этот пакет уже установлен"
 
-#: pkg/build/build.go:459
+#: pkg/build/build.go:464
 msgid "Installing build dependencies"
 msgstr "Установка зависимостей сборки"
 
-#: pkg/build/build.go:500
+#: pkg/build/build.go:505
 msgid "Installing dependencies"
 msgstr "Установка зависимостей"
 
-#: pkg/build/build.go:535
+#: pkg/build/build.go:540
 msgid "The checksums array must be the same length as sources"
 msgstr "Массив контрольных сумм должен быть той же длины, что и источники"
 
-#: pkg/build/build.go:586
+#: pkg/build/build.go:591
 msgid "Would you like to remove the build dependencies?"
 msgstr "Хотели бы вы удалить зависимости сборки?"
 
-#: pkg/build/build.go:649
+#: pkg/build/build.go:654
 msgid "Executing prepare()"
 msgstr "Исполнение prepare()"
 
-#: pkg/build/build.go:659
+#: pkg/build/build.go:664
 msgid "Executing build()"
 msgstr "Исполнение build()"
 
-#: pkg/build/build.go:689 pkg/build/build.go:709
+#: pkg/build/build.go:694 pkg/build/build.go:714
 msgid "Executing %s()"
 msgstr "Исполнение %s()"
 
-#: pkg/build/build.go:768
+#: pkg/build/build.go:773
 msgid "Error installing native packages"
 msgstr "Ошибка при установке нативных пакетов"
 
-#: pkg/build/build.go:792
+#: pkg/build/build.go:797
 msgid "Error installing package"
 msgstr "Ошибка при установке пакета"
+
+#: pkg/build/build.go:857
+msgid "AutoProv is not implemented for this package format, so it's skipped"
+msgstr ""
+"AutoProv не реализовано для этого формата пакета, поэтому будет пропущено"
+
+#: pkg/build/build.go:868
+msgid "AutoReq is not implemented for this package format, so it's skipped"
+msgstr ""
+"AutoReq не реализовано для этого формата пакета, поэтому будет пропущено"
 
 #: pkg/build/findDeps.go:35
 msgid "Command not found on the system"
@@ -450,16 +460,6 @@ msgstr "Найденная предоставленная зависимость
 #: pkg/build/findDeps.go:89
 msgid "Required dependency found"
 msgstr "Найдена требуемая зависимость"
-
-#: pkg/build/utils.go:133
-msgid "AutoProv is not implemented for this package format, so it's skipped"
-msgstr ""
-"AutoProv не реализовано для этого формата пакета, поэтому будет пропущено"
-
-#: pkg/build/utils.go:144
-msgid "AutoReq is not implemented for this package format, so it's skipped"
-msgstr ""
-"AutoReq не реализовано для этого формата пакета, поэтому будет пропущено"
 
 #: pkg/repos/pull.go:79
 msgid "Pulling repository"

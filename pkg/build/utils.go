@@ -17,11 +17,11 @@
 package build
 
 import (
-	"context"
+	"fmt"
 	"io"
-	"log/slog"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"slices"
 	"strconv"
@@ -33,7 +33,6 @@ import (
 	_ "github.com/goreleaser/nfpm/v2/arch"
 	_ "github.com/goreleaser/nfpm/v2/deb"
 	_ "github.com/goreleaser/nfpm/v2/rpm"
-	"github.com/leonelquinteros/gotext"
 	"mvdan.cc/sh/v3/syntax"
 
 	"github.com/goreleaser/nfpm/v2"
@@ -42,7 +41,6 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
@@ -75,77 +73,6 @@ func prepareDirs(dirs types.Directories) error {
 		return err
 	}
 	return os.MkdirAll(dirs.PkgDir, 0o755) // Создаем директорию для пакетов
-}
-
-// Функция buildPkgMetadata создает метаданные для пакета, который будет собран.
-func buildPkgMetadata(
-	ctx context.Context,
-	vars *types.BuildVars,
-	dirs types.Directories,
-	pkgFormat string,
-	info *distro.OSRelease,
-	deps []string,
-	preferedContents *[]string,
-) (*nfpm.Info, error) {
-	pkgInfo := getBasePkgInfo(vars, info)
-	pkgInfo.Description = vars.Description
-	pkgInfo.Platform = "linux"
-	pkgInfo.Homepage = vars.Homepage
-	pkgInfo.License = strings.Join(vars.Licenses, ", ")
-	pkgInfo.Maintainer = vars.Maintainer
-	pkgInfo.Overridables = nfpm.Overridables{
-		Conflicts: vars.Conflicts,
-		Replaces:  vars.Replaces,
-		Provides:  vars.Provides,
-		Depends:   deps,
-	}
-
-	if pkgFormat == "apk" {
-		// Alpine отказывается устанавливать пакеты, которые предоставляют сами себя, поэтому удаляем такие элементы
-		pkgInfo.Overridables.Provides = slices.DeleteFunc(pkgInfo.Overridables.Provides, func(s string) bool {
-			return s == pkgInfo.Name
-		})
-	}
-
-	if vars.Epoch != 0 {
-		pkgInfo.Epoch = strconv.FormatUint(uint64(vars.Epoch), 10)
-	}
-
-	setScripts(vars, pkgInfo, dirs.ScriptDir)
-
-	if slices.Contains(vars.Architectures, "all") {
-		pkgInfo.Arch = "all"
-	}
-
-	contents, err := buildContents(vars, dirs, preferedContents)
-	if err != nil {
-		return nil, err
-	}
-	pkgInfo.Overridables.Contents = contents
-
-	if len(vars.AutoProv) == 1 && decoder.IsTruthy(vars.AutoProv[0]) {
-		if pkgFormat == "rpm" {
-			err = rpmFindProvides(ctx, pkgInfo, dirs)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			slog.Info(gotext.Get("AutoProv is not implemented for this package format, so it's skipped"))
-		}
-	}
-
-	if len(vars.AutoReq) == 1 && decoder.IsTruthy(vars.AutoReq[0]) {
-		if pkgFormat == "rpm" {
-			err = rpmFindRequires(ctx, pkgInfo, dirs)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			slog.Info(gotext.Get("AutoReq is not implemented for this package format, so it's skipped"))
-		}
-	}
-
-	return pkgInfo, nil
 }
 
 // Функция buildContents создает секцию содержимого пакета, которая содержит файлы,
@@ -244,51 +171,16 @@ func buildContents(vars *types.BuildVars, dirs types.Directories, preferedConten
 	return contents, nil
 }
 
-// Функция checkForBuiltPackage пытается обнаружить ранее собранный пакет и вернуть его путь
-// и true, если нашла. Если нет, возвратит "", false, nil.
-func checkForBuiltPackage(
-	mgr manager.Manager,
-	vars *types.BuildVars,
-	pkgFormat,
-	baseDir string,
-	info *distro.OSRelease,
-) (string, bool, error) {
-	filename, err := pkgFileName(vars, pkgFormat, info)
-	if err != nil {
-		return "", false, err
-	}
+var RegexpALRPackageName = regexp.MustCompile(`^(?P<package>[^+]+)\+alr-(?P<repo>.+)$`)
 
-	pkgPath := filepath.Join(baseDir, filename)
-
-	_, err = os.Stat(pkgPath)
-	if err != nil {
-		return "", false, nil
-	}
-
-	return pkgPath, true, nil
-}
-
-func getBasePkgInfo(vars *types.BuildVars, info *distro.OSRelease) *nfpm.Info {
+func getBasePkgInfo(vars *types.BuildVars, info *distro.OSRelease, opts *types.BuildOpts) *nfpm.Info {
 	return &nfpm.Info{
-		Name:    vars.Name,
+		Name:    fmt.Sprintf("%s+alr-%s", vars.Name, opts.Repository),
 		Arch:    cpu.Arch(),
 		Version: vars.Version,
 		Release: overrides.ReleasePlatformSpecific(vars.Release, info),
 		Epoch:   strconv.FormatUint(uint64(vars.Epoch), 10),
 	}
-}
-
-// pkgFileName returns the filename of the package if it were to be built.
-// This is used to check if the package has already been built.
-func pkgFileName(vars *types.BuildVars, pkgFormat string, info *distro.OSRelease) (string, error) {
-	pkgInfo := getBasePkgInfo(vars, info)
-
-	packager, err := nfpm.Get(pkgFormat)
-	if err != nil {
-		return "", err
-	}
-
-	return packager.ConventionalFileName(pkgInfo), nil
 }
 
 // Функция getPkgFormat возвращает формат пакета из менеджера пакетов,

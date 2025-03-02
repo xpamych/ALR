@@ -30,6 +30,7 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
@@ -78,7 +79,7 @@ func ListCmd() *cli.Command {
 			}
 			defer result.Close()
 
-			var installed map[string]string
+			installedAlrPackages := map[string]string{}
 			if c.Bool("installed") {
 				mgr := manager.Detect()
 				if mgr == nil {
@@ -86,10 +87,19 @@ func ListCmd() *cli.Command {
 					os.Exit(1)
 				}
 
-				installed, err = mgr.ListInstalled(&manager.Opts{AsRoot: false})
+				installed, err := mgr.ListInstalled(&manager.Opts{AsRoot: false})
 				if err != nil {
 					slog.Error(gotext.Get("Error listing installed packages"), "err", err)
 					os.Exit(1)
+				}
+
+				for pkgName, version := range installed {
+					matches := build.RegexpALRPackageName.FindStringSubmatch(pkgName)
+					if matches != nil {
+						packageName := matches[build.RegexpALRPackageName.SubexpIndex("package")]
+						repoName := matches[build.RegexpALRPackageName.SubexpIndex("repo")]
+						installedAlrPackages[fmt.Sprintf("%s/%s", repoName, packageName)] = version
+					}
 				}
 			}
 
@@ -106,7 +116,7 @@ func ListCmd() *cli.Command {
 
 				version := pkg.Version
 				if c.Bool("installed") {
-					instVersion, ok := installed[pkg.Name]
+					instVersion, ok := installedAlrPackages[fmt.Sprintf("%s/%s", pkg.Repository, pkg.Name)]
 					if !ok {
 						continue
 					} else {

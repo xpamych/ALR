@@ -193,3 +193,7 @@ func (c *ALRConfig) RootCmd(ctx context.Context) string {
 	})
 	return c.cfg.RootCmd
 }
+
+func (c *ALRConfig) Save(f *os.File) error {
+	return toml.NewEncoder(f).Encode(c.cfg)
+}

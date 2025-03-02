@@ -83,7 +83,7 @@ func AddRepoCmd() *cli.Command {
 				os.Exit(1)
 			}
 
-			err = toml.NewEncoder(cfgFl).Encode(cfg)
+			err = cfg.Save(cfgFl)
 			if err != nil {
 				slog.Error(gotext.Get("Error encoding config"), "err", err)
 				os.Exit(1)

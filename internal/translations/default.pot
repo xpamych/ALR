@@ -34,31 +34,31 @@ msgstr ""
 msgid "Error initialization database"
 msgstr ""
 
-#: build.go:105
+#: build.go:104
 msgid "Package not found"
 msgstr ""
 
-#: build.go:123
+#: build.go:124
 msgid "Error pulling repositories"
 msgstr ""
 
-#: build.go:131
+#: build.go:132
 msgid "Unable to detect a supported package manager on the system"
 msgstr ""
 
-#: build.go:137
+#: build.go:138
 msgid "Error parsing os release"
 msgstr ""
 
-#: build.go:158
+#: build.go:160
 msgid "Error building package"
 msgstr ""
 
-#: build.go:165
+#: build.go:167
 msgid "Error getting working directory"
 msgstr ""
 
-#: build.go:174
+#: build.go:176
 msgid "Error moving the package"
 msgstr ""
 
@@ -323,11 +323,11 @@ msgstr ""
 msgid "ERROR"
 msgstr ""
 
-#: list.go:40
+#: list.go:41
 msgid "List ALR repo packages"
 msgstr ""
 
-#: list.go:91
+#: list.go:92
 msgid "Error listing installed packages"
 msgstr ""
 
@@ -369,58 +369,66 @@ msgstr ""
 msgid "Downloading sources"
 msgstr ""
 
-#: pkg/build/build.go:246
+#: pkg/build/build.go:250
 msgid "Building package metadata"
 msgstr ""
 
-#: pkg/build/build.go:268
+#: pkg/build/build.go:272
 msgid "Compressing package"
 msgstr ""
 
-#: pkg/build/build.go:421
+#: pkg/build/build.go:426
 msgid ""
 "Your system's CPU architecture doesn't match this package. Do you want to "
 "build anyway?"
 msgstr ""
 
-#: pkg/build/build.go:435
+#: pkg/build/build.go:440
 msgid "This package is already installed"
 msgstr ""
 
-#: pkg/build/build.go:459
+#: pkg/build/build.go:464
 msgid "Installing build dependencies"
 msgstr ""
 
-#: pkg/build/build.go:500
+#: pkg/build/build.go:505
 msgid "Installing dependencies"
 msgstr ""
 
-#: pkg/build/build.go:535
+#: pkg/build/build.go:540
 msgid "The checksums array must be the same length as sources"
 msgstr ""
 
-#: pkg/build/build.go:586
+#: pkg/build/build.go:591
 msgid "Would you like to remove the build dependencies?"
 msgstr ""
 
-#: pkg/build/build.go:649
+#: pkg/build/build.go:654
 msgid "Executing prepare()"
 msgstr ""
 
-#: pkg/build/build.go:659
+#: pkg/build/build.go:664
 msgid "Executing build()"
 msgstr ""
 
-#: pkg/build/build.go:689 pkg/build/build.go:709
+#: pkg/build/build.go:694 pkg/build/build.go:714
 msgid "Executing %s()"
 msgstr ""
 
-#: pkg/build/build.go:768
+#: pkg/build/build.go:773
 msgid "Error installing native packages"
 msgstr ""
 
-#: pkg/build/build.go:792
+#: pkg/build/build.go:797
 msgid "Error installing package"
+msgstr ""
+
+#: pkg/build/build.go:857
+msgid "AutoProv is not implemented for this package format, so it's skipped"
+msgstr ""
+
+#: pkg/build/build.go:868
+msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 
 #: pkg/build/findDeps.go:35
@@ -433,14 +441,6 @@ msgstr ""
 
 #: pkg/build/findDeps.go:89
 msgid "Required dependency found"
-msgstr ""
-
-#: pkg/build/utils.go:133
-msgid "AutoProv is not implemented for this package format, so it's skipped"
-msgstr ""
-
-#: pkg/build/utils.go:144
-msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 
 #: pkg/repos/pull.go:79

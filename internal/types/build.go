@@ -23,6 +23,7 @@ import "gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 
 type BuildOpts struct {
 	Script      string
+	Repository  string
 	Packages    []string
 	Manager     manager.Manager
 	Clean       bool
@@ -102,6 +103,7 @@ type BuildVars struct {
 	Scripts       Scripts  `sh:"scripts"`
 	AutoReq       []string `sh:"auto_req"`
 	AutoProv      []string `sh:"auto_prov"`
+	Base          string
 }
 
 type Scripts struct {

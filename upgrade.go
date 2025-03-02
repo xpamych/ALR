@@ -29,7 +29,6 @@ import (
 	"github.com/urfave/cli/v2"
 	"go.elara.ws/vercmp"
 	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
@@ -39,6 +38,7 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/search"
 )
 
 func UpgradeCmd() *cli.Command {
@@ -85,7 +85,7 @@ func UpgradeCmd() *cli.Command {
 				}
 			}
 
-			updates, err := checkForUpdates(ctx, mgr, cfg, rs, info)
+			updates, err := checkForUpdates(ctx, mgr, cfg, db, rs, info)
 			if err != nil {
 				slog.Error(gotext.Get("Error checking for updates"), "err", err)
 				os.Exit(1)
@@ -121,6 +121,7 @@ func checkForUpdates(
 	ctx context.Context,
 	mgr manager.Manager,
 	cfg *config.ALRConfig,
+	db *database.Database,
 	rs *repos.Repos,
 	info *distro.OSRelease,
 ) ([]database.Package, error) {
@@ -130,42 +131,47 @@ func checkForUpdates(
 	}
 
 	pkgNames := maps.Keys(installed)
-	found, _, err := rs.FindPkgs(ctx, pkgNames)
-	if err != nil {
-		return nil, err
-	}
+
+	s := search.New(db)
 
 	var out []database.Package
-	for pkgName, pkgs := range found {
-		if slices.Contains(cfg.IgnorePkgUpdates(ctx), pkgName) {
-			continue
+	for _, pkgName := range pkgNames {
+		matches := build.RegexpALRPackageName.FindStringSubmatch(pkgName)
+		if matches != nil {
+			packageName := matches[build.RegexpALRPackageName.SubexpIndex("package")]
+			repoName := matches[build.RegexpALRPackageName.SubexpIndex("repo")]
+
+			pkgs, err := s.Search(
+				ctx,
+				search.NewSearchOptions().
+					WithName(packageName).
+					WithRepository(repoName).
+					Build(),
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			pkg := pkgs[0]
+
+			repoVer := pkg.Version
+			releaseStr := overrides.ReleasePlatformSpecific(pkg.Release, info)
+
+			if pkg.Release != 0 && pkg.Epoch == 0 {
+				repoVer = fmt.Sprintf("%s-%s", pkg.Version, releaseStr)
+			} else if pkg.Release != 0 && pkg.Epoch != 0 {
+				repoVer = fmt.Sprintf("%d:%s-%s", pkg.Epoch, pkg.Version, releaseStr)
+			}
+
+			c := vercmp.Compare(repoVer, installed[pkgName])
+			if c == 0 || c == -1 {
+				continue
+			} else if c == 1 {
+				out = append(out, pkg)
+			}
 		}
 
-		if len(pkgs) > 1 {
-			// Puts the element with the highest version first
-			slices.SortFunc(pkgs, func(a, b database.Package) int {
-				return vercmp.Compare(a.Version, b.Version)
-			})
-		}
-
-		// First element is the package we want to install
-		pkg := pkgs[0]
-
-		repoVer := pkg.Version
-		releaseStr := overrides.ReleasePlatformSpecific(pkg.Release, info)
-
-		if pkg.Release != 0 && pkg.Epoch == 0 {
-			repoVer = fmt.Sprintf("%s-%s", pkg.Version, releaseStr)
-		} else if pkg.Release != 0 && pkg.Epoch != 0 {
-			repoVer = fmt.Sprintf("%d:%s-%s", pkg.Epoch, pkg.Version, releaseStr)
-		}
-
-		c := vercmp.Compare(repoVer, installed[pkgName])
-		if c == 0 || c == -1 {
-			continue
-		} else if c == 1 {
-			out = append(out, pkg)
-		}
 	}
+
 	return out, nil
 }

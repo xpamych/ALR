@@ -28,6 +28,8 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -87,6 +89,7 @@ func NewBuilder(
 
 func (b *Builder) UpdateOptsFromPkg(pkg *db.Package, packages []string) {
 	repodir := b.config.GetPaths(b.ctx).RepoDir
+	b.opts.Repository = pkg.Repository
 	if pkg.BasePkgName != "" {
 		b.opts.Script = filepath.Join(repodir, pkg.Repository, pkg.BasePkgName, "alr.sh")
 		b.opts.Packages = packages
@@ -116,14 +119,11 @@ func (b *Builder) BuildPackage(ctx context.Context) ([]string, []string, error) 
 	// возвращаем его, а не собираем заново.
 	if !b.opts.Clean {
 		var remainingVars []*types.BuildVars
-
 		for _, vars := range varsOfPackages {
-			builtPkgPath, ok, err := checkForBuiltPackage(
-				b.opts.Manager,
+			builtPkgPath, ok, err := b.checkForBuiltPackage(
 				vars,
 				getPkgFormat(b.opts.Manager),
 				dirs.BaseDir,
-				b.info,
 			)
 			if err != nil {
 				return nil, nil, err
@@ -238,7 +238,11 @@ func (b *Builder) BuildPackage(ctx context.Context) ([]string, []string, error) 
 	}
 
 	for _, vars := range varsOfPackages {
-		funcOut, err := b.executePackageFunctions(ctx, dec, dirs, vars.Name)
+		packageName := ""
+		if vars.Base != "" {
+			packageName = vars.Name
+		}
+		funcOut, err := b.executePackageFunctions(ctx, dec, dirs, packageName)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -247,7 +251,7 @@ func (b *Builder) BuildPackage(ctx context.Context) ([]string, []string, error) 
 
 		pkgFormat := getPkgFormat(b.opts.Manager) // Получаем формат пакета
 
-		pkgInfo, err := buildPkgMetadata(ctx, vars, dirs, pkgFormat, b.info, append(repoDeps, builtNames...), funcOut.Contents) // Собираем метаданные пакета
+		pkgInfo, err := b.buildPkgMetadata(ctx, vars, dirs, pkgFormat, append(repoDeps, builtNames...), funcOut.Contents) // Собираем метаданные пакета
 		if err != nil {
 			return nil, nil, err
 		}
@@ -366,6 +370,7 @@ func (b *Builder) executeFirstPass(
 		}
 		vars := preVars.ToBuildVars()
 		vars.Name = pkgName
+		vars.Base = pkgs.BasePkgName
 
 		varsOfPackages = append(varsOfPackages, &vars)
 	}
@@ -678,8 +683,8 @@ func (b *Builder) executePackageFunctions(
 	var filesFuncName string
 
 	if packageName == "" {
-		filesFuncName = "files"
 		packageFuncName = "package"
+		filesFuncName = "files"
 	} else {
 		packageFuncName = fmt.Sprintf("package_%s", packageName)
 		filesFuncName = fmt.Sprintf("files_%s", packageName)
@@ -794,4 +799,110 @@ func (b *Builder) InstallALRPackages(ctx context.Context, pkgs []db.Package, opt
 			// Логируем и завершаем выполнение при ошибке установки
 		}
 	}
+}
+
+// Функция buildPkgMetadata создает метаданные для пакета, который будет собран.
+func (b *Builder) buildPkgMetadata(
+	ctx context.Context,
+	vars *types.BuildVars,
+	dirs types.Directories,
+	pkgFormat string,
+	deps []string,
+	preferedContents *[]string,
+) (*nfpm.Info, error) {
+	pkgInfo := getBasePkgInfo(vars, b.info, &b.opts)
+	pkgInfo.Description = vars.Description
+	pkgInfo.Platform = "linux"
+	pkgInfo.Homepage = vars.Homepage
+	pkgInfo.License = strings.Join(vars.Licenses, ", ")
+	pkgInfo.Maintainer = vars.Maintainer
+	pkgInfo.Overridables = nfpm.Overridables{
+		Conflicts: append(vars.Conflicts, vars.Name),
+		Replaces:  vars.Replaces,
+		Provides:  append(vars.Provides, vars.Name),
+		Depends:   deps,
+	}
+
+	if pkgFormat == "apk" {
+		// Alpine отказывается устанавливать пакеты, которые предоставляют сами себя, поэтому удаляем такие элементы
+		pkgInfo.Overridables.Provides = slices.DeleteFunc(pkgInfo.Overridables.Provides, func(s string) bool {
+			return s == pkgInfo.Name
+		})
+	}
+
+	if vars.Epoch != 0 {
+		pkgInfo.Epoch = strconv.FormatUint(uint64(vars.Epoch), 10)
+	}
+
+	setScripts(vars, pkgInfo, dirs.ScriptDir)
+
+	if slices.Contains(vars.Architectures, "all") {
+		pkgInfo.Arch = "all"
+	}
+
+	contents, err := buildContents(vars, dirs, preferedContents)
+	if err != nil {
+		return nil, err
+	}
+	slog.Info("contents", "contents", contents)
+	pkgInfo.Overridables.Contents = contents
+
+	if len(vars.AutoProv) == 1 && decoder.IsTruthy(vars.AutoProv[0]) {
+		if pkgFormat == "rpm" {
+			err = rpmFindProvides(ctx, pkgInfo, dirs)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			slog.Info(gotext.Get("AutoProv is not implemented for this package format, so it's skipped"))
+		}
+	}
+
+	if len(vars.AutoReq) == 1 && decoder.IsTruthy(vars.AutoReq[0]) {
+		if pkgFormat == "rpm" {
+			err = rpmFindRequires(ctx, pkgInfo, dirs)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			slog.Info(gotext.Get("AutoReq is not implemented for this package format, so it's skipped"))
+		}
+	}
+
+	return pkgInfo, nil
+}
+
+// Функция checkForBuiltPackage пытается обнаружить ранее собранный пакет и вернуть его путь
+// и true, если нашла. Если нет, возвратит "", false, nil.
+func (b *Builder) checkForBuiltPackage(
+	vars *types.BuildVars,
+	pkgFormat,
+	baseDir string,
+) (string, bool, error) {
+	filename, err := b.pkgFileName(vars, pkgFormat)
+	if err != nil {
+		return "", false, err
+	}
+
+	pkgPath := filepath.Join(baseDir, filename)
+
+	_, err = os.Stat(pkgPath)
+	if err != nil {
+		return "", false, nil
+	}
+
+	return pkgPath, true, nil
+}
+
+// pkgFileName returns the filename of the package if it were to be built.
+// This is used to check if the package has already been built.
+func (b *Builder) pkgFileName(vars *types.BuildVars, pkgFormat string) (string, error) {
+	pkgInfo := getBasePkgInfo(vars, b.info, &b.opts)
+
+	packager, err := nfpm.Get(pkgFormat)
+	if err != nil {
+		return "", err
+	}
+
+	return packager.ConventionalFileName(pkgInfo), nil
 }
