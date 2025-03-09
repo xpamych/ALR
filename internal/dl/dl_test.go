@@ -91,7 +91,7 @@ func TestDownloadWithoutCache(t *testing.T) {
 		},
 		{
 			name: "git download",
-			path: "git+%s/git-downloader/git/Plemya-x/xpamych-alr-repo",
+			path: "git+%s/git-downloader/git/Plemya-x/alr-repo",
 			expected: func(t *testing.T, err error, tmpdir string) {
 				assert.NoError(t, err)
 
