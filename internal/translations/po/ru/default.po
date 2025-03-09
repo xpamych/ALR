@@ -5,15 +5,15 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: unnamed project\n"
-"PO-Revision-Date: 2025-02-27 14:27+0300\n"
+"PO-Revision-Date: 2025-03-09 17:31+0300\n"
 "Last-Translator: Maxim Slipenko <maks1ms@alt-gnome.ru>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 47.1\n"
 
 #: build.go:44
@@ -25,9 +25,8 @@ msgid "Path to the build script"
 msgstr "Путь к скрипту сборки"
 
 #: build.go:55
-#, fuzzy
 msgid "Specify subpackage in script (for multi package script only)"
-msgstr "Укажите пакет в скрипте (только для многопакетного скрипта)"
+msgstr "Укажите подпакет в скрипте (только для многопакетного скрипта)"
 
 #: build.go:60
 msgid "Name of the package to build and its repo (example: default/go-bin)"
