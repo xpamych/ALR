@@ -18,7 +18,7 @@ msgid "Path to the build script"
 msgstr ""
 
 #: build.go:55
-msgid "Specify package in script (for multi package script only)"
+msgid "Specify subpackage in script (for multi package script only)"
 msgstr ""
 
 #: build.go:60
@@ -158,15 +158,15 @@ msgstr ""
 msgid "Command install expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:146
+#: install.go:151
 msgid "Remove an installed package"
 msgstr ""
 
-#: install.go:151
+#: install.go:156
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:163
+#: install.go:168
 msgid "Error removing packages"
 msgstr ""
 

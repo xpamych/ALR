@@ -50,9 +50,9 @@ func BuildCmd() *cli.Command {
 				Usage:   gotext.Get("Path to the build script"),
 			},
 			&cli.StringFlag{
-				Name:    "script-package",
-				Aliases: []string{"sp"},
-				Usage:   gotext.Get("Specify package in script (for multi package script only)"),
+				Name:    "subpackage",
+				Aliases: []string{"sb"},
+				Usage:   gotext.Get("Specify subpackage in script (for multi package script only)"),
 			},
 			&cli.StringFlag{
 				Name:    "package",
