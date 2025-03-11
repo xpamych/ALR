@@ -357,77 +357,77 @@ msgstr ""
 msgid "Error while running app"
 msgstr ""
 
-#: pkg/build/build.go:153
+#: pkg/build/build.go:156
 msgid "Failed to prompt user to view build script"
 msgstr ""
 
-#: pkg/build/build.go:157
+#: pkg/build/build.go:160
 msgid "Building package"
 msgstr ""
 
-#: pkg/build/build.go:228
+#: pkg/build/build.go:231
 msgid "Downloading sources"
 msgstr ""
 
-#: pkg/build/build.go:250
+#: pkg/build/build.go:253
 msgid "Building package metadata"
 msgstr ""
 
-#: pkg/build/build.go:272
+#: pkg/build/build.go:275
 msgid "Compressing package"
 msgstr ""
 
-#: pkg/build/build.go:426
+#: pkg/build/build.go:434
 msgid ""
 "Your system's CPU architecture doesn't match this package. Do you want to "
 "build anyway?"
 msgstr ""
 
-#: pkg/build/build.go:440
+#: pkg/build/build.go:448
 msgid "This package is already installed"
 msgstr ""
 
-#: pkg/build/build.go:464
+#: pkg/build/build.go:472
 msgid "Installing build dependencies"
 msgstr ""
 
-#: pkg/build/build.go:505
+#: pkg/build/build.go:513
 msgid "Installing dependencies"
 msgstr ""
 
-#: pkg/build/build.go:540
+#: pkg/build/build.go:548
 msgid "The checksums array must be the same length as sources"
 msgstr ""
 
-#: pkg/build/build.go:591
+#: pkg/build/build.go:599
 msgid "Would you like to remove the build dependencies?"
 msgstr ""
 
-#: pkg/build/build.go:654
+#: pkg/build/build.go:662
 msgid "Executing prepare()"
 msgstr ""
 
-#: pkg/build/build.go:664
+#: pkg/build/build.go:672
 msgid "Executing build()"
 msgstr ""
 
-#: pkg/build/build.go:694 pkg/build/build.go:714
+#: pkg/build/build.go:702 pkg/build/build.go:722
 msgid "Executing %s()"
 msgstr ""
 
-#: pkg/build/build.go:773
+#: pkg/build/build.go:781
 msgid "Error installing native packages"
 msgstr ""
 
-#: pkg/build/build.go:797
+#: pkg/build/build.go:805
 msgid "Error installing package"
 msgstr ""
 
-#: pkg/build/build.go:857
+#: pkg/build/build.go:864
 msgid "AutoProv is not implemented for this package format, so it's skipped"
 msgstr ""
 
-#: pkg/build/build.go:868
+#: pkg/build/build.go:875
 msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 
