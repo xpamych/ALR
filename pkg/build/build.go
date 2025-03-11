@@ -111,7 +111,10 @@ func (b *Builder) BuildPackage(ctx context.Context) ([]string, []string, error) 
 		return nil, nil, err
 	}
 
-	dirs := b.getDirs(basePkg)
+	dirs, err := b.getDirs(basePkg)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	builtPaths := make([]string, 0)
 
@@ -379,14 +382,19 @@ func (b *Builder) executeFirstPass(
 }
 
 // Функция getDirs возвращает соответствующие директории для скрипта
-func (b *Builder) getDirs(basePkg string) types.Directories {
+func (b *Builder) getDirs(basePkg string) (types.Directories, error) {
+	scriptPath, err := filepath.Abs(b.opts.Script)
+	if err != nil {
+		return types.Directories{}, err
+	}
+
 	baseDir := filepath.Join(b.config.GetPaths(b.ctx).PkgsDir, basePkg) // Определяем базовую директорию
 	return types.Directories{
 		BaseDir:   baseDir,
 		SrcDir:    filepath.Join(baseDir, "src"),
 		PkgDir:    filepath.Join(baseDir, "pkg"),
-		ScriptDir: filepath.Dir(b.opts.Script),
-	}
+		ScriptDir: filepath.Dir(scriptPath),
+	}, nil
 }
 
 // Функция executeSecondPass выполняет скрипт сборки второй раз без каких-либо ограничений. Возвращается декодер,
@@ -844,7 +852,6 @@ func (b *Builder) buildPkgMetadata(
 	if err != nil {
 		return nil, err
 	}
-	slog.Info("contents", "contents", contents)
 	pkgInfo.Overridables.Contents = contents
 
 	if len(vars.AutoProv) == 1 && decoder.IsTruthy(vars.AutoProv[0]) {
