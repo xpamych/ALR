@@ -313,3 +313,24 @@ func removeDuplicates(slice []string) []string {
 
 	return result
 }
+
+func removeDuplicatesSources(sources, checksums []string) ([]string, []string) {
+	seen := map[string]string{}
+	keys := make([]string, 0)
+	for i, s := range sources {
+		if val, ok := seen[s]; !ok || strings.EqualFold(val, "SKIP") {
+			if !ok {
+				keys = append(keys, s)
+			}
+			seen[s] = checksums[i]
+		}
+	}
+
+	newSources := make([]string, len(keys))
+	newChecksums := make([]string, len(keys))
+	for i, k := range keys {
+		newSources[i] = k
+		newChecksums[i] = seen[k]
+	}
+	return newSources, newChecksums
+}

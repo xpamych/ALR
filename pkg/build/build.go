@@ -203,8 +203,12 @@ func (b *Builder) BuildPackage(ctx context.Context) ([]string, []string, error) 
 	buildDepends = removeDuplicates(buildDepends)
 	optDepends = removeDuplicates(optDepends)
 	depends = removeDuplicates(depends)
-	sources = removeDuplicates(sources)
-	checksums = removeDuplicates(checksums)
+
+	if len(sources) != len(checksums) {
+		slog.Error(gotext.Get("The checksums array must be the same length as sources"))
+		os.Exit(1)
+	}
+	sources, checksums = removeDuplicatesSources(sources, checksums)
 
 	mergedVars := types.BuildVars{
 		Sources:   sources,
@@ -544,11 +548,6 @@ func (b *Builder) buildALRDeps(ctx context.Context, depends []string) (builtPath
 }
 
 func (b *Builder) getSources(ctx context.Context, dirs types.Directories, bv *types.BuildVars) error {
-	if len(bv.Sources) != len(bv.Checksums) {
-		slog.Error(gotext.Get("The checksums array must be the same length as sources"))
-		os.Exit(1)
-	}
-
 	for i, src := range bv.Sources {
 		opts := dl.Options{
 			Name:        fmt.Sprintf("%s[%d]", bv.Name, i),

@@ -365,69 +365,69 @@ msgstr ""
 msgid "Building package"
 msgstr ""
 
-#: pkg/build/build.go:231
+#: pkg/build/build.go:208
+msgid "The checksums array must be the same length as sources"
+msgstr ""
+
+#: pkg/build/build.go:235
 msgid "Downloading sources"
 msgstr ""
 
-#: pkg/build/build.go:253
+#: pkg/build/build.go:257
 msgid "Building package metadata"
 msgstr ""
 
-#: pkg/build/build.go:275
+#: pkg/build/build.go:279
 msgid "Compressing package"
 msgstr ""
 
-#: pkg/build/build.go:434
+#: pkg/build/build.go:438
 msgid ""
 "Your system's CPU architecture doesn't match this package. Do you want to "
 "build anyway?"
 msgstr ""
 
-#: pkg/build/build.go:448
+#: pkg/build/build.go:452
 msgid "This package is already installed"
 msgstr ""
 
-#: pkg/build/build.go:472
+#: pkg/build/build.go:476
 msgid "Installing build dependencies"
 msgstr ""
 
-#: pkg/build/build.go:513
+#: pkg/build/build.go:517
 msgid "Installing dependencies"
 msgstr ""
 
-#: pkg/build/build.go:548
-msgid "The checksums array must be the same length as sources"
-msgstr ""
-
-#: pkg/build/build.go:599
+#: pkg/build/build.go:598
 msgid "Would you like to remove the build dependencies?"
 msgstr ""
 
-#: pkg/build/build.go:662
+#: pkg/build/build.go:661
 msgid "Executing prepare()"
 msgstr ""
 
-#: pkg/build/build.go:672
+#: pkg/build/build.go:671
 msgid "Executing build()"
 msgstr ""
 
-#: pkg/build/build.go:702 pkg/build/build.go:722
+#: pkg/build/build.go:701 pkg/build/build.go:721
 msgid "Executing %s()"
 msgstr ""
 
-#: pkg/build/build.go:781
+#: pkg/build/build.go:780
 msgid "Error installing native packages"
 msgstr ""
 
-#: pkg/build/build.go:805
+#: pkg/build/build.go:804
 msgid "Error installing package"
 msgstr ""
 
-#: pkg/build/build.go:864
+#: pkg/build/build.go:863
 msgid "AutoProv is not implemented for this package format, so it's skipped"
 msgstr ""
 
-#: pkg/build/build.go:875
+#: pkg/build/build.go:874
 msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 
