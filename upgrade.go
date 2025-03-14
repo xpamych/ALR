@@ -152,6 +152,10 @@ func checkForUpdates(
 				return nil, err
 			}
 
+			if len(pkgs) == 0 {
+				continue
+			}
+
 			pkg := pkgs[0]
 
 			repoVer := pkg.Version
