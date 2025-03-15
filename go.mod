@@ -13,6 +13,7 @@ require (
 	github.com/charmbracelet/bubbletea v1.2.4
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/charmbracelet/log v0.4.0
+	github.com/efficientgo/e2e v0.14.1-0.20240418111536-97db25a0c6c0
 	github.com/go-git/go-billy/v5 v5.5.0
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
@@ -26,6 +27,7 @@ require (
 	github.com/muesli/reflow v0.3.0
 	github.com/pelletier/go-toml/v2 v2.1.0
 	github.com/stretchr/testify v1.10.0
+	github.com/tailscale/goexpect v0.0.0-20210902213824-6e8c725cea41
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/vmihailenco/msgpack/v5 v5.3.5
 	go.elara.ws/vercmp v0.0.0-20230622214216-0b2b067575c4
@@ -64,6 +66,7 @@ require (
 	github.com/dlclark/regexp2 v1.10.0 // indirect
 	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/efficientgo/core v1.0.0-rc.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
@@ -71,6 +74,7 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/google/goterm v0.0.0-20190703233501-fc88cf888a3f // indirect
 	github.com/google/rpmpack v0.6.1-0.20240329070804-c2247cbb881a // indirect
 	github.com/google/uuid v1.4.0 // indirect
 	github.com/goreleaser/chglog v0.6.1 // indirect

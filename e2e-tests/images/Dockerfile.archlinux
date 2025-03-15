@@ -1,0 +1,4 @@
+FROM archlinux:latest
+RUN useradd -m -s /bin/bash alr-user
+USER alr-user
+ENTRYPOINT ["tail", "-f", "/dev/null"]
