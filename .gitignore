@@ -8,3 +8,5 @@
 .gigaide
 
 *.out
+
+e2e-tests/alr

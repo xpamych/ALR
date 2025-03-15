@@ -1,0 +1,4 @@
+FROM alpine:latest
+RUN adduser -s /bin/bash alr-user
+USER alr-user
+ENTRYPOINT ["tail", "-f", "/dev/null"]

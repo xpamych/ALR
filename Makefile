@@ -71,3 +71,7 @@ i18n:
 test-coverage:
 	go test ./... -v -coverpkg=./... -coverprofile=coverage.out
 	bash scripts/coverage-badge.sh
+
+e2e-test: clean build
+	cp alr e2e-tests
+	go test -tags=e2e ./...

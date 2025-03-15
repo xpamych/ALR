@@ -1,0 +1,5 @@
+FROM ubuntu:24.10
+RUN apt update && apt install -y ca-certificates
+RUN useradd -m -s /bin/bash alr-user
+USER alr-user
+ENTRYPOINT ["tail", "-f", "/dev/null"]
