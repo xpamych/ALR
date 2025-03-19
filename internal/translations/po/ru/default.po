@@ -145,15 +145,15 @@ msgstr "Для команды info ожидался хотя бы 1 аргуме
 msgid "Error finding packages"
 msgstr "Ошибка при поиске пакетов"
 
-#: info.go:129
+#: info.go:132
 msgid "Error parsing os-release file"
 msgstr "Ошибка при разборе файла выпуска операционной системы"
 
-#: info.go:138
+#: info.go:141
 msgid "Error resolving overrides"
 msgstr "Ошибка устранения переорпеделений"
 
-#: info.go:147 info.go:153
+#: info.go:150 info.go:156
 msgid "Error encoding script variables"
 msgstr "Ошибка кодирования переменных скрита"
 
@@ -497,7 +497,7 @@ msgstr "URL-адрес нового репозитория"
 msgid "Error opening config file"
 msgstr "Ошибка при открытии конфигурационного файла"
 
-#: repo.go:88 repo.go:153
+#: repo.go:88 repo.go:153 repo.go:165
 msgid "Error encoding config"
 msgstr "Ошибка при кодировании конфигурации"
 
@@ -517,11 +517,11 @@ msgstr "Репозитория не существует"
 msgid "Error removing repo directory"
 msgstr "Ошибка при удалении каталога репозитория"
 
-#: repo.go:170
+#: repo.go:176
 msgid "Error removing packages from database"
 msgstr "Ошибка при удалении пакетов из базы данных"
 
-#: repo.go:182
+#: repo.go:188
 msgid "Pull all repositories that have changed"
 msgstr "Скачать все изменённые репозитории"
 

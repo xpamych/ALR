@@ -19,17 +19,16 @@
 package e2etests_test
 
 import (
-	"bytes"
 	"testing"
 
+	"github.com/alecthomas/assert/v2"
 	"github.com/efficientgo/e2e"
-	"github.com/stretchr/testify/assert"
 )
 
-func TestE2EAlrAddRepo(t *testing.T) {
+func TestE2EIssue53LcAllCInfo(t *testing.T) {
 	dockerMultipleRun(
 		t,
-		"add-repo-remove-repo",
+		"issue-53-lc-all-c-info",
 		COMMON_SYSTEMS,
 		func(t *testing.T, r e2e.Runnable) {
 			err := r.Exec(e2e.NewCommand(
@@ -45,26 +44,9 @@ func TestE2EAlrAddRepo(t *testing.T) {
 			err = r.Exec(e2e.NewCommand(
 				"bash",
 				"-c",
-				"cat $HOME/.config/alr/alr.toml",
+				"LANG=C alr info alr-bin",
 			))
 			assert.NoError(t, err)
-
-			err = r.Exec(e2e.NewCommand(
-				"alr",
-				"removerepo",
-				"--name",
-				"alr-repo",
-			))
-			assert.NoError(t, err)
-
-			var buf bytes.Buffer
-			err = r.Exec(e2e.NewCommand(
-				"bash",
-				"-c",
-				"cat $HOME/.config/alr/alr.toml",
-			), e2e.WithExecOptionStdout(&buf))
-			assert.NoError(t, err)
-			assert.Contains(t, buf.String(), "rootCmd")
 		},
 	)
 }

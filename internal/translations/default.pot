@@ -138,15 +138,15 @@ msgstr ""
 msgid "Error finding packages"
 msgstr ""
 
-#: info.go:129
+#: info.go:132
 msgid "Error parsing os-release file"
 msgstr ""
 
-#: info.go:138
+#: info.go:141
 msgid "Error resolving overrides"
 msgstr ""
 
-#: info.go:147 info.go:153
+#: info.go:150 info.go:156
 msgid "Error encoding script variables"
 msgstr ""
 
@@ -477,7 +477,7 @@ msgstr ""
 msgid "Error opening config file"
 msgstr ""
 
-#: repo.go:88 repo.go:153
+#: repo.go:88 repo.go:153 repo.go:165
 msgid "Error encoding config"
 msgstr ""
 
@@ -497,11 +497,11 @@ msgstr ""
 msgid "Error removing repo directory"
 msgstr ""
 
-#: repo.go:170
+#: repo.go:176
 msgid "Error removing packages from database"
 msgstr ""
 
-#: repo.go:182
+#: repo.go:188
 msgid "Pull all repositories that have changed"
 msgstr ""
 
