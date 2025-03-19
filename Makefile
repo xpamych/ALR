@@ -73,5 +73,6 @@ test-coverage:
 	bash scripts/coverage-badge.sh
 
 e2e-test: clean build
+	rm -f ./e2e-tests/alr
 	cp alr e2e-tests
 	go test -tags=e2e ./...

@@ -160,6 +160,12 @@ func RemoveRepoCmd() *cli.Command {
 				os.Exit(1)
 			}
 
+			err = cfg.Save(cfgFl)
+			if err != nil {
+				slog.Error(gotext.Get("Error encoding config"), "err", err)
+				os.Exit(1)
+			}
+
 			db := database.New(cfg)
 			err = db.Init(ctx)
 			if err != nil {

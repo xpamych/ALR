@@ -122,6 +122,9 @@ func InfoCmd() *cli.Command {
 				slog.Error("Can't detect system language", "err", err)
 				os.Exit(1)
 			}
+			if systemLang == "" {
+				systemLang = "en"
+			}
 
 			if !all {
 				info, err := distro.ParseOSRelease(ctx)
