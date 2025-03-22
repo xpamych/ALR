@@ -67,7 +67,7 @@ type action struct {
 // If repos is set to nil, the repos in the ALR config will be used.
 func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 	if repos == nil {
-		repos = rs.cfg.Repos(ctx)
+		repos = rs.cfg.Repos()
 	}
 
 	for _, repo := range repos {
@@ -77,7 +77,7 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 		}
 
 		slog.Info(gotext.Get("Pulling repository"), "name", repo.Name)
-		repoDir := filepath.Join(rs.cfg.GetPaths(ctx).RepoDir, repo.Name)
+		repoDir := filepath.Join(rs.cfg.GetPaths().RepoDir, repo.Name)
 
 		var repoFS billy.Filesystem
 		gitDir := filepath.Join(repoDir, ".git")

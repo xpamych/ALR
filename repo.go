@@ -25,7 +25,6 @@ import (
 	"path/filepath"
 
 	"github.com/leonelquinteros/gotext"
-	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/exp/slices"
 
@@ -61,7 +60,13 @@ func AddRepoCmd() *cli.Command {
 			repoURL := c.String("url")
 
 			cfg := config.New()
-			reposSlice := cfg.Repos(ctx)
+			err := cfg.Load()
+			if err != nil {
+				slog.Error(gotext.Get("Error loading config"), "err", err)
+				os.Exit(1)
+			}
+
+			reposSlice := cfg.Repos()
 
 			for _, repo := range reposSlice {
 				if repo.URL == repoURL {
@@ -74,18 +79,11 @@ func AddRepoCmd() *cli.Command {
 				Name: name,
 				URL:  repoURL,
 			})
+			cfg.SetRepos(reposSlice)
 
-			cfg.SetRepos(ctx, reposSlice)
-
-			cfgFl, err := os.Create(cfg.GetPaths(ctx).ConfigPath)
+			err = cfg.SaveUserConfig()
 			if err != nil {
-				slog.Error(gotext.Get("Error opening config file"), "err", err)
-				os.Exit(1)
-			}
-
-			err = cfg.Save(cfgFl)
-			if err != nil {
-				slog.Error(gotext.Get("Error encoding config"), "err", err)
+				slog.Error(gotext.Get("Error saving config"), "err", err)
 				os.Exit(1)
 			}
 
@@ -96,7 +94,7 @@ func AddRepoCmd() *cli.Command {
 			}
 
 			rs := repos.New(cfg, db)
-			err = rs.Pull(ctx, cfg.Repos(ctx))
+			err = rs.Pull(ctx, cfg.Repos())
 			if err != nil {
 				slog.Error(gotext.Get("Error pulling repos"), "err", err)
 				os.Exit(1)
@@ -128,7 +126,7 @@ func RemoveRepoCmd() *cli.Command {
 
 			found := false
 			index := 0
-			reposSlice := cfg.Repos(ctx)
+			reposSlice := cfg.Repos()
 			for i, repo := range reposSlice {
 				if repo.Name == name {
 					index = i
@@ -140,29 +138,17 @@ func RemoveRepoCmd() *cli.Command {
 				os.Exit(1)
 			}
 
-			cfg.SetRepos(ctx, slices.Delete(reposSlice, index, index+1))
+			cfg.SetRepos(slices.Delete(reposSlice, index, index+1))
 
-			cfgFl, err := os.Create(cfg.GetPaths(ctx).ConfigPath)
-			if err != nil {
-				slog.Error(gotext.Get("Error opening config file"), "err", err)
-				os.Exit(1)
-			}
-
-			err = toml.NewEncoder(cfgFl).Encode(&cfg)
-			if err != nil {
-				slog.Error(gotext.Get("Error encoding config"), "err", err)
-				os.Exit(1)
-			}
-
-			err = os.RemoveAll(filepath.Join(cfg.GetPaths(ctx).RepoDir, name))
+			err := os.RemoveAll(filepath.Join(cfg.GetPaths().RepoDir, name))
 			if err != nil {
 				slog.Error(gotext.Get("Error removing repo directory"), "err", err)
 				os.Exit(1)
 			}
 
-			err = cfg.Save(cfgFl)
+			err = cfg.SaveUserConfig()
 			if err != nil {
-				slog.Error(gotext.Get("Error encoding config"), "err", err)
+				slog.Error(gotext.Get("Error saving config"), "err", err)
 				os.Exit(1)
 			}
 
@@ -190,13 +176,19 @@ func RefreshCmd() *cli.Command {
 		Action: func(c *cli.Context) error {
 			ctx := c.Context
 			cfg := config.New()
+			err := cfg.Load()
+			if err != nil {
+				slog.Error(gotext.Get("Error loading config"), "err", err)
+				os.Exit(1)
+			}
+
 			db := database.New(cfg)
-			err := db.Init(ctx)
+			err = db.Init(ctx)
 			if err != nil {
 				os.Exit(1)
 			}
 			rs := repos.New(cfg, db)
-			err = rs.Pull(ctx, cfg.Repos(ctx))
+			err = rs.Pull(ctx, cfg.Repos())
 			if err != nil {
 				slog.Error(gotext.Get("Error pulling repos"), "err", err)
 				os.Exit(1)

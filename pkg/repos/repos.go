@@ -17,16 +17,14 @@
 package repos
 
 import (
-	"context"
-
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 )
 
 type Config interface {
-	GetPaths(ctx context.Context) *config.Paths
-	Repos(ctx context.Context) []types.Repo
+	GetPaths() *config.Paths
+	Repos() []types.Repo
 }
 
 type Repos struct {

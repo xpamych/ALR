@@ -49,16 +49,22 @@ func ListCmd() *cli.Command {
 		Action: func(c *cli.Context) error {
 			ctx := c.Context
 			cfg := config.New()
+			err := cfg.Load()
+			if err != nil {
+				slog.Error(gotext.Get("Error loading config"), "err", err)
+				os.Exit(1)
+			}
+
 			db := database.New(cfg)
-			err := db.Init(ctx)
+			err = db.Init(ctx)
 			if err != nil {
 				slog.Error(gotext.Get("Error initialization database"), "err", err)
 				os.Exit(1)
 			}
 			rs := repos.New(cfg, db)
 
-			if cfg.AutoPull(ctx) {
-				err = rs.Pull(ctx, cfg.Repos(ctx))
+			if cfg.AutoPull() {
+				err = rs.Pull(ctx, cfg.Repos())
 				if err != nil {
 					slog.Error(gotext.Get("Error pulling repositories"), "err", err)
 					os.Exit(1)
@@ -110,7 +116,7 @@ func ListCmd() *cli.Command {
 					return err
 				}
 
-				if slices.Contains(cfg.IgnorePkgUpdates(ctx), pkg.Name) {
+				if slices.Contains(cfg.IgnorePkgUpdates(), pkg.Name) {
 					continue
 				}
 

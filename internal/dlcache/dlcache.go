@@ -28,7 +28,7 @@ import (
 )
 
 type Config interface {
-	GetPaths(ctx context.Context) *config.Paths
+	GetPaths() *config.Paths
 }
 
 type DownloadCache struct {
@@ -43,7 +43,7 @@ func New(cfg Config) *DownloadCache {
 
 func (dc *DownloadCache) BasePath(ctx context.Context) string {
 	return filepath.Join(
-		dc.cfg.GetPaths(ctx).CacheDir, "dl",
+		dc.cfg.GetPaths().CacheDir, "dl",
 	)
 }
 

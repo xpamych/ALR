@@ -20,15 +20,14 @@
 package config
 
 import (
-	"context"
 	"log/slog"
 	"os"
 	"path/filepath"
-	"sync"
+	"reflect"
 
-	"github.com/pelletier/go-toml/v2"
-
+	"github.com/caarlos0/env"
 	"github.com/leonelquinteros/gotext"
+	"github.com/pelletier/go-toml/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 )
@@ -36,9 +35,6 @@ import (
 type ALRConfig struct {
 	cfg   *types.Config
 	paths *Paths
-
-	cfgOnce   sync.Once
-	pathsOnce sync.Once
 }
 
 var defaultConfig = &types.Config{
@@ -53,147 +49,146 @@ func New() *ALRConfig {
 	return &ALRConfig{}
 }
 
-func (c *ALRConfig) Load(ctx context.Context) {
-	cfgFl, err := os.Open(c.GetPaths(ctx).ConfigPath)
+func readConfig(path string) (*types.Config, error) {
+	file, err := os.Open(path)
 	if err != nil {
-		slog.Warn(gotext.Get("Error opening config file, using defaults"), "err", err)
-		c.cfg = defaultConfig
-		return
+		return nil, err
 	}
-	defer cfgFl.Close()
+	defer file.Close()
 
-	// Copy the default configuration into config
-	defCopy := *defaultConfig
-	config := &defCopy
-	config.Repos = nil
+	config := types.Config{}
 
-	err = toml.NewDecoder(cfgFl).Decode(config)
-	if err != nil {
-		slog.Warn(gotext.Get("Error decoding config file, using defaults"), "err", err)
-		c.cfg = defaultConfig
-		return
+	if err := toml.NewDecoder(file).Decode(&config); err != nil {
+		return nil, err
 	}
-	c.cfg = config
+
+	return &config, nil
 }
 
-func (c *ALRConfig) initPaths() {
-	paths := &Paths{}
+func mergeStructs(dst, src interface{}) {
+	srcVal := reflect.ValueOf(src)
+	if srcVal.IsNil() {
+		return
+	}
+	srcVal = srcVal.Elem()
+	dstVal := reflect.ValueOf(dst).Elem()
+
+	for i := range srcVal.NumField() {
+		srcField := srcVal.Field(i)
+		srcFieldName := srcVal.Type().Field(i).Name
+
+		dstField := dstVal.FieldByName(srcFieldName)
+		if dstField.IsValid() && dstField.CanSet() {
+			dstField.Set(srcField)
+		}
+	}
+}
+
+const systemConfigPath = "/etc/alr/alr.toml"
+
+func (c *ALRConfig) Load() error {
+	systemConfig, err := readConfig(
+		systemConfigPath,
+	)
+	if err != nil {
+		slog.Debug("Cannot read system config", "err", err)
+	}
 
 	cfgDir, err := os.UserConfigDir()
 	if err != nil {
-		slog.Error(gotext.Get("Unable to detect user config directory"), "err", err)
-		os.Exit(1)
+		slog.Debug("Cannot read user config directory")
 	}
+	userConfigPath := filepath.Join(cfgDir, "alr", "alr.toml")
 
-	paths.ConfigDir = filepath.Join(cfgDir, "alr")
-
-	err = os.MkdirAll(paths.ConfigDir, 0o755)
+	userConfig, err := readConfig(
+		userConfigPath,
+	)
 	if err != nil {
-		slog.Error(gotext.Get("Unable to create ALR config directory"), "err", err)
-		os.Exit(1)
+		slog.Debug("Cannot read user config")
 	}
 
-	paths.ConfigPath = filepath.Join(paths.ConfigDir, "alr.toml")
+	config := &types.Config{}
 
-	if _, err := os.Stat(paths.ConfigPath); err != nil {
-		cfgFl, err := os.Create(paths.ConfigPath)
-		if err != nil {
-			slog.Error(gotext.Get("Unable to create ALR config file"), "err", err)
-			os.Exit(1)
-		}
-
-		err = toml.NewEncoder(cfgFl).Encode(&defaultConfig)
-		if err != nil {
-			slog.Error(gotext.Get("Error encoding default configuration"), "err", err)
-			os.Exit(1)
-		}
-
-		cfgFl.Close()
+	mergeStructs(config, defaultConfig)
+	mergeStructs(config, systemConfig)
+	mergeStructs(config, userConfig)
+	err = env.Parse(config)
+	if err != nil {
+		return err
 	}
+
+	c.cfg = config
 
 	cacheDir, err := os.UserCacheDir()
 	if err != nil {
-		slog.Error(gotext.Get("Unable to detect cache directory"), "err", err)
-		os.Exit(1)
+		return err
 	}
+	c.paths = &Paths{}
+	c.paths.UserConfigPath = userConfigPath
+	c.paths.CacheDir = filepath.Join(cacheDir, "alr")
+	c.paths.RepoDir = filepath.Join(c.paths.CacheDir, "repo")
+	c.paths.PkgsDir = filepath.Join(c.paths.CacheDir, "pkgs")
+	c.paths.DBPath = filepath.Join(c.paths.CacheDir, "db")
+	c.initPaths()
 
-	paths.CacheDir = filepath.Join(cacheDir, "alr")
-	paths.RepoDir = filepath.Join(paths.CacheDir, "repo")
-	paths.PkgsDir = filepath.Join(paths.CacheDir, "pkgs")
+	return nil
+}
 
-	err = os.MkdirAll(paths.RepoDir, 0o755)
+func (c *ALRConfig) RootCmd() string {
+	return c.cfg.RootCmd
+}
+
+func (c *ALRConfig) PagerStyle() string {
+	return c.cfg.PagerStyle
+}
+
+func (c *ALRConfig) AutoPull() bool {
+	return c.cfg.AutoPull
+}
+
+func (c *ALRConfig) AllowRunAsRoot() bool {
+	return c.cfg.Unsafe.AllowRunAsRoot
+}
+
+func (c *ALRConfig) Repos() []types.Repo {
+	return c.cfg.Repos
+}
+
+func (c *ALRConfig) SetRepos(repos []types.Repo) {
+	c.cfg.Repos = repos
+}
+
+func (c *ALRConfig) IgnorePkgUpdates() []string {
+	return c.cfg.IgnorePkgUpdates
+}
+
+func (c *ALRConfig) LogLevel() string {
+	return c.cfg.LogLevel
+}
+
+func (c *ALRConfig) GetPaths() *Paths {
+	return c.paths
+}
+
+func (c *ALRConfig) initPaths() {
+	err := os.MkdirAll(c.paths.RepoDir, 0o755)
 	if err != nil {
 		slog.Error(gotext.Get("Unable to create repo cache directory"), "err", err)
 		os.Exit(1)
 	}
 
-	err = os.MkdirAll(paths.PkgsDir, 0o755)
+	err = os.MkdirAll(c.paths.PkgsDir, 0o755)
 	if err != nil {
 		slog.Error(gotext.Get("Unable to create package cache directory"), "err", err)
 		os.Exit(1)
 	}
-
-	paths.DBPath = filepath.Join(paths.CacheDir, "db")
-
-	c.paths = paths
 }
 
-func (c *ALRConfig) GetPaths(ctx context.Context) *Paths {
-	c.pathsOnce.Do(func() {
-		c.initPaths()
-	})
-	return c.paths
-}
+func (c *ALRConfig) SaveUserConfig() error {
+	f, err := os.Create(c.paths.UserConfigPath)
+	if err != nil {
+		return err
+	}
 
-func (c *ALRConfig) Repos(ctx context.Context) []types.Repo {
-	c.cfgOnce.Do(func() {
-		c.Load(ctx)
-	})
-	return c.cfg.Repos
-}
-
-func (c *ALRConfig) SetRepos(ctx context.Context, repos []types.Repo) {
-	c.cfgOnce.Do(func() {
-		c.Load(ctx)
-	})
-	c.cfg.Repos = repos
-}
-
-func (c *ALRConfig) IgnorePkgUpdates(ctx context.Context) []string {
-	c.cfgOnce.Do(func() {
-		c.Load(ctx)
-	})
-	return c.cfg.IgnorePkgUpdates
-}
-
-func (c *ALRConfig) AutoPull(ctx context.Context) bool {
-	c.cfgOnce.Do(func() {
-		c.Load(ctx)
-	})
-	return c.cfg.AutoPull
-}
-
-func (c *ALRConfig) PagerStyle(ctx context.Context) string {
-	c.cfgOnce.Do(func() {
-		c.Load(ctx)
-	})
-	return c.cfg.PagerStyle
-}
-
-func (c *ALRConfig) AllowRunAsRoot(ctx context.Context) bool {
-	c.cfgOnce.Do(func() {
-		c.Load(ctx)
-	})
-	return c.cfg.Unsafe.AllowRunAsRoot
-}
-
-func (c *ALRConfig) RootCmd(ctx context.Context) string {
-	c.cfgOnce.Do(func() {
-		c.Load(ctx)
-	})
-	return c.cfg.RootCmd
-}
-
-func (c *ALRConfig) Save(f *os.File) error {
 	return toml.NewEncoder(f).Encode(c.cfg)
 }

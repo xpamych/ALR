@@ -59,8 +59,8 @@ type PackageFinder interface {
 }
 
 type Config interface {
-	GetPaths(ctx context.Context) *config.Paths
-	PagerStyle(ctx context.Context) string
+	GetPaths() *config.Paths
+	PagerStyle() string
 }
 
 type Builder struct {
@@ -88,7 +88,7 @@ func NewBuilder(
 }
 
 func (b *Builder) UpdateOptsFromPkg(pkg *db.Package, packages []string) {
-	repodir := b.config.GetPaths(b.ctx).RepoDir
+	repodir := b.config.GetPaths().RepoDir
 	b.opts.Repository = pkg.Repository
 	if pkg.BasePkgName != "" {
 		b.opts.Script = filepath.Join(repodir, pkg.Repository, pkg.BasePkgName, "alr.sh")
@@ -149,7 +149,7 @@ func (b *Builder) BuildPackage(ctx context.Context) ([]string, []string, error) 
 		ctx,
 		b.opts.Script,
 		basePkg,
-		b.config.PagerStyle(ctx),
+		b.config.PagerStyle(),
 		b.opts.Interactive,
 	)
 	if err != nil {
@@ -392,7 +392,7 @@ func (b *Builder) getDirs(basePkg string) (types.Directories, error) {
 		return types.Directories{}, err
 	}
 
-	baseDir := filepath.Join(b.config.GetPaths(b.ctx).PkgsDir, basePkg) // Определяем базовую директорию
+	baseDir := filepath.Join(b.config.GetPaths().PkgsDir, basePkg) // Определяем базовую директорию
 	return types.Directories{
 		BaseDir:   baseDir,
 		SrcDir:    filepath.Join(baseDir, "src"),

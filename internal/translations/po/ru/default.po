@@ -37,35 +37,40 @@ msgid ""
 "Build package from scratch even if there's an already built package available"
 msgstr "Создайте пакет с нуля, даже если уже имеется готовый пакет"
 
-#: build.go:75
+#: build.go:73
+#, fuzzy
+msgid "Error loading config"
+msgstr "Ошибка при кодировании конфигурации"
+
+#: build.go:81
 msgid "Error initialization database"
 msgstr "Ошибка инициализации базы данных"
 
-#: build.go:104
+#: build.go:110
 msgid "Package not found"
 msgstr "Пакет не найден"
 
-#: build.go:124
+#: build.go:130
 msgid "Error pulling repositories"
 msgstr "Ошибка при извлечении репозиториев"
 
-#: build.go:132
+#: build.go:138
 msgid "Unable to detect a supported package manager on the system"
 msgstr "Не удалось обнаружить поддерживаемый менеджер пакетов в системе"
 
-#: build.go:138
+#: build.go:144
 msgid "Error parsing os release"
 msgstr "Ошибка при разборе файла выпуска операционной системы"
 
-#: build.go:160
+#: build.go:166
 msgid "Error building package"
 msgstr "Ошибка при сборке пакета"
 
-#: build.go:167
+#: build.go:173
 msgid "Error getting working directory"
 msgstr "Ошибка при получении рабочего каталога"
 
-#: build.go:176
+#: build.go:182
 msgid "Error moving the package"
 msgstr "Ошибка при перемещении пакета"
 
@@ -73,27 +78,27 @@ msgstr "Ошибка при перемещении пакета"
 msgid "Attempt to fix problems with ALR"
 msgstr "Попытка устранить проблемы с ALR"
 
-#: fix.go:43
+#: fix.go:49
 msgid "Removing cache directory"
 msgstr "Удаление каталога кэша"
 
-#: fix.go:47
+#: fix.go:53
 msgid "Unable to remove cache directory"
 msgstr "Не удалось удалить каталог кэша"
 
-#: fix.go:51
+#: fix.go:57
 msgid "Rebuilding cache"
 msgstr "Восстановление кэша"
 
-#: fix.go:55
+#: fix.go:61
 msgid "Unable to create new cache directory"
 msgstr "Не удалось создать новый каталог кэша"
 
-#: fix.go:69
+#: fix.go:81
 msgid "Error pulling repos"
 msgstr "Ошибка при извлечении репозиториев"
 
-#: fix.go:73
+#: fix.go:85
 msgid "Done"
 msgstr "Сделано"
 
@@ -129,31 +134,31 @@ msgstr "Отобразить информацию о пакете"
 msgid "Show all information, not just for the current distro"
 msgstr "Показывать всю информацию, не только для текущего дистрибутива"
 
-#: info.go:63
+#: info.go:69
 msgid "Error getting packages"
 msgstr "Ошибка при получении пакетов"
 
-#: info.go:72
+#: info.go:78
 msgid "Error iterating over packages"
 msgstr "Ошибка при переборе пакетов"
 
-#: info.go:93
+#: info.go:105
 msgid "Command info expected at least 1 argument, got %d"
 msgstr "Для команды info ожидался хотя бы 1 аргумент, получено %d"
 
-#: info.go:107
+#: info.go:119
 msgid "Error finding packages"
 msgstr "Ошибка при поиске пакетов"
 
-#: info.go:132
+#: info.go:144
 msgid "Error parsing os-release file"
 msgstr "Ошибка при разборе файла выпуска операционной системы"
 
-#: info.go:141
+#: info.go:153
 msgid "Error resolving overrides"
 msgstr "Ошибка устранения переорпеделений"
 
-#: info.go:150 info.go:156
+#: info.go:162 info.go:168
 msgid "Error encoding script variables"
 msgstr "Ошибка кодирования переменных скрита"
 
@@ -165,15 +170,15 @@ msgstr "Установить новый пакет"
 msgid "Command install expected at least 1 argument, got %d"
 msgstr "Для команды install ожидался хотя бы 1 аргумент, получено %d"
 
-#: install.go:151
+#: install.go:157
 msgid "Remove an installed package"
 msgstr "Удалить установленный пакет"
 
-#: install.go:156
+#: install.go:162
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr "Для команды remove ожидался хотя бы 1 аргумент, получено %d"
 
-#: install.go:168
+#: install.go:174
 msgid "Error removing packages"
 msgstr "Ошибка при удалении пакетов"
 
@@ -257,43 +262,11 @@ msgstr "КАТЕГОРИЯ"
 msgid "OPTIONS"
 msgstr "ПАРАМЕТРЫ"
 
-#: internal/config/config.go:59
-msgid "Error opening config file, using defaults"
-msgstr ""
-"Ошибка при открытии конфигурационного файла, используются значения по "
-"умолчанию"
-
-#: internal/config/config.go:72
-msgid "Error decoding config file, using defaults"
-msgstr ""
-"Ошибка при декодировании конфигурационного файла, используются значения по "
-"умолчанию"
-
-#: internal/config/config.go:84
-msgid "Unable to detect user config directory"
-msgstr "Не удалось обнаружить каталог конфигурации пользователя"
-
-#: internal/config/config.go:92
-msgid "Unable to create ALR config directory"
-msgstr "Не удалось создать каталог конфигурации ALR"
-
-#: internal/config/config.go:101
-msgid "Unable to create ALR config file"
-msgstr "Не удалось создать конфигурационный файл ALR"
-
-#: internal/config/config.go:107
-msgid "Error encoding default configuration"
-msgstr "Ошибка кодирования конфигурации по умолчанию"
-
-#: internal/config/config.go:116
-msgid "Unable to detect cache directory"
-msgstr "Не удалось обнаружить каталог кэша"
-
-#: internal/config/config.go:126
+#: internal/config/config.go:176
 msgid "Unable to create repo cache directory"
 msgstr "Не удалось создать каталог кэша репозитория"
 
-#: internal/config/config.go:132
+#: internal/config/config.go:182
 msgid "Unable to create package cache directory"
 msgstr "Не удалось создать каталог кэша пакетов"
 
@@ -339,7 +312,7 @@ msgstr "ОШИБКА"
 msgid "List ALR repo packages"
 msgstr "Список пакетов репозитория ALR"
 
-#: list.go:92
+#: list.go:98
 msgid "Error listing installed packages"
 msgstr "Ошибка при составлении списка установленных пакетов"
 
@@ -355,7 +328,7 @@ msgstr "Аргументы, которые будут переданы мене�
 msgid "Enable interactive questions and prompts"
 msgstr "Включение интерактивных вопросов и запросов"
 
-#: main.go:92
+#: main.go:96
 msgid ""
 "Running ALR as root is forbidden as it may cause catastrophic damage to your "
 "system"
@@ -363,11 +336,11 @@ msgstr ""
 "Запуск ALR от имени root запрещён, так как это может привести к "
 "катастрофическому повреждению вашей системы"
 
-#: main.go:125
+#: main.go:154
 msgid "Show help"
 msgstr "Показать справку"
 
-#: main.go:129
+#: main.go:158
 msgid "Error while running app"
 msgstr "Ошибка при запуске приложения"
 
@@ -481,47 +454,44 @@ msgstr ""
 "Минимальная версия ALR для ALR-репозитория выше текущей версии. Попробуйте "
 "обновить ALR, если что-то не работает."
 
-#: repo.go:41
+#: repo.go:40
 msgid "Add a new repository"
 msgstr "Добавить новый репозиторий"
 
-#: repo.go:48
+#: repo.go:47
 msgid "Name of the new repo"
 msgstr "Название нового репозитория"
 
-#: repo.go:54
+#: repo.go:53
 msgid "URL of the new repo"
 msgstr "URL-адрес нового репозитория"
 
-#: repo.go:82 repo.go:147
-msgid "Error opening config file"
-msgstr "Ошибка при открытии конфигурационного файла"
-
-#: repo.go:88 repo.go:153 repo.go:165
-msgid "Error encoding config"
+#: repo.go:86 repo.go:151
+#, fuzzy
+msgid "Error saving config"
 msgstr "Ошибка при кодировании конфигурации"
 
-#: repo.go:113
+#: repo.go:111
 msgid "Remove an existing repository"
 msgstr "Удалить существующий репозиторий"
 
-#: repo.go:120
+#: repo.go:118
 msgid "Name of the repo to be deleted"
 msgstr "Название репозитория  удалён"
 
-#: repo.go:139
+#: repo.go:137
 msgid "Repo does not exist"
 msgstr "Репозитория не существует"
 
-#: repo.go:159
+#: repo.go:145
 msgid "Error removing repo directory"
 msgstr "Ошибка при удалении каталога репозитория"
 
-#: repo.go:176
+#: repo.go:162
 msgid "Error removing packages from database"
 msgstr "Ошибка при удалении пакетов из базы данных"
 
-#: repo.go:188
+#: repo.go:174
 msgid "Pull all repositories that have changed"
 msgstr "Скачать все изменённые репозитории"
 
@@ -549,11 +519,11 @@ msgstr "Иcкать по provides"
 msgid "Format output using a Go template"
 msgstr "Формат выходных данных с использованием шаблона Go"
 
-#: search.go:82 search.go:99
+#: search.go:88 search.go:105
 msgid "Error parsing format template"
 msgstr "Ошибка при разборе шаблона"
 
-#: search.go:107
+#: search.go:113
 msgid "Error executing template"
 msgstr "Ошибка при выполнении шаблона"
 
@@ -561,13 +531,41 @@ msgstr "Ошибка при выполнении шаблона"
 msgid "Upgrade all installed packages"
 msgstr "Обновить все установленные пакеты"
 
-#: upgrade.go:90
+#: upgrade.go:96
 msgid "Error checking for updates"
 msgstr "Ошибка при проверке обновлений"
 
-#: upgrade.go:112
+#: upgrade.go:118
 msgid "There is nothing to do."
 msgstr "Здесь нечего делать."
+
+#~ msgid "Error opening config file, using defaults"
+#~ msgstr ""
+#~ "Ошибка при открытии конфигурационного файла, используются значения по "
+#~ "умолчанию"
+
+#~ msgid "Error decoding config file, using defaults"
+#~ msgstr ""
+#~ "Ошибка при декодировании конфигурационного файла, используются значения "
+#~ "по умолчанию"
+
+#~ msgid "Unable to detect user config directory"
+#~ msgstr "Не удалось обнаружить каталог конфигурации пользователя"
+
+#~ msgid "Unable to create ALR config directory"
+#~ msgstr "Не удалось создать каталог конфигурации ALR"
+
+#~ msgid "Unable to create ALR config file"
+#~ msgstr "Не удалось создать конфигурационный файл ALR"
+
+#~ msgid "Error encoding default configuration"
+#~ msgstr "Ошибка кодирования конфигурации по умолчанию"
+
+#~ msgid "Unable to detect cache directory"
+#~ msgstr "Не удалось обнаружить каталог кэша"
+
+#~ msgid "Error opening config file"
+#~ msgstr "Ошибка при открытии конфигурационного файла"
 
 #~ msgid "Error parsing system language"
 #~ msgstr "Ошибка при парсинге языка системы"
