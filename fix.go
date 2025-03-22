@@ -38,11 +38,17 @@ func FixCmd() *cli.Command {
 		Action: func(c *cli.Context) error {
 			ctx := c.Context
 			cfg := config.New()
-			paths := cfg.GetPaths(ctx)
+			err := cfg.Load()
+			if err != nil {
+				slog.Error(gotext.Get("Error loading config"), "err", err)
+				os.Exit(1)
+			}
+
+			paths := cfg.GetPaths()
 
 			slog.Info(gotext.Get("Removing cache directory"))
 
-			err := os.RemoveAll(paths.CacheDir)
+			err = os.RemoveAll(paths.CacheDir)
 			if err != nil {
 				slog.Error(gotext.Get("Unable to remove cache directory"), "err", err)
 				os.Exit(1)
@@ -57,6 +63,12 @@ func FixCmd() *cli.Command {
 			}
 
 			cfg = config.New()
+			err = cfg.Load()
+			if err != nil {
+				slog.Error(gotext.Get("Error loading config"), "err", err)
+				os.Exit(1)
+			}
+
 			db := database.New(cfg)
 			err = db.Init(ctx)
 			if err != nil {
@@ -64,7 +76,7 @@ func FixCmd() *cli.Command {
 				os.Exit(1)
 			}
 			rs := repos.New(cfg, db)
-			err = rs.Pull(ctx, cfg.Repos(ctx))
+			err = rs.Pull(ctx, cfg.Repos())
 			if err != nil {
 				slog.Error(gotext.Get("Error pulling repos"), "err", err)
 				os.Exit(1)

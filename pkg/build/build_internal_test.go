@@ -144,11 +144,11 @@ func (m *TestManager) IsInstalled(pkg string) (bool, error) {
 
 type TestConfig struct{}
 
-func (c *TestConfig) PagerStyle(ctx context.Context) string {
+func (c *TestConfig) PagerStyle() string {
 	return "native"
 }
 
-func (c *TestConfig) GetPaths(ctx context.Context) *config.Paths {
+func (c *TestConfig) GetPaths() *config.Paths {
 	return &config.Paths{
 		CacheDir: "/tmp",
 	}

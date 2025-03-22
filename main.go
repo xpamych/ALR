@@ -84,11 +84,15 @@ func GetApp() *cli.App {
 			SearchCmd(),
 		},
 		Before: func(c *cli.Context) error {
-			ctx := c.Context
 			cfg := config.New()
+			err := cfg.Load()
+			if err != nil {
+				slog.Error(gotext.Get("Error loading config"), "err", err)
+				os.Exit(1)
+			}
 
 			cmd := c.Args().First()
-			if cmd != "helper" && !cfg.AllowRunAsRoot(ctx) && os.Geteuid() == 0 {
+			if cmd != "helper" && !cfg.AllowRunAsRoot() && os.Geteuid() == 0 {
 				slog.Error(gotext.Get("Running ALR as root is forbidden as it may cause catastrophic damage to your system"))
 				os.Exit(1)
 			}
@@ -104,17 +108,42 @@ func GetApp() *cli.App {
 	}
 }
 
-func main() {
-	translations.Setup()
-	logger.SetupDefault()
+func setLogLevel(newLevel string) {
+	level := slog.LevelInfo
+	switch newLevel {
+	case "DEBUG":
+		level = slog.LevelDebug
+	case "INFO":
+		level = slog.LevelInfo
+	case "WARN":
+		level = slog.LevelWarn
+	case "ERROR":
+		level = slog.LevelError
+	}
+	logger, ok := slog.Default().Handler().(*logger.Logger)
+	if !ok {
+		panic("unexpected")
+	}
+	logger.SetLevel(level)
+}
 
-	app := GetApp()
-	cfg := config.New()
+func main() {
+	logger.SetupDefault()
+	setLogLevel(os.Getenv("ALR_LOG_LEVEL"))
+	translations.Setup()
 
 	ctx := context.Background()
 
+	app := GetApp()
+	cfg := config.New()
+	err := cfg.Load()
+	if err != nil {
+		slog.Error(gotext.Get("Error loading config"), "err", err)
+		os.Exit(1)
+	}
+	setLogLevel(cfg.LogLevel())
 	// Set the root command to the one set in the ALR config
-	manager.DefaultRootCmd = cfg.RootCmd(ctx)
+	manager.DefaultRootCmd = cfg.RootCmd()
 
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
@@ -124,7 +153,7 @@ func main() {
 	cli.CommandHelpTemplate = cliutils.GetCommandHelpTemplate()
 	cli.HelpFlag.(*cli.BoolFlag).Usage = gotext.Get("Show help")
 
-	err := app.RunContext(ctx, os.Args)
+	err = app.RunContext(ctx, os.Args)
 	if err != nil {
 		slog.Error(gotext.Get("Error while running app"), "err", err)
 	}

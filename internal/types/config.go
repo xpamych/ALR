@@ -21,12 +21,13 @@ package types
 
 // Config represents the ALR configuration file
 type Config struct {
-	RootCmd          string   `toml:"rootCmd"`
-	PagerStyle       string   `toml:"pagerStyle"`
+	RootCmd          string   `toml:"rootCmd" env:"ALR_ROOT_CMD"`
+	PagerStyle       string   `toml:"pagerStyle" env:"ALR_PAGER_STYLE"`
 	IgnorePkgUpdates []string `toml:"ignorePkgUpdates"`
 	Repos            []Repo   `toml:"repo"`
 	Unsafe           Unsafe   `toml:"unsafe"`
-	AutoPull         bool     `toml:"autoPull"`
+	AutoPull         bool     `toml:"autoPull" env:"ALR_AUTOPULL"`
+	LogLevel         string   `toml:"logLevel" env:"ALR_LOG_LEVEL"`
 }
 
 // Repo represents a ALR repo within a configuration file
@@ -36,5 +37,5 @@ type Repo struct {
 }
 
 type Unsafe struct {
-	AllowRunAsRoot bool `toml:"allowRunAsRoot"`
+	AllowRunAsRoot bool `toml:"allowRunAsRoot" env:"ALR_UNSAFE_ALLOW_RUN_AS_ROOT"`
 }

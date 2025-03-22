@@ -30,35 +30,39 @@ msgid ""
 "Build package from scratch even if there's an already built package available"
 msgstr ""
 
-#: build.go:75
+#: build.go:73
+msgid "Error loading config"
+msgstr ""
+
+#: build.go:81
 msgid "Error initialization database"
 msgstr ""
 
-#: build.go:104
+#: build.go:110
 msgid "Package not found"
 msgstr ""
 
-#: build.go:124
+#: build.go:130
 msgid "Error pulling repositories"
 msgstr ""
 
-#: build.go:132
+#: build.go:138
 msgid "Unable to detect a supported package manager on the system"
 msgstr ""
 
-#: build.go:138
+#: build.go:144
 msgid "Error parsing os release"
 msgstr ""
 
-#: build.go:160
+#: build.go:166
 msgid "Error building package"
 msgstr ""
 
-#: build.go:167
+#: build.go:173
 msgid "Error getting working directory"
 msgstr ""
 
-#: build.go:176
+#: build.go:182
 msgid "Error moving the package"
 msgstr ""
 
@@ -66,27 +70,27 @@ msgstr ""
 msgid "Attempt to fix problems with ALR"
 msgstr ""
 
-#: fix.go:43
+#: fix.go:49
 msgid "Removing cache directory"
 msgstr ""
 
-#: fix.go:47
+#: fix.go:53
 msgid "Unable to remove cache directory"
 msgstr ""
 
-#: fix.go:51
+#: fix.go:57
 msgid "Rebuilding cache"
 msgstr ""
 
-#: fix.go:55
+#: fix.go:61
 msgid "Unable to create new cache directory"
 msgstr ""
 
-#: fix.go:69
+#: fix.go:81
 msgid "Error pulling repos"
 msgstr ""
 
-#: fix.go:73
+#: fix.go:85
 msgid "Done"
 msgstr ""
 
@@ -122,31 +126,31 @@ msgstr ""
 msgid "Show all information, not just for the current distro"
 msgstr ""
 
-#: info.go:63
+#: info.go:69
 msgid "Error getting packages"
 msgstr ""
 
-#: info.go:72
+#: info.go:78
 msgid "Error iterating over packages"
 msgstr ""
 
-#: info.go:93
+#: info.go:105
 msgid "Command info expected at least 1 argument, got %d"
 msgstr ""
 
-#: info.go:107
+#: info.go:119
 msgid "Error finding packages"
 msgstr ""
 
-#: info.go:132
+#: info.go:144
 msgid "Error parsing os-release file"
 msgstr ""
 
-#: info.go:141
+#: info.go:153
 msgid "Error resolving overrides"
 msgstr ""
 
-#: info.go:150 info.go:156
+#: info.go:162 info.go:168
 msgid "Error encoding script variables"
 msgstr ""
 
@@ -158,15 +162,15 @@ msgstr ""
 msgid "Command install expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:151
+#: install.go:157
 msgid "Remove an installed package"
 msgstr ""
 
-#: install.go:156
+#: install.go:162
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:168
+#: install.go:174
 msgid "Error removing packages"
 msgstr ""
 
@@ -250,39 +254,15 @@ msgstr ""
 msgid "OPTIONS"
 msgstr ""
 
-#: internal/config/config.go:59
-msgid "Error opening config file, using defaults"
+#: internal/config/config.go:176
+msgid "Unable to create config directory"
 msgstr ""
 
-#: internal/config/config.go:72
-msgid "Error decoding config file, using defaults"
-msgstr ""
-
-#: internal/config/config.go:84
-msgid "Unable to detect user config directory"
-msgstr ""
-
-#: internal/config/config.go:92
-msgid "Unable to create ALR config directory"
-msgstr ""
-
-#: internal/config/config.go:101
-msgid "Unable to create ALR config file"
-msgstr ""
-
-#: internal/config/config.go:107
-msgid "Error encoding default configuration"
-msgstr ""
-
-#: internal/config/config.go:116
-msgid "Unable to detect cache directory"
-msgstr ""
-
-#: internal/config/config.go:126
+#: internal/config/config.go:182
 msgid "Unable to create repo cache directory"
 msgstr ""
 
-#: internal/config/config.go:132
+#: internal/config/config.go:188
 msgid "Unable to create package cache directory"
 msgstr ""
 
@@ -327,7 +307,7 @@ msgstr ""
 msgid "List ALR repo packages"
 msgstr ""
 
-#: list.go:92
+#: list.go:98
 msgid "Error listing installed packages"
 msgstr ""
 
@@ -343,17 +323,17 @@ msgstr ""
 msgid "Enable interactive questions and prompts"
 msgstr ""
 
-#: main.go:92
+#: main.go:96
 msgid ""
 "Running ALR as root is forbidden as it may cause catastrophic damage to your "
 "system"
 msgstr ""
 
-#: main.go:125
+#: main.go:154
 msgid "Show help"
 msgstr ""
 
-#: main.go:129
+#: main.go:158
 msgid "Error while running app"
 msgstr ""
 
@@ -461,47 +441,43 @@ msgid ""
 "updating ALR if something doesn't work."
 msgstr ""
 
-#: repo.go:41
+#: repo.go:40
 msgid "Add a new repository"
 msgstr ""
 
-#: repo.go:48
+#: repo.go:47
 msgid "Name of the new repo"
 msgstr ""
 
-#: repo.go:54
+#: repo.go:53
 msgid "URL of the new repo"
 msgstr ""
 
-#: repo.go:82 repo.go:147
-msgid "Error opening config file"
+#: repo.go:86 repo.go:156
+msgid "Error saving config"
 msgstr ""
 
-#: repo.go:88 repo.go:153 repo.go:165
-msgid "Error encoding config"
-msgstr ""
-
-#: repo.go:113
+#: repo.go:111
 msgid "Remove an existing repository"
 msgstr ""
 
-#: repo.go:120
+#: repo.go:118
 msgid "Name of the repo to be deleted"
 msgstr ""
 
-#: repo.go:139
+#: repo.go:142
 msgid "Repo does not exist"
 msgstr ""
 
-#: repo.go:159
+#: repo.go:150
 msgid "Error removing repo directory"
 msgstr ""
 
-#: repo.go:176
+#: repo.go:167
 msgid "Error removing packages from database"
 msgstr ""
 
-#: repo.go:188
+#: repo.go:179
 msgid "Pull all repositories that have changed"
 msgstr ""
 
@@ -529,11 +505,11 @@ msgstr ""
 msgid "Format output using a Go template"
 msgstr ""
 
-#: search.go:82 search.go:99
+#: search.go:88 search.go:105
 msgid "Error parsing format template"
 msgstr ""
 
-#: search.go:107
+#: search.go:113
 msgid "Error executing template"
 msgstr ""
 
@@ -541,10 +517,10 @@ msgstr ""
 msgid "Upgrade all installed packages"
 msgstr ""
 
-#: upgrade.go:90
+#: upgrade.go:96
 msgid "Error checking for updates"
 msgstr ""
 
-#: upgrade.go:112
+#: upgrade.go:118
 msgid "There is nothing to do."
 msgstr ""

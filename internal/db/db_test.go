@@ -33,7 +33,7 @@ import (
 
 type TestALRConfig struct{}
 
-func (c *TestALRConfig) GetPaths(ctx context.Context) *config.Paths {
+func (c *TestALRConfig) GetPaths() *config.Paths {
 	return &config.Paths{
 		DBPath: ":memory:",
 	}

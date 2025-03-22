@@ -44,7 +44,7 @@ type TestALRConfig struct {
 	PkgsDir  string
 }
 
-func (c *TestALRConfig) GetPaths(ctx context.Context) *config.Paths {
+func (c *TestALRConfig) GetPaths() *config.Paths {
 	return &config.Paths{
 		DBPath:   ":memory:",
 		CacheDir: c.CacheDir,
@@ -53,7 +53,7 @@ func (c *TestALRConfig) GetPaths(ctx context.Context) *config.Paths {
 	}
 }
 
-func (c *TestALRConfig) Repos(ctx context.Context) []types.Repo {
+func (c *TestALRConfig) Repos() []types.Repo {
 	return []types.Repo{}
 }
 

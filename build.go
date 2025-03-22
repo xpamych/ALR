@@ -68,9 +68,15 @@ func BuildCmd() *cli.Command {
 		Action: func(c *cli.Context) error {
 			ctx := c.Context
 			cfg := config.New()
+			err := cfg.Load()
+			if err != nil {
+				slog.Error(gotext.Get("Error loading config"), "err", err)
+				os.Exit(1)
+			}
+
 			db := database.New(cfg)
 			rs := repos.New(cfg, db)
-			err := db.Init(ctx)
+			err = db.Init(ctx)
 			if err != nil {
 				slog.Error(gotext.Get("Error initialization database"), "err", err)
 				os.Exit(1)
@@ -80,7 +86,7 @@ func BuildCmd() *cli.Command {
 			var packages []string
 			repository := "default"
 
-			repoDir := cfg.GetPaths(ctx).RepoDir
+			repoDir := cfg.GetPaths().RepoDir
 
 			switch {
 			case c.IsSet("script"):
@@ -118,8 +124,8 @@ func BuildCmd() *cli.Command {
 			}
 
 			// Проверка автоматического пулла репозиториев
-			if cfg.AutoPull(ctx) {
-				err := rs.Pull(ctx, cfg.Repos(ctx))
+			if cfg.AutoPull() {
+				err := rs.Pull(ctx, cfg.Repos())
 				if err != nil {
 					slog.Error(gotext.Get("Error pulling repositories"), "err", err)
 					os.Exit(1)

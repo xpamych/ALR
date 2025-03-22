@@ -59,7 +59,7 @@ type version struct {
 }
 
 type Config interface {
-	GetPaths(ctx context.Context) *config.Paths
+	GetPaths() *config.Paths
 }
 
 type Database struct {
@@ -82,7 +82,7 @@ func (d *Database) Init(ctx context.Context) error {
 }
 
 func (d *Database) Connect(ctx context.Context) error {
-	dsn := d.config.GetPaths(ctx).DBPath
+	dsn := d.config.GetPaths().DBPath
 	db, err := sqlx.Open("sqlite", dsn)
 	if err != nil {
 		return err

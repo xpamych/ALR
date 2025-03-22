@@ -62,6 +62,25 @@ func New() *Logger {
 	}
 }
 
+func slogLevelToLog(level slog.Level) log.Level {
+	switch level {
+	case slog.LevelDebug:
+		return log.DebugLevel
+	case slog.LevelInfo:
+		return log.InfoLevel
+	case slog.LevelWarn:
+		return log.WarnLevel
+	case slog.LevelError:
+		return log.ErrorLevel
+	}
+	return log.FatalLevel
+}
+
+func (l *Logger) SetLevel(level slog.Level) {
+	l.lOut.(*log.Logger).SetLevel(slogLevelToLog(level))
+	l.lErr.(*log.Logger).SetLevel(slogLevelToLog(level))
+}
+
 func (l *Logger) Enabled(ctx context.Context, level slog.Level) bool {
 	if level <= slog.LevelInfo {
 		return l.lOut.Enabled(ctx, level)
@@ -90,7 +109,9 @@ func (l *Logger) WithGroup(name string) slog.Handler {
 	return &sl
 }
 
-func SetupDefault() {
-	logger := slog.New(New())
+func SetupDefault() *Logger {
+	l := New()
+	logger := slog.New(l)
 	slog.SetDefault(logger)
+	return l
 }
