@@ -171,7 +171,13 @@ func (c *ALRConfig) GetPaths() *Paths {
 }
 
 func (c *ALRConfig) initPaths() {
-	err := os.MkdirAll(c.paths.RepoDir, 0o755)
+	err := os.MkdirAll(filepath.Dir(c.paths.UserConfigPath), 0o755)
+	if err != nil {
+		slog.Error(gotext.Get("Unable to create config directory"), "err", err)
+		os.Exit(1)
+	}
+
+	err = os.MkdirAll(c.paths.RepoDir, 0o755)
 	if err != nil {
 		slog.Error(gotext.Get("Unable to create repo cache directory"), "err", err)
 		os.Exit(1)

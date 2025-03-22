@@ -123,6 +123,11 @@ func RemoveRepoCmd() *cli.Command {
 
 			name := c.String("name")
 			cfg := config.New()
+			err := cfg.Load()
+			if err != nil {
+				slog.Error(gotext.Get("Error loading config"), "err", err)
+				os.Exit(1)
+			}
 
 			found := false
 			index := 0
@@ -140,7 +145,7 @@ func RemoveRepoCmd() *cli.Command {
 
 			cfg.SetRepos(slices.Delete(reposSlice, index, index+1))
 
-			err := os.RemoveAll(filepath.Join(cfg.GetPaths().RepoDir, name))
+			err = os.RemoveAll(filepath.Join(cfg.GetPaths().RepoDir, name))
 			if err != nil {
 				slog.Error(gotext.Get("Error removing repo directory"), "err", err)
 				os.Exit(1)

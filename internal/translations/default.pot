@@ -255,10 +255,14 @@ msgid "OPTIONS"
 msgstr ""
 
 #: internal/config/config.go:176
-msgid "Unable to create repo cache directory"
+msgid "Unable to create config directory"
 msgstr ""
 
 #: internal/config/config.go:182
+msgid "Unable to create repo cache directory"
+msgstr ""
+
+#: internal/config/config.go:188
 msgid "Unable to create package cache directory"
 msgstr ""
 
@@ -449,7 +453,7 @@ msgstr ""
 msgid "URL of the new repo"
 msgstr ""
 
-#: repo.go:86 repo.go:151
+#: repo.go:86 repo.go:156
 msgid "Error saving config"
 msgstr ""
 
@@ -461,19 +465,19 @@ msgstr ""
 msgid "Name of the repo to be deleted"
 msgstr ""
 
-#: repo.go:137
+#: repo.go:142
 msgid "Repo does not exist"
 msgstr ""
 
-#: repo.go:145
+#: repo.go:150
 msgid "Error removing repo directory"
 msgstr ""
 
-#: repo.go:162
+#: repo.go:167
 msgid "Error removing packages from database"
 msgstr ""
 
-#: repo.go:174
+#: repo.go:179
 msgid "Pull all repositories that have changed"
 msgstr ""
 

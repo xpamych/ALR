@@ -263,10 +263,15 @@ msgid "OPTIONS"
 msgstr "ПАРАМЕТРЫ"
 
 #: internal/config/config.go:176
+#, fuzzy
+msgid "Unable to create config directory"
+msgstr "Не удалось создать каталог конфигурации ALR"
+
+#: internal/config/config.go:182
 msgid "Unable to create repo cache directory"
 msgstr "Не удалось создать каталог кэша репозитория"
 
-#: internal/config/config.go:182
+#: internal/config/config.go:188
 msgid "Unable to create package cache directory"
 msgstr "Не удалось создать каталог кэша пакетов"
 
@@ -466,7 +471,7 @@ msgstr "Название нового репозитория"
 msgid "URL of the new repo"
 msgstr "URL-адрес нового репозитория"
 
-#: repo.go:86 repo.go:151
+#: repo.go:86 repo.go:156
 #, fuzzy
 msgid "Error saving config"
 msgstr "Ошибка при кодировании конфигурации"
@@ -479,19 +484,19 @@ msgstr "Удалить существующий репозиторий"
 msgid "Name of the repo to be deleted"
 msgstr "Название репозитория  удалён"
 
-#: repo.go:137
+#: repo.go:142
 msgid "Repo does not exist"
 msgstr "Репозитория не существует"
 
-#: repo.go:145
+#: repo.go:150
 msgid "Error removing repo directory"
 msgstr "Ошибка при удалении каталога репозитория"
 
-#: repo.go:162
+#: repo.go:167
 msgid "Error removing packages from database"
 msgstr "Ошибка при удалении пакетов из базы данных"
 
-#: repo.go:174
+#: repo.go:179
 msgid "Pull all repositories that have changed"
 msgstr "Скачать все изменённые репозитории"
 
@@ -551,9 +556,6 @@ msgstr "Здесь нечего делать."
 
 #~ msgid "Unable to detect user config directory"
 #~ msgstr "Не удалось обнаружить каталог конфигурации пользователя"
-
-#~ msgid "Unable to create ALR config directory"
-#~ msgstr "Не удалось создать каталог конфигурации ALR"
 
 #~ msgid "Unable to create ALR config file"
 #~ msgstr "Не удалось создать конфигурационный файл ALR"
