@@ -41,7 +41,7 @@ var defaultConfig = &types.Config{
 	RootCmd:          "sudo",
 	PagerStyle:       "native",
 	IgnorePkgUpdates: []string{},
-	AutoPull:         false,
+	AutoPull:         true,
 	Repos:            []types.Repo{},
 }
 
