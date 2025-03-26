@@ -375,39 +375,39 @@ msgstr ""
 msgid "Installing build dependencies"
 msgstr ""
 
-#: pkg/build/build.go:517
+#: pkg/build/build.go:521
 msgid "Installing dependencies"
 msgstr ""
 
-#: pkg/build/build.go:598
+#: pkg/build/build.go:602
 msgid "Would you like to remove the build dependencies?"
 msgstr ""
 
-#: pkg/build/build.go:661
+#: pkg/build/build.go:665
 msgid "Executing prepare()"
 msgstr ""
 
-#: pkg/build/build.go:671
+#: pkg/build/build.go:675
 msgid "Executing build()"
 msgstr ""
 
-#: pkg/build/build.go:701 pkg/build/build.go:721
+#: pkg/build/build.go:705 pkg/build/build.go:725
 msgid "Executing %s()"
 msgstr ""
 
-#: pkg/build/build.go:780
+#: pkg/build/build.go:784
 msgid "Error installing native packages"
 msgstr ""
 
-#: pkg/build/build.go:804
+#: pkg/build/build.go:808
 msgid "Error installing package"
 msgstr ""
 
-#: pkg/build/build.go:863
+#: pkg/build/build.go:867
 msgid "AutoProv is not implemented for this package format, so it's skipped"
 msgstr ""
 
-#: pkg/build/build.go:874
+#: pkg/build/build.go:878
 msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 

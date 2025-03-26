@@ -489,13 +489,17 @@ func (b *Builder) getBuildersForPackages(pkgs []db.Package) []*Builder {
 	}
 	pkgsMap := make(map[string]*item)
 	for _, pkg := range pkgs {
-		if pkgsMap[pkg.BasePkgName] == nil {
-			pkgsMap[pkg.BasePkgName] = &item{
+		name := pkg.BasePkgName
+		if name == "" {
+			name = pkg.Name
+		}
+		if pkgsMap[name] == nil {
+			pkgsMap[name] = &item{
 				pkg: &pkg,
 			}
 		}
-		pkgsMap[pkg.BasePkgName].packages = append(
-			pkgsMap[pkg.BasePkgName].packages,
+		pkgsMap[name].packages = append(
+			pkgsMap[name].packages,
 			pkg.Name,
 		)
 	}

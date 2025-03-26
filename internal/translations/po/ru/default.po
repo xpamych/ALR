@@ -389,40 +389,40 @@ msgstr "Этот пакет уже установлен"
 msgid "Installing build dependencies"
 msgstr "Установка зависимостей сборки"
 
-#: pkg/build/build.go:517
+#: pkg/build/build.go:521
 msgid "Installing dependencies"
 msgstr "Установка зависимостей"
 
-#: pkg/build/build.go:598
+#: pkg/build/build.go:602
 msgid "Would you like to remove the build dependencies?"
 msgstr "Хотели бы вы удалить зависимости сборки?"
 
-#: pkg/build/build.go:661
+#: pkg/build/build.go:665
 msgid "Executing prepare()"
 msgstr "Исполнение prepare()"
 
-#: pkg/build/build.go:671
+#: pkg/build/build.go:675
 msgid "Executing build()"
 msgstr "Исполнение build()"
 
-#: pkg/build/build.go:701 pkg/build/build.go:721
+#: pkg/build/build.go:705 pkg/build/build.go:725
 msgid "Executing %s()"
 msgstr "Исполнение %s()"
 
-#: pkg/build/build.go:780
+#: pkg/build/build.go:784
 msgid "Error installing native packages"
 msgstr "Ошибка при установке нативных пакетов"
 
-#: pkg/build/build.go:804
+#: pkg/build/build.go:808
 msgid "Error installing package"
 msgstr "Ошибка при установке пакета"
 
-#: pkg/build/build.go:863
+#: pkg/build/build.go:867
 msgid "AutoProv is not implemented for this package format, so it's skipped"
 msgstr ""
 "AutoProv не реализовано для этого формата пакета, поэтому будет пропущено"
 
-#: pkg/build/build.go:874
+#: pkg/build/build.go:878
 msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 "AutoReq не реализовано для этого формата пакета, поэтому будет пропущено"
