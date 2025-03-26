@@ -169,7 +169,10 @@ func RemoveCmd() *cli.Command {
 				os.Exit(1)
 			}
 
-			err := mgr.Remove(nil, c.Args().Slice()...)
+			err := mgr.Remove(&manager.Opts{
+				AsRoot:    true,
+				NoConfirm: !c.Bool("interactive"),
+			}, c.Args().Slice()...)
 			if err != nil {
 				slog.Error(gotext.Get("Error removing packages"), "err", err)
 				os.Exit(1)
