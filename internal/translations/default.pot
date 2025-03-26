@@ -170,7 +170,7 @@ msgstr ""
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:174
+#: install.go:177
 msgid "Error removing packages"
 msgstr ""
 

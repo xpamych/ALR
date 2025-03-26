@@ -178,7 +178,7 @@ msgstr "Удалить установленный пакет"
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr "Для команды remove ожидался хотя бы 1 аргумент, получено %d"
 
-#: install.go:174
+#: install.go:177
 msgid "Error removing packages"
 msgstr "Ошибка при удалении пакетов"
 
