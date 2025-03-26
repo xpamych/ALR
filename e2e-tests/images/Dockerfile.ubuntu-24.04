@@ -1,5 +1,7 @@
 FROM ubuntu:24.10
-RUN apt update && apt install -y ca-certificates
-RUN useradd -m -s /bin/bash alr-user
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates sudo
+RUN useradd -m -s /bin/bash alr-user && \
+    echo "alr-user ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/alr-user && \
+    chmod 0440 /etc/sudoers.d/alr-user
 USER alr-user
 ENTRYPOINT ["tail", "-f", "/dev/null"]

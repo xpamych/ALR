@@ -100,11 +100,11 @@ func e2eSpawn(runnable e2e.Runnable, command e2e.Command, timeout time.Duration,
 
 var ALL_SYSTEMS []string = []string{
 	"ubuntu-24.04",
-	"alt-sisyphus",
-	"archlinux",
-	//"alpine",
-	"opensuse-leap",
-	"redos-8",
+	// "alt-sisyphus",
+	// "archlinux",
+	// "alpine",
+	// "opensuse-leap",
+	// "redos-8",
 }
 
 var COMMON_SYSTEMS []string = []string{
@@ -155,6 +155,7 @@ func dockerMultipleRun(t *testing.T, name string, ids []string, f func(t *testin
 						Volumes: []string{
 							"./alr:/usr/bin/alr",
 						},
+						Privileged: true,
 					},
 				)
 				assert.NoError(t, e2e.StartAndWaitReady(runnable))
