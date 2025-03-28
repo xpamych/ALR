@@ -97,14 +97,15 @@ if [ -z "$noPkgMgr" ]; then
   echo "Полученный список файлов:"
   echo "$fileList"
 
-  if [ "$pkgMgr" == "pacman" ]; then
-    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*.pkg.tar.zst' | sort -V | tail -n 1)
-  elif [ "$pkgMgr" == "apt" ]; then
-    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*.amd64.deb' | sort -V | tail -n 1)
-  elif [[ "$pkgMgr" == "dnf" || "$pkgMgr" == "yum" || "$pkgMgr" == "zypper" ]]; then
-    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*\.x86_64\.rpm' | grep -v 'alt1' | sort -V | tail -n 1)
-  elif [[ "$pkgMgr" == "apt-get"  ]]; then
-    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*alt1.x86_64.rpm' | sort -V | tail -n 1)
+if [ "$pkgMgr" == "pacman" ]; then
+    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*\.pkg\.tar\.zst' | sort -V | tail -n 1)
+elif [ "$pkgMgr" == "apt" ]; then
+    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*\.amd64\.deb' | sort -V | tail -n 1)
+elif [ "$pkgMgr" == "apt-get" ]; then
+    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*-alt[0-9]+\.x86_64\.rpm' | sort -V | tail -n 1)
+elif [[ "$pkgMgr" == "dnf" || "$pkgMgr" == "yum" || "$pkgMgr" == "zypper" ]]; then
+    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*\.x86_64\.rpm' | sort -V | tail -n 1)
+fi
 
   else
     error "Не поддерживаемый менеджер пакетов для автоматической установки"
