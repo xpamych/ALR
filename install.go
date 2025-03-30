@@ -124,8 +124,14 @@ func InstallCmd() *cli.Command {
 		},
 		BashComplete: func(c *cli.Context) {
 			cfg := config.New()
+			err := cfg.Load()
+			if err != nil {
+				slog.Error(gotext.Get("Error loading config"), "err", err)
+				os.Exit(1)
+			}
+
 			db := database.New(cfg)
-			err := db.Init(c.Context)
+			err = db.Init(c.Context)
 			if err != nil {
 				slog.Error(gotext.Get("Error initialization database"), "err", err)
 				os.Exit(1)
