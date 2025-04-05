@@ -337,90 +337,90 @@ msgstr ""
 msgid "Error while running app"
 msgstr ""
 
-#: pkg/build/build.go:156
+#: pkg/build/build.go:157
 msgid "Failed to prompt user to view build script"
 msgstr ""
 
-#: pkg/build/build.go:160
+#: pkg/build/build.go:161
 msgid "Building package"
 msgstr ""
 
-#: pkg/build/build.go:208
+#: pkg/build/build.go:209
 msgid "The checksums array must be the same length as sources"
 msgstr ""
 
-#: pkg/build/build.go:235
+#: pkg/build/build.go:238
 msgid "Downloading sources"
 msgstr ""
 
-#: pkg/build/build.go:257
+#: pkg/build/build.go:260
 msgid "Building package metadata"
 msgstr ""
 
-#: pkg/build/build.go:279
+#: pkg/build/build.go:282
 msgid "Compressing package"
 msgstr ""
 
-#: pkg/build/build.go:438
+#: pkg/build/build.go:441
 msgid ""
 "Your system's CPU architecture doesn't match this package. Do you want to "
 "build anyway?"
 msgstr ""
 
-#: pkg/build/build.go:452
+#: pkg/build/build.go:455
 msgid "This package is already installed"
 msgstr ""
 
-#: pkg/build/build.go:476
+#: pkg/build/build.go:479
 msgid "Installing build dependencies"
 msgstr ""
 
-#: pkg/build/build.go:521
+#: pkg/build/build.go:524
 msgid "Installing dependencies"
 msgstr ""
 
-#: pkg/build/build.go:602
+#: pkg/build/build.go:605
 msgid "Would you like to remove the build dependencies?"
 msgstr ""
 
-#: pkg/build/build.go:665
+#: pkg/build/build.go:668
 msgid "Executing prepare()"
 msgstr ""
 
-#: pkg/build/build.go:675
+#: pkg/build/build.go:678
 msgid "Executing build()"
 msgstr ""
 
-#: pkg/build/build.go:705 pkg/build/build.go:725
+#: pkg/build/build.go:708 pkg/build/build.go:728
 msgid "Executing %s()"
 msgstr ""
 
-#: pkg/build/build.go:784
+#: pkg/build/build.go:787
 msgid "Error installing native packages"
 msgstr ""
 
-#: pkg/build/build.go:808
+#: pkg/build/build.go:811
 msgid "Error installing package"
 msgstr ""
 
-#: pkg/build/build.go:867
-msgid "AutoProv is not implemented for this package format, so it's skipped"
-msgstr ""
-
-#: pkg/build/build.go:878
-msgid "AutoReq is not implemented for this package format, so it's skipped"
-msgstr ""
-
-#: pkg/build/findDeps.go:35
+#: pkg/build/find_deps/alt_linux.go:35
 msgid "Command not found on the system"
 msgstr ""
 
-#: pkg/build/findDeps.go:82
+#: pkg/build/find_deps/alt_linux.go:86
 msgid "Provided dependency found"
 msgstr ""
 
-#: pkg/build/findDeps.go:89
+#: pkg/build/find_deps/alt_linux.go:93
 msgid "Required dependency found"
+msgstr ""
+
+#: pkg/build/find_deps/empty.go:32
+msgid "AutoProv is not implemented for this package format, so it's skipped"
+msgstr ""
+
+#: pkg/build/find_deps/empty.go:37
+msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 
 #: pkg/repos/pull.go:79

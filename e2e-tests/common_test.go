@@ -100,11 +100,17 @@ func e2eSpawn(runnable e2e.Runnable, command e2e.Command, timeout time.Duration,
 
 var ALL_SYSTEMS []string = []string{
 	"ubuntu-24.04",
-	// "alt-sisyphus",
+	"alt-sisyphus",
+	"fedora-41",
 	// "archlinux",
 	// "alpine",
 	// "opensuse-leap",
 	// "redos-8",
+}
+
+var AUTOREQ_AUTOPROV_SYSTEMS []string = []string{
+	"alt-sisyphus",
+	"fedora-41",
 }
 
 var COMMON_SYSTEMS []string = []string{

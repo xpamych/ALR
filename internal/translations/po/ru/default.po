@@ -349,31 +349,31 @@ msgstr "Показать справку"
 msgid "Error while running app"
 msgstr "Ошибка при запуске приложения"
 
-#: pkg/build/build.go:156
+#: pkg/build/build.go:157
 msgid "Failed to prompt user to view build script"
 msgstr "Не удалось предложить пользователю просмотреть скрипт сборки"
 
-#: pkg/build/build.go:160
+#: pkg/build/build.go:161
 msgid "Building package"
 msgstr "Сборка пакета"
 
-#: pkg/build/build.go:208
+#: pkg/build/build.go:209
 msgid "The checksums array must be the same length as sources"
 msgstr "Массив контрольных сумм должен быть той же длины, что и источники"
 
-#: pkg/build/build.go:235
+#: pkg/build/build.go:238
 msgid "Downloading sources"
 msgstr "Скачивание источников"
 
-#: pkg/build/build.go:257
+#: pkg/build/build.go:260
 msgid "Building package metadata"
 msgstr "Сборка метаданных пакета"
 
-#: pkg/build/build.go:279
+#: pkg/build/build.go:282
 msgid "Compressing package"
 msgstr "Сжатие пакета"
 
-#: pkg/build/build.go:438
+#: pkg/build/build.go:441
 msgid ""
 "Your system's CPU architecture doesn't match this package. Do you want to "
 "build anyway?"
@@ -381,63 +381,63 @@ msgstr ""
 "Архитектура процессора вашей системы не соответствует этому пакету. Вы все "
 "равно хотите выполнить сборку?"
 
-#: pkg/build/build.go:452
+#: pkg/build/build.go:455
 msgid "This package is already installed"
 msgstr "Этот пакет уже установлен"
 
-#: pkg/build/build.go:476
+#: pkg/build/build.go:479
 msgid "Installing build dependencies"
 msgstr "Установка зависимостей сборки"
 
-#: pkg/build/build.go:521
+#: pkg/build/build.go:524
 msgid "Installing dependencies"
 msgstr "Установка зависимостей"
 
-#: pkg/build/build.go:602
+#: pkg/build/build.go:605
 msgid "Would you like to remove the build dependencies?"
 msgstr "Хотели бы вы удалить зависимости сборки?"
 
-#: pkg/build/build.go:665
+#: pkg/build/build.go:668
 msgid "Executing prepare()"
 msgstr "Исполнение prepare()"
 
-#: pkg/build/build.go:675
+#: pkg/build/build.go:678
 msgid "Executing build()"
 msgstr "Исполнение build()"
 
-#: pkg/build/build.go:705 pkg/build/build.go:725
+#: pkg/build/build.go:708 pkg/build/build.go:728
 msgid "Executing %s()"
 msgstr "Исполнение %s()"
 
-#: pkg/build/build.go:784
+#: pkg/build/build.go:787
 msgid "Error installing native packages"
 msgstr "Ошибка при установке нативных пакетов"
 
-#: pkg/build/build.go:808
+#: pkg/build/build.go:811
 msgid "Error installing package"
 msgstr "Ошибка при установке пакета"
 
-#: pkg/build/build.go:867
+#: pkg/build/find_deps/alt_linux.go:35
+msgid "Command not found on the system"
+msgstr "Команда не найдена в системе"
+
+#: pkg/build/find_deps/alt_linux.go:86
+msgid "Provided dependency found"
+msgstr "Найденная предоставленная зависимость"
+
+#: pkg/build/find_deps/alt_linux.go:93
+msgid "Required dependency found"
+msgstr "Найдена требуемая зависимость"
+
+#: pkg/build/find_deps/empty.go:32
 msgid "AutoProv is not implemented for this package format, so it's skipped"
 msgstr ""
 "AutoProv не реализовано для этого формата пакета, поэтому будет пропущено"
 
-#: pkg/build/build.go:878
+#: pkg/build/find_deps/empty.go:37
 msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 "AutoReq не реализовано для этого формата пакета, поэтому будет пропущено"
-
-#: pkg/build/findDeps.go:35
-msgid "Command not found on the system"
-msgstr "Команда не найдена в системе"
-
-#: pkg/build/findDeps.go:82
-msgid "Provided dependency found"
-msgstr "Найденная предоставленная зависимость"
-
-#: pkg/build/findDeps.go:89
-msgid "Required dependency found"
-msgstr "Найдена требуемая зависимость"
 
 #: pkg/repos/pull.go:79
 msgid "Pulling repository"

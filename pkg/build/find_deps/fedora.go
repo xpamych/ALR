@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-package build
+package finddeps
 
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"log/slog"
 	"os/exec"
 	"path"
@@ -30,7 +31,9 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 )
 
-func rpmFindDependencies(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Directories, command string, updateFunc func(string)) error {
+type FedoraFindProvReq struct{}
+
+func rpmFindDependenciesFedora(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Directories, command string, args []string, updateFunc func(string)) error {
 	if _, err := exec.LookPath(command); err != nil {
 		slog.Info(gotext.Get("Command not found on the system"), "command", command)
 		return nil
@@ -49,14 +52,10 @@ func rpmFindDependencies(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Dir
 		return nil
 	}
 
-	cmd := exec.Command(command)
-	cmd.Stdin = bytes.NewBufferString(strings.Join(paths, "\n"))
+	cmd := exec.CommandContext(ctx, command, args...)
+	cmd.Stdin = bytes.NewBufferString(strings.Join(paths, "\n") + "\n")
 	cmd.Env = append(cmd.Env,
 		"RPM_BUILD_ROOT="+dirs.PkgDir,
-		"RPM_FINDPROV_METHOD=",
-		"RPM_FINDREQ_METHOD=",
-		"RPM_DATADIR=",
-		"RPM_SUBPACKAGE_NAME=",
 	)
 	var out bytes.Buffer
 	var stderr bytes.Buffer
@@ -66,6 +65,7 @@ func rpmFindDependencies(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Dir
 		slog.Error(stderr.String())
 		return err
 	}
+	slog.Debug(stderr.String())
 
 	dependencies := strings.Split(strings.TrimSpace(out.String()), "\n")
 	for _, dep := range dependencies {
@@ -77,16 +77,42 @@ func rpmFindDependencies(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Dir
 	return nil
 }
 
-func rpmFindProvides(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Directories) error {
-	return rpmFindDependencies(ctx, pkgInfo, dirs, "/usr/lib/rpm/find-provides", func(dep string) {
-		slog.Info(gotext.Get("Provided dependency found"), "dep", dep)
-		pkgInfo.Overridables.Provides = append(pkgInfo.Overridables.Provides, dep)
-	})
+func (o *FedoraFindProvReq) FindProvides(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Directories, skiplist []string) error {
+	return rpmFindDependenciesFedora(
+		ctx,
+		pkgInfo,
+		dirs,
+		"/usr/lib/rpm/rpmdeps",
+		[]string{
+			"--define=_use_internal_dependency_generator 1",
+			"--provides",
+			fmt.Sprintf(
+				"--define=__provides_exclude_from %s\"",
+				strings.Join(skiplist, "|"),
+			),
+		},
+		func(dep string) {
+			slog.Info(gotext.Get("Provided dependency found"), "dep", dep)
+			pkgInfo.Overridables.Provides = append(pkgInfo.Overridables.Provides, dep)
+		})
 }
 
-func rpmFindRequires(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Directories) error {
-	return rpmFindDependencies(ctx, pkgInfo, dirs, "/usr/lib/rpm/find-requires", func(dep string) {
-		slog.Info(gotext.Get("Required dependency found"), "dep", dep)
-		pkgInfo.Overridables.Depends = append(pkgInfo.Overridables.Depends, dep)
-	})
+func (o *FedoraFindProvReq) FindRequires(ctx context.Context, pkgInfo *nfpm.Info, dirs types.Directories, skiplist []string) error {
+	return rpmFindDependenciesFedora(
+		ctx,
+		pkgInfo,
+		dirs,
+		"/usr/lib/rpm/rpmdeps",
+		[]string{
+			"--define=_use_internal_dependency_generator 1",
+			"--requires",
+			fmt.Sprintf(
+				"--define=__requires_exclude_from %s",
+				strings.Join(skiplist, "|"),
+			),
+		},
+		func(dep string) {
+			slog.Info(gotext.Get("Required dependency found"), "dep", dep)
+			pkgInfo.Overridables.Depends = append(pkgInfo.Overridables.Depends, dep)
+		})
 }
