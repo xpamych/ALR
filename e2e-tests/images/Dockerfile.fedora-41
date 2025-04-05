@@ -1,0 +1,8 @@
+FROM fedora:41
+RUN dnf install -y ca-certificates sudo rpm-build
+RUN useradd -m -s /bin/bash alr-user && \
+    echo "alr-user ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/alr-user && \
+    chmod 0440 /etc/sudoers.d/alr-user
+USER alr-user
+WORKDIR /home/alr-user
+ENTRYPOINT ["tail", "-f", "/dev/null"]

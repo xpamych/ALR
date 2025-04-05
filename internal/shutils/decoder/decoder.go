@@ -123,12 +123,26 @@ func (d *Decoder) DecodeVars(val any) error {
 	}
 
 	rVal := reflect.ValueOf(val).Elem()
+	return d.decodeStruct(rVal)
+}
 
+func (d *Decoder) decodeStruct(rVal reflect.Value) error {
 	for i := 0; i < rVal.NumField(); i++ {
 		field := rVal.Field(i)
 		fieldType := rVal.Type().Field(i)
 
+		// Пропускаем неэкспортируемые поля
 		if !fieldType.IsExported() {
+			continue
+		}
+
+		// Обрабатываем встроенные поля рекурсивно
+		if fieldType.Anonymous {
+			if field.Kind() == reflect.Struct {
+				if err := d.decodeStruct(field); err != nil {
+					return err
+				}
+			}
 			continue
 		}
 
@@ -160,7 +174,6 @@ func (d *Decoder) DecodeVars(val any) error {
 
 		field.Set(newVal.Elem())
 	}
-
 	return nil
 }
 

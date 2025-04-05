@@ -50,6 +50,7 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/helpers"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
+	finddeps "gitea.plemya-x.ru/Plemya-x/ALR/pkg/build/find_deps"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 )
@@ -211,8 +212,10 @@ func (b *Builder) BuildPackage(ctx context.Context) ([]string, []string, error) 
 	sources, checksums = removeDuplicatesSources(sources, checksums)
 
 	mergedVars := types.BuildVars{
-		Sources:   sources,
-		Checksums: checksums,
+		BuildVarsPre: types.BuildVarsPre{
+			Sources:   sources,
+			Checksums: checksums,
+		},
 	}
 
 	buildDeps, err := b.installBuildDeps(ctx, buildDepends) // Устанавливаем зависимости для сборки
@@ -858,24 +861,18 @@ func (b *Builder) buildPkgMetadata(
 	pkgInfo.Overridables.Contents = contents
 
 	if len(vars.AutoProv) == 1 && decoder.IsTruthy(vars.AutoProv[0]) {
-		if pkgFormat == "rpm" {
-			err = rpmFindProvides(ctx, pkgInfo, dirs)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			slog.Info(gotext.Get("AutoProv is not implemented for this package format, so it's skipped"))
+		f := finddeps.New(b.info, pkgFormat)
+		err = f.FindProvides(ctx, pkgInfo, dirs, vars.AutoProvSkipList)
+		if err != nil {
+			return nil, err
 		}
 	}
 
 	if len(vars.AutoReq) == 1 && decoder.IsTruthy(vars.AutoReq[0]) {
-		if pkgFormat == "rpm" {
-			err = rpmFindRequires(ctx, pkgInfo, dirs)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			slog.Info(gotext.Get("AutoReq is not implemented for this package format, so it's skipped"))
+		f := finddeps.New(b.info, pkgFormat)
+		err = f.FindRequires(ctx, pkgInfo, dirs, vars.AutoReqSkipList)
+		if err != nil {
+			return nil, err
 		}
 	}
 
