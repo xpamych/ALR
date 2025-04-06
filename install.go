@@ -162,6 +162,64 @@ func RemoveCmd() *cli.Command {
 		Name:    "remove",
 		Usage:   gotext.Get("Remove an installed package"),
 		Aliases: []string{"rm"},
+		BashComplete: func(c *cli.Context) {
+			cfg := config.New()
+			err := cfg.Load()
+			if err != nil {
+				slog.Error(gotext.Get("Error loading config"), "err", err)
+				os.Exit(1)
+			}
+
+			db := database.New(cfg)
+			err = db.Init(c.Context)
+			if err != nil {
+				slog.Error(gotext.Get("Error initialization database"), "err", err)
+				os.Exit(1)
+			}
+
+			installedAlrPackages := map[string]string{}
+			mgr := manager.Detect()
+			if mgr == nil {
+				slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
+				os.Exit(1)
+			}
+			installed, err := mgr.ListInstalled(&manager.Opts{AsRoot: false})
+			if err != nil {
+				slog.Error(gotext.Get("Error listing installed packages"), "err", err)
+				os.Exit(1)
+			}
+			for pkgName, version := range installed {
+				matches := build.RegexpALRPackageName.FindStringSubmatch(pkgName)
+				if matches != nil {
+					packageName := matches[build.RegexpALRPackageName.SubexpIndex("package")]
+					repoName := matches[build.RegexpALRPackageName.SubexpIndex("repo")]
+					installedAlrPackages[fmt.Sprintf("%s/%s", repoName, packageName)] = version
+				}
+			}
+
+			result, err := db.GetPkgs(c.Context, "true")
+			if err != nil {
+				slog.Error(gotext.Get("Error getting packages"), "err", err)
+				os.Exit(1)
+			}
+			defer result.Close()
+
+			for result.Next() {
+				var pkg database.Package
+				err = result.StructScan(&pkg)
+				if err != nil {
+					slog.Error(gotext.Get("Error iterating over packages"), "err", err)
+					os.Exit(1)
+				}
+
+				_, ok := installedAlrPackages[fmt.Sprintf("%s/%s", pkg.Repository, pkg.Name)]
+				if !ok {
+					continue
+				}
+
+				fmt.Println(pkg.Name)
+			}
+		},
 		Action: func(c *cli.Context) error {
 			args := c.Args()
 			if args.Len() < 1 {

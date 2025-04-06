@@ -174,11 +174,15 @@ msgstr "Для команды install ожидался хотя бы 1 аргу�
 msgid "Remove an installed package"
 msgstr "Удалить установленный пакет"
 
-#: install.go:168
+#: install.go:188
+msgid "Error listing installed packages"
+msgstr "Ошибка при составлении списка установленных пакетов"
+
+#: install.go:226
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr "Для команды remove ожидался хотя бы 1 аргумент, получено %d"
 
-#: install.go:183
+#: install.go:241
 msgid "Error removing packages"
 msgstr "Ошибка при удалении пакетов"
 
@@ -316,10 +320,6 @@ msgstr "ОШИБКА"
 #: list.go:41
 msgid "List ALR repo packages"
 msgstr "Список пакетов репозитория ALR"
-
-#: list.go:98
-msgid "Error listing installed packages"
-msgstr "Ошибка при составлении списка установленных пакетов"
 
 #: main.go:45
 msgid "Print the current ALR version and exit"
