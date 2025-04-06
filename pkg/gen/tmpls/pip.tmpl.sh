@@ -41,10 +41,10 @@ checksums=('blake2b-256:{{.SourceURL.Digests.blake2b_256}}')
 
 build() {
 	cd "$srcdir/{{.Info.Name}}-${version}"
-  python3 -m build
+  python -m build --wheel --no-isolation
 }
 
 package() {
 	cd "$srcdir/{{.Info.Name}}-${version}"
-	pip install --root="${pkgdir}/" . --no-deps --disable-pip-version-check
+	pip install --root="${pkgdir}/" . --no-deps --ignore-installed --disable-pip-version-check
 }
