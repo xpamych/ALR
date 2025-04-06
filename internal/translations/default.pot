@@ -166,11 +166,15 @@ msgstr ""
 msgid "Remove an installed package"
 msgstr ""
 
-#: install.go:168
+#: install.go:188
+msgid "Error listing installed packages"
+msgstr ""
+
+#: install.go:226
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:183
+#: install.go:241
 msgid "Error removing packages"
 msgstr ""
 
@@ -305,10 +309,6 @@ msgstr ""
 
 #: list.go:41
 msgid "List ALR repo packages"
-msgstr ""
-
-#: list.go:98
-msgid "Error listing installed packages"
 msgstr ""
 
 #: main.go:45
