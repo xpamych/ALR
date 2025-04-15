@@ -27,27 +27,22 @@ import (
 var Args []string
 
 type Opts struct {
-	AsRoot    bool
 	NoConfirm bool
 	Args      []string
 }
 
 var DefaultOpts = &Opts{
-	AsRoot:    true,
 	NoConfirm: false,
 }
 
-// DefaultRootCmd is the command used for privilege elevation by default
-var DefaultRootCmd = "sudo"
-
 var managers = []Manager{
-	&Pacman{},
-	&APT{},
-	&DNF{},
-	&YUM{},
-	&APK{},
-	&Zypper{},
-	&APTRpm{},
+	NewPacman(),
+	NewAPT(),
+	NewDNF(),
+	NewYUM(),
+	NewAPK(),
+	NewZypper(),
+	NewAPTRpm(),
 }
 
 // Register registers a new package manager
@@ -64,8 +59,7 @@ type Manager interface {
 	Format() string
 	// Returns true if the package manager exists on the system.
 	Exists() bool
-	// Sets the command used to elevate privileges. Defaults to DefaultRootCmd.
-	SetRootCmd(string)
+
 	// Sync fetches repositories without installing anything
 	Sync(*Opts) error
 	// Install installs packages
@@ -104,18 +98,10 @@ func Get(name string) Manager {
 	return nil
 }
 
-// getRootCmd returns rootCmd if it's not empty, otherwise returns DefaultRootCmd
-func getRootCmd(rootCmd string) string {
-	if rootCmd != "" {
-		return rootCmd
-	}
-	return DefaultRootCmd
-}
-
 func setCmdEnv(cmd *exec.Cmd) {
 	cmd.Env = os.Environ()
 	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
+	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
 }
 

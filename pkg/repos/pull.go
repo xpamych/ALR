@@ -268,6 +268,7 @@ func (rs *Repos) processRepoChangesRunner(repoDir, scriptDir string) (*interp.Ru
 		interp.StatHandler(handlers.RestrictedStat(repoDir)),
 		interp.OpenHandler(handlers.RestrictedOpen(repoDir)),
 		interp.StdIO(handlers.NopRWC{}, handlers.NopRWC{}, handlers.NopRWC{}),
+		interp.Dir(scriptDir),
 	)
 }
 

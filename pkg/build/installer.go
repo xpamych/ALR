@@ -14,27 +14,41 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-//go:build e2e
-
-package e2etests_test
+package build
 
 import (
-	"testing"
-
-	"github.com/alecthomas/assert/v2"
-	"github.com/efficientgo/e2e"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 )
 
-func TestE2EIssue32Interactive(t *testing.T) {
-	dockerMultipleRun(
-		t,
-		"issue-32-interactive",
-		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
-			err := r.Exec(e2e.NewCommand(
-				"sudo", "alr", "--interactive=false", "remove", "ca-certificates",
-			))
-			assert.NoError(t, err)
-		},
-	)
+func NewInstaller(mgr manager.Manager) *Installer {
+	return &Installer{
+		mgr: mgr,
+	}
+}
+
+type Installer struct{ mgr manager.Manager }
+
+func (i *Installer) InstallLocal(paths []string) error {
+	return i.mgr.InstallLocal(nil, paths...)
+}
+
+func (i *Installer) Install(pkgs []string) error {
+	return i.mgr.Install(nil, pkgs...)
+}
+
+func (i *Installer) RemoveAlreadyInstalled(pkgs []string) ([]string, error) {
+	filteredPackages := []string{}
+
+	for _, dep := range pkgs {
+		installed, err := i.mgr.IsInstalled(dep)
+		if err != nil {
+			return nil, err
+		}
+		if installed {
+			continue
+		}
+		filteredPackages = append(filteredPackages, dep)
+	}
+
+	return filteredPackages, nil
 }

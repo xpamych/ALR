@@ -21,7 +21,6 @@ package main
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 
 	"github.com/jeandeaual/go-locale"
@@ -30,11 +29,11 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
 	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
 func InfoCmd() *cli.Command {
@@ -48,26 +47,25 @@ func InfoCmd() *cli.Command {
 				Usage:   gotext.Get("Show all information, not just for the current distro"),
 			},
 		},
-		BashComplete: func(c *cli.Context) {
+		BashComplete: cliutils.BashCompleteWithError(func(c *cli.Context) error {
+			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
+				return err
+			}
+
 			ctx := c.Context
-			cfg := config.New()
-			err := cfg.Load()
+			deps, err := appbuilder.
+				New(ctx).
+				WithConfig().
+				WithDB().
+				Build()
 			if err != nil {
-				slog.Error(gotext.Get("Error loading config"), "err", err)
-				os.Exit(1)
+				return err
 			}
+			defer deps.Defer()
 
-			db := database.New(cfg)
-			err = db.Init(ctx)
+			result, err := deps.DB.GetPkgs(c.Context, "true")
 			if err != nil {
-				slog.Error(gotext.Get("Error initialization database"), "err", err)
-				os.Exit(1)
-			}
-
-			result, err := db.GetPkgs(c.Context, "true")
-			if err != nil {
-				slog.Error(gotext.Get("Error getting packages"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Error getting packages"), err)
 			}
 			defer result.Close()
 
@@ -75,53 +73,45 @@ func InfoCmd() *cli.Command {
 				var pkg database.Package
 				err = result.StructScan(&pkg)
 				if err != nil {
-					slog.Error(gotext.Get("Error iterating over packages"), "err", err)
-					os.Exit(1)
+					return cliutils.FormatCliExit(gotext.Get("Error iterating over packages"), err)
 				}
 
 				fmt.Println(pkg.Name)
 			}
-		},
+			return nil
+		}),
 		Action: func(c *cli.Context) error {
-			ctx := c.Context
-
-			cfg := config.New()
-			err := cfg.Load()
-			if err != nil {
-				slog.Error(gotext.Get("Error loading config"), "err", err)
-				os.Exit(1)
+			if err := utils.ExitIfCantDropCapsToAlrUserNoPrivs(); err != nil {
+				return err
 			}
-
-			db := database.New(cfg)
-			err = db.Init(ctx)
-			if err != nil {
-				slog.Error(gotext.Get("Error initialization database"), "err", err)
-				os.Exit(1)
-			}
-			rs := repos.New(cfg, db)
 
 			args := c.Args()
 			if args.Len() < 1 {
-				slog.Error(gotext.Get("Command info expected at least 1 argument, got %d", args.Len()))
-				os.Exit(1)
+				return cli.Exit(gotext.Get("Command info expected at least 1 argument, got %d", args.Len()), 1)
 			}
 
-			if cfg.AutoPull() {
-				err := rs.Pull(ctx, cfg.Repos())
-				if err != nil {
-					slog.Error(gotext.Get("Error pulling repos"), "err", err)
-					os.Exit(1)
-				}
+			ctx := c.Context
+
+			deps, err := appbuilder.
+				New(ctx).
+				WithConfig().
+				WithDB().
+				WithRepos().
+				Build()
+			if err != nil {
+				return cli.Exit(err, 1)
 			}
+			defer deps.Defer()
+
+			rs := deps.Repos
 
 			found, _, err := rs.FindPkgs(ctx, args.Slice())
 			if err != nil {
-				slog.Error(gotext.Get("Error finding packages"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Error finding packages"), err)
 			}
 
 			if len(found) == 0 {
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Package not found"), err)
 			}
 
 			pkgs := cliutils.FlattenPkgs(ctx, found, "show", c.Bool("interactive"))
@@ -131,8 +121,7 @@ func InfoCmd() *cli.Command {
 
 			systemLang, err := locale.GetLanguage()
 			if err != nil {
-				slog.Error("Can't detect system language", "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Can't detect system language"), err)
 			}
 			if systemLang == "" {
 				systemLang = "en"
@@ -141,8 +130,7 @@ func InfoCmd() *cli.Command {
 			if !all {
 				info, err := distro.ParseOSRelease(ctx)
 				if err != nil {
-					slog.Error(gotext.Get("Error parsing os-release file"), "err", err)
-					os.Exit(1)
+					return cliutils.FormatCliExit(gotext.Get("Error parsing os-release file"), err)
 				}
 				names, err = overrides.Resolve(
 					info,
@@ -150,8 +138,7 @@ func InfoCmd() *cli.Command {
 						WithLanguages([]string{systemLang}),
 				)
 				if err != nil {
-					slog.Error(gotext.Get("Error resolving overrides"), "err", err)
-					os.Exit(1)
+					return cliutils.FormatCliExit(gotext.Get("Error resolving overrides"), err)
 				}
 			}
 
@@ -159,14 +146,12 @@ func InfoCmd() *cli.Command {
 				if !all {
 					err = yaml.NewEncoder(os.Stdout).Encode(overrides.ResolvePackage(&pkg, names))
 					if err != nil {
-						slog.Error(gotext.Get("Error encoding script variables"), "err", err)
-						os.Exit(1)
+						return cliutils.FormatCliExit(gotext.Get("Error encoding script variables"), err)
 					}
 				} else {
 					err = yaml.NewEncoder(os.Stdout).Encode(pkg)
 					if err != nil {
-						slog.Error(gotext.Get("Error encoding script variables"), "err", err)
-						os.Exit(1)
+						return cliutils.FormatCliExit(gotext.Get("Error encoding script variables"), err)
 					}
 				}
 

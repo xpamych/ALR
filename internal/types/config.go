@@ -25,7 +25,6 @@ type Config struct {
 	PagerStyle       string   `toml:"pagerStyle" env:"ALR_PAGER_STYLE"`
 	IgnorePkgUpdates []string `toml:"ignorePkgUpdates"`
 	Repos            []Repo   `toml:"repo"`
-	Unsafe           Unsafe   `toml:"unsafe"`
 	AutoPull         bool     `toml:"autoPull" env:"ALR_AUTOPULL"`
 	LogLevel         string   `toml:"logLevel" env:"ALR_LOG_LEVEL"`
 }
@@ -34,8 +33,4 @@ type Config struct {
 type Repo struct {
 	Name string `toml:"name"`
 	URL  string `toml:"url"`
-}
-
-type Unsafe struct {
-	AllowRunAsRoot bool `toml:"allowRunAsRoot" env:"ALR_UNSAFE_ALLOW_RUN_AS_ROOT"`
 }

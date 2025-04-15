@@ -14,27 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-//go:build e2e
-
-package e2etests_test
+package build
 
 import (
-	"testing"
+	"context"
 
-	"github.com/alecthomas/assert/v2"
-	"github.com/efficientgo/e2e"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 )
 
-func TestE2EIssue32Interactive(t *testing.T) {
-	dockerMultipleRun(
-		t,
-		"issue-32-interactive",
-		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
-			err := r.Exec(e2e.NewCommand(
-				"sudo", "alr", "--interactive=false", "remove", "ca-certificates",
-			))
-			assert.NoError(t, err)
-		},
+type ScriptViewerConfig interface {
+	PagerStyle() string
+}
+
+type ScriptViewer struct {
+	config ScriptViewerConfig
+}
+
+func (s *ScriptViewer) ViewScript(
+	ctx context.Context,
+	input *BuildInput,
+	sf *ScriptFile,
+	basePkg string,
+) error {
+	return cliutils.PromptViewScript(
+		ctx,
+		sf.Path,
+		basePkg,
+		s.config.PagerStyle(),
+		input.opts.Interactive,
 	)
 }

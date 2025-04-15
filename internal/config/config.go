@@ -26,9 +26,9 @@ import (
 	"reflect"
 
 	"github.com/caarlos0/env"
-	"github.com/leonelquinteros/gotext"
 	"github.com/pelletier/go-toml/v2"
 
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/constants"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 )
 
@@ -84,34 +84,18 @@ func mergeStructs(dst, src interface{}) {
 	}
 }
 
-const systemConfigPath = "/etc/alr/alr.toml"
-
 func (c *ALRConfig) Load() error {
 	systemConfig, err := readConfig(
-		systemConfigPath,
+		constants.SystemConfigPath,
 	)
 	if err != nil {
 		slog.Debug("Cannot read system config", "err", err)
-	}
-
-	cfgDir, err := os.UserConfigDir()
-	if err != nil {
-		slog.Debug("Cannot read user config directory")
-	}
-	userConfigPath := filepath.Join(cfgDir, "alr", "alr.toml")
-
-	userConfig, err := readConfig(
-		userConfigPath,
-	)
-	if err != nil {
-		slog.Debug("Cannot read user config")
 	}
 
 	config := &types.Config{}
 
 	mergeStructs(config, defaultConfig)
 	mergeStructs(config, systemConfig)
-	mergeStructs(config, userConfig)
 	err = env.Parse(config)
 	if err != nil {
 		return err
@@ -119,17 +103,13 @@ func (c *ALRConfig) Load() error {
 
 	c.cfg = config
 
-	cacheDir, err := os.UserCacheDir()
-	if err != nil {
-		return err
-	}
 	c.paths = &Paths{}
-	c.paths.UserConfigPath = userConfigPath
-	c.paths.CacheDir = filepath.Join(cacheDir, "alr")
+	c.paths.UserConfigPath = constants.SystemConfigPath
+	c.paths.CacheDir = constants.SystemCachePath
 	c.paths.RepoDir = filepath.Join(c.paths.CacheDir, "repo")
 	c.paths.PkgsDir = filepath.Join(c.paths.CacheDir, "pkgs")
 	c.paths.DBPath = filepath.Join(c.paths.CacheDir, "db")
-	c.initPaths()
+	// c.initPaths()
 
 	return nil
 }
@@ -144,10 +124,6 @@ func (c *ALRConfig) PagerStyle() string {
 
 func (c *ALRConfig) AutoPull() bool {
 	return c.cfg.AutoPull
-}
-
-func (c *ALRConfig) AllowRunAsRoot() bool {
-	return c.cfg.Unsafe.AllowRunAsRoot
 }
 
 func (c *ALRConfig) Repos() []types.Repo {
@@ -168,26 +144,6 @@ func (c *ALRConfig) LogLevel() string {
 
 func (c *ALRConfig) GetPaths() *Paths {
 	return c.paths
-}
-
-func (c *ALRConfig) initPaths() {
-	err := os.MkdirAll(filepath.Dir(c.paths.UserConfigPath), 0o755)
-	if err != nil {
-		slog.Error(gotext.Get("Unable to create config directory"), "err", err)
-		os.Exit(1)
-	}
-
-	err = os.MkdirAll(c.paths.RepoDir, 0o755)
-	if err != nil {
-		slog.Error(gotext.Get("Unable to create repo cache directory"), "err", err)
-		os.Exit(1)
-	}
-
-	err = os.MkdirAll(c.paths.PkgsDir, 0o755)
-	if err != nil {
-		slog.Error(gotext.Get("Unable to create package cache directory"), "err", err)
-		os.Exit(1)
-	}
 }
 
 func (c *ALRConfig) SaveUserConfig() error {

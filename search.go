@@ -18,15 +18,15 @@ package main
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 	"text/template"
 
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
+	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/search"
 )
 
@@ -63,32 +63,23 @@ func SearchCmd() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
+			if err := utils.ExitIfCantDropCapsToAlrUserNoPrivs(); err != nil {
+				return err
+			}
+
 			ctx := c.Context
-			cfg := config.New()
-			err := cfg.Load()
+
+			deps, err := appbuilder.
+				New(ctx).
+				WithConfig().
+				WithDB().
+				Build()
 			if err != nil {
-				slog.Error(gotext.Get("Error loading config"), "err", err)
-				os.Exit(1)
+				return err
 			}
+			defer deps.Defer()
 
-			db := database.New(cfg)
-			err = db.Init(ctx)
-			defer db.Close()
-
-			if err != nil {
-				slog.Error(gotext.Get("Error initialization database"), "err", err)
-				os.Exit(1)
-			}
-
-			format := c.String("format")
-			var tmpl *template.Template
-			if format != "" {
-				tmpl, err = template.New("format").Parse(format)
-				if err != nil {
-					slog.Error(gotext.Get("Error parsing format template"), "err", err)
-					os.Exit(1)
-				}
-			}
+			db := deps.DB
 
 			s := search.New(db)
 
@@ -102,16 +93,23 @@ func SearchCmd() *cli.Command {
 					Build(),
 			)
 			if err != nil {
-				slog.Error(gotext.Get("Error parsing format template"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Error while executing search"), err)
+			}
+
+			format := c.String("format")
+			var tmpl *template.Template
+			if format != "" {
+				tmpl, err = template.New("format").Parse(format)
+				if err != nil {
+					return cliutils.FormatCliExit(gotext.Get("Error parsing format template"), err)
+				}
 			}
 
 			for _, dbPkg := range packages {
 				if tmpl != nil {
 					err = tmpl.Execute(os.Stdout, dbPkg)
 					if err != nil {
-						slog.Error(gotext.Get("Error executing template"), "err", err)
-						os.Exit(1)
+						return cliutils.FormatCliExit(gotext.Get("Error executing template"), err)
 					}
 					fmt.Println()
 				} else {

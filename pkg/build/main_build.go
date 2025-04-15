@@ -14,27 +14,39 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-//go:build e2e
-
-package e2etests_test
+package build
 
 import (
-	"testing"
-
-	"github.com/alecthomas/assert/v2"
-	"github.com/efficientgo/e2e"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 )
 
-func TestE2EIssue32Interactive(t *testing.T) {
-	dockerMultipleRun(
-		t,
-		"issue-32-interactive",
-		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
-			err := r.Exec(e2e.NewCommand(
-				"sudo", "alr", "--interactive=false", "remove", "ca-certificates",
-			))
-			assert.NoError(t, err)
+func NewMainBuilder(
+	cfg Config,
+	mgr manager.Manager,
+	repos PackageFinder,
+	scriptExecutor ScriptExecutor,
+	installerExecutor InstallerExecutor,
+) (*Builder, error) {
+	builder := &Builder{
+		scriptExecutor: scriptExecutor,
+		cacheExecutor: &Cache{
+			cfg,
 		},
-	)
+		scriptResolver: &ScriptResolver{
+			cfg,
+		},
+		scriptViewerExecutor: &ScriptViewer{
+			config: cfg,
+		},
+		checkerExecutor: &Checker{
+			mgr,
+		},
+		installerExecutor: installerExecutor,
+		sourceExecutor: &SourceDownloader{
+			cfg,
+		},
+		repos: repos,
+	}
+
+	return builder, nil
 }

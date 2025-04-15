@@ -26,9 +26,16 @@ import (
 
 // YUM represents the YUM package manager
 type YUM struct {
+	CommonPackageManager
 	CommonRPM
+}
 
-	rootCmd string
+func NewYUM() *YUM {
+	return &YUM{
+		CommonPackageManager: CommonPackageManager{
+			noConfirmArg: "-y",
+		},
+	}
 }
 
 func (*YUM) Exists() bool {
@@ -42,10 +49,6 @@ func (*YUM) Name() string {
 
 func (*YUM) Format() string {
 	return "rpm"
-}
-
-func (y *YUM) SetRootCmd(s string) {
-	y.rootCmd = s
 }
 
 func (y *YUM) Sync(opts *Opts) error {
@@ -109,21 +112,4 @@ func (y *YUM) UpgradeAll(opts *Opts) error {
 		return fmt.Errorf("yum: upgradeall: %w", err)
 	}
 	return nil
-}
-
-func (y *YUM) getCmd(opts *Opts, mgrCmd string, args ...string) *exec.Cmd {
-	var cmd *exec.Cmd
-	if opts.AsRoot {
-		cmd = exec.Command(getRootCmd(y.rootCmd), mgrCmd)
-		cmd.Args = append(cmd.Args, opts.Args...)
-		cmd.Args = append(cmd.Args, args...)
-	} else {
-		cmd = exec.Command(mgrCmd, args...)
-	}
-
-	if opts.NoConfirm {
-		cmd.Args = append(cmd.Args, "-y")
-	}
-
-	return cmd
 }

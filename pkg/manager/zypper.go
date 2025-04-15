@@ -26,8 +26,16 @@ import (
 
 // Zypper represents the Zypper package manager
 type Zypper struct {
+	CommonPackageManager
 	CommonRPM
-	rootCmd string
+}
+
+func NewZypper() *YUM {
+	return &YUM{
+		CommonPackageManager: CommonPackageManager{
+			noConfirmArg: "-y",
+		},
+	}
 }
 
 func (*Zypper) Exists() bool {
@@ -41,10 +49,6 @@ func (*Zypper) Name() string {
 
 func (*Zypper) Format() string {
 	return "rpm"
-}
-
-func (z *Zypper) SetRootCmd(s string) {
-	z.rootCmd = s
 }
 
 func (z *Zypper) Sync(opts *Opts) error {
@@ -108,21 +112,4 @@ func (z *Zypper) UpgradeAll(opts *Opts) error {
 		return fmt.Errorf("zypper: upgradeall: %w", err)
 	}
 	return nil
-}
-
-func (z *Zypper) getCmd(opts *Opts, mgrCmd string, args ...string) *exec.Cmd {
-	var cmd *exec.Cmd
-	if opts.AsRoot {
-		cmd = exec.Command(getRootCmd(z.rootCmd), mgrCmd)
-		cmd.Args = append(cmd.Args, opts.Args...)
-		cmd.Args = append(cmd.Args, args...)
-	} else {
-		cmd = exec.Command(mgrCmd, args...)
-	}
-
-	if opts.NoConfirm {
-		cmd.Args = append(cmd.Args, "-y")
-	}
-
-	return cmd
 }

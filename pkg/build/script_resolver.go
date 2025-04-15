@@ -14,27 +14,40 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-//go:build e2e
-
-package e2etests_test
+package build
 
 import (
-	"testing"
+	"context"
+	"path/filepath"
 
-	"github.com/alecthomas/assert/v2"
-	"github.com/efficientgo/e2e"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 )
 
-func TestE2EIssue32Interactive(t *testing.T) {
-	dockerMultipleRun(
-		t,
-		"issue-32-interactive",
-		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
-			err := r.Exec(e2e.NewCommand(
-				"sudo", "alr", "--interactive=false", "remove", "ca-certificates",
-			))
-			assert.NoError(t, err)
-		},
-	)
+type ScriptResolver struct {
+	cfg Config
+}
+
+type ScriptInfo struct {
+	Script     string
+	Repository string
+}
+
+func (s *ScriptResolver) ResolveScript(
+	ctx context.Context,
+	pkg *db.Package,
+) *ScriptInfo {
+	var repository, script string
+
+	repodir := s.cfg.GetPaths().RepoDir
+	repository = pkg.Repository
+	if pkg.BasePkgName != "" {
+		script = filepath.Join(repodir, repository, pkg.BasePkgName, "alr.sh")
+	} else {
+		script = filepath.Join(repodir, repository, pkg.Name, "alr.sh")
+	}
+
+	return &ScriptInfo{
+		Repository: repository,
+		Script:     script,
+	}
 }

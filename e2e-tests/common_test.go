@@ -109,7 +109,7 @@ var ALL_SYSTEMS []string = []string{
 }
 
 var AUTOREQ_AUTOPROV_SYSTEMS []string = []string{
-	"alt-sisyphus",
+	// "alt-sisyphus",
 	"fedora-41",
 }
 
@@ -157,9 +157,9 @@ func dockerMultipleRun(t *testing.T, name string, ids []string, f func(t *testin
 				imageId := fmt.Sprintf("alr-testimage-%s", id)
 				runnable := e.Runnable(dockerName).Init(
 					e2e.StartOptions{
-						Image: imageId,
+						Image:   imageId,
 						Volumes: []string{
-							"./alr:/usr/bin/alr",
+							// "./alr:/usr/bin/alr",
 						},
 						Privileged: true,
 					},

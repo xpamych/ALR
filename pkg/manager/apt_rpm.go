@@ -24,18 +24,16 @@ import (
 
 // APTRpm represents the APT-RPM package manager
 type APTRpm struct {
+	CommonPackageManager
 	CommonRPM
-	rootCmd string
 }
 
-func (*APTRpm) Exists() bool {
-	cmd := exec.Command("apt-config", "dump")
-	output, err := cmd.Output()
-	if err != nil {
-		return false
+func NewAPTRpm() *APTRpm {
+	return &APTRpm{
+		CommonPackageManager: CommonPackageManager{
+			noConfirmArg: "-y",
+		},
 	}
-
-	return strings.Contains(string(output), "RPM")
 }
 
 func (*APTRpm) Name() string {
@@ -46,8 +44,14 @@ func (*APTRpm) Format() string {
 	return "rpm"
 }
 
-func (a *APTRpm) SetRootCmd(s string) {
-	a.rootCmd = s
+func (*APTRpm) Exists() bool {
+	cmd := exec.Command("apt-config", "dump")
+	output, err := cmd.Output()
+	if err != nil {
+		return false
+	}
+
+	return strings.Contains(string(output), "RPM")
 }
 
 func (a *APTRpm) Sync(opts *Opts) error {
@@ -66,6 +70,7 @@ func (a *APTRpm) Install(opts *Opts, pkgs ...string) error {
 	cmd := a.getCmd(opts, "apt-get", "install")
 	cmd.Args = append(cmd.Args, pkgs...)
 	setCmdEnv(cmd)
+	cmd.Stdout = cmd.Stderr
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("apt-get: install: %w", err)
@@ -104,21 +109,4 @@ func (a *APTRpm) UpgradeAll(opts *Opts) error {
 		return fmt.Errorf("apt-get: upgradeall: %w", err)
 	}
 	return nil
-}
-
-func (a *APTRpm) getCmd(opts *Opts, mgrCmd string, args ...string) *exec.Cmd {
-	var cmd *exec.Cmd
-	if opts.AsRoot {
-		cmd = exec.Command(getRootCmd(a.rootCmd), mgrCmd)
-		cmd.Args = append(cmd.Args, opts.Args...)
-		cmd.Args = append(cmd.Args, args...)
-	} else {
-		cmd = exec.Command(mgrCmd, args...)
-	}
-
-	if opts.NoConfirm {
-		cmd.Args = append(cmd.Args, "-y")
-	}
-
-	return cmd
 }

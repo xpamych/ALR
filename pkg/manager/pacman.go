@@ -28,7 +28,15 @@ import (
 
 // Pacman represents the Pacman package manager
 type Pacman struct {
-	rootCmd string
+	CommonPackageManager
+}
+
+func NewPacman() *Pacman {
+	return &Pacman{
+		CommonPackageManager: CommonPackageManager{
+			noConfirmArg: "--noconfirm",
+		},
+	}
 }
 
 func (*Pacman) Exists() bool {
@@ -42,10 +50,6 @@ func (*Pacman) Name() string {
 
 func (*Pacman) Format() string {
 	return "archlinux"
-}
-
-func (p *Pacman) SetRootCmd(s string) {
-	p.rootCmd = s
 }
 
 func (p *Pacman) Sync(opts *Opts) error {
@@ -155,21 +159,4 @@ func (p *Pacman) IsInstalled(pkg string) (bool, error) {
 		return false, fmt.Errorf("pacman: isinstalled: %w, output: %s", err, output)
 	}
 	return true, nil
-}
-
-func (p *Pacman) getCmd(opts *Opts, mgrCmd string, args ...string) *exec.Cmd {
-	var cmd *exec.Cmd
-	if opts.AsRoot {
-		cmd = exec.Command(getRootCmd(p.rootCmd), mgrCmd)
-		cmd.Args = append(cmd.Args, opts.Args...)
-		cmd.Args = append(cmd.Args, args...)
-	} else {
-		cmd = exec.Command(mgrCmd, args...)
-	}
-
-	if opts.NoConfirm {
-		cmd.Args = append(cmd.Args, "--noconfirm")
-	}
-
-	return cmd
 }

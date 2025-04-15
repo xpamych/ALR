@@ -82,6 +82,7 @@ func ParseOSRelease(ctx context.Context) (*OSRelease, error) {
 		interp.ReadDirHandler2(handlers.NopReadDir),
 		interp.StatHandler(handlers.NopStat),
 		interp.Env(expand.ListEnviron()),
+		interp.Dir("/"),
 	)
 	if err != nil {
 		return nil, err

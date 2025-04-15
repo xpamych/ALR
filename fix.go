@@ -22,13 +22,14 @@ package main
 import (
 	"log/slog"
 	"os"
+	"path/filepath"
 
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
+	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 )
 
 func FixCmd() *cli.Command {
@@ -36,51 +37,63 @@ func FixCmd() *cli.Command {
 		Name:  "fix",
 		Usage: gotext.Get("Attempt to fix problems with ALR"),
 		Action: func(c *cli.Context) error {
-			ctx := c.Context
-			cfg := config.New()
-			err := cfg.Load()
-			if err != nil {
-				slog.Error(gotext.Get("Error loading config"), "err", err)
-				os.Exit(1)
+			if err := utils.ExitIfCantDropCapsToAlrUserNoPrivs(); err != nil {
+				return err
 			}
+
+			ctx := c.Context
+
+			deps, err := appbuilder.
+				New(ctx).
+				WithConfig().
+				Build()
+			if err != nil {
+				return cli.Exit(err, 1)
+			}
+			defer deps.Defer()
+
+			cfg := deps.Cfg
 
 			paths := cfg.GetPaths()
 
-			slog.Info(gotext.Get("Removing cache directory"))
+			slog.Info(gotext.Get("Clearing cache directory"))
+			// Remove all nested directories of paths.CacheDir
 
-			err = os.RemoveAll(paths.CacheDir)
+			dir, err := os.Open(paths.CacheDir)
 			if err != nil {
-				slog.Error(gotext.Get("Unable to remove cache directory"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Unable to open cache directory"), err)
+			}
+			defer dir.Close()
+
+			entries, err := dir.Readdirnames(-1)
+			if err != nil {
+				return cliutils.FormatCliExit(gotext.Get("Unable to read cache directory contents"), err)
+			}
+
+			for _, entry := range entries {
+				err = os.RemoveAll(filepath.Join(paths.CacheDir, entry))
+				if err != nil {
+					return cliutils.FormatCliExit(gotext.Get("Unable to remove cache item (%s)", entry), err)
+				}
 			}
 
 			slog.Info(gotext.Get("Rebuilding cache"))
 
 			err = os.MkdirAll(paths.CacheDir, 0o755)
 			if err != nil {
-				slog.Error(gotext.Get("Unable to create new cache directory"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Unable to create new cache directory"), err)
 			}
 
-			cfg = config.New()
-			err = cfg.Load()
+			deps, err = appbuilder.
+				New(ctx).
+				WithConfig().
+				WithDB().
+				WithReposForcePull().
+				Build()
 			if err != nil {
-				slog.Error(gotext.Get("Error loading config"), "err", err)
-				os.Exit(1)
+				return cli.Exit(err, 1)
 			}
-
-			db := database.New(cfg)
-			err = db.Init(ctx)
-			if err != nil {
-				slog.Error(gotext.Get("Error initialization database"), "err", err)
-				os.Exit(1)
-			}
-			rs := repos.New(cfg, db)
-			err = rs.Pull(ctx, cfg.Repos())
-			if err != nil {
-				slog.Error(gotext.Get("Error pulling repos"), "err", err)
-				os.Exit(1)
-			}
+			defer deps.Defer()
 
 			slog.Info(gotext.Get("Done"))
 
