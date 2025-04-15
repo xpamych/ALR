@@ -30,6 +30,7 @@ import (
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/helpers"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
@@ -71,19 +72,17 @@ func HelperCmd() *cli.Command {
 			helper, ok := helpers.Helpers[c.Args().First()]
 			if !ok {
 				slog.Error(gotext.Get("No such helper command"), "name", c.Args().First())
-				os.Exit(1)
+				return cli.Exit(gotext.Get("No such helper command"), 1)
 			}
 
 			wd, err := os.Getwd()
 			if err != nil {
-				slog.Error(gotext.Get("Error getting working directory"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Error getting working directory"), err)
 			}
 
 			info, err := distro.ParseOSRelease(ctx)
 			if err != nil {
-				slog.Error(gotext.Get("Error getting working directory"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Error parsing os-release file"), err)
 			}
 
 			hc := interp.HandlerContext{

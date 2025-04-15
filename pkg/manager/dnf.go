@@ -1,20 +1,21 @@
-/*
- * ALR - Any Linux Repository
- * ALR - Любой Linux Репозиторий
- * Copyright (C) 2024 Евгений Храмов
- *
- * This program является свободным: вы можете распространять его и/или изменять
- * на условиях GNU General Public License, опубликованной Free Software Foundation,
- * либо версии 3 лицензии, либо (по вашему выбору) любой более поздней версии.
- *
- * Это программное обеспечение распространяется в надежде, что оно будет полезным,
- * но БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ; без подразумеваемой гарантии
- * КОММЕРЧЕСКОЙ ПРИГОДНОСТИ или ПРИГОДНОСТИ ДЛЯ ОПРЕДЕЛЕННОЙ ЦЕЛИ.
- * Подробности см. в GNU General Public License.
- *
- * Вы должны были получить копию GNU General Public License
- * вместе с этой программой. Если нет, см. <http://www.gnu.org/licenses/>.
- */
+// This file was originally part of the project "LURE - Linux User REpository", created by Elara Musayelyan.
+// It has been modified as part of "ALR - Any Linux Repository" by Евгений Храмов.
+//
+// ALR - Any Linux Repository
+// Copyright (C) 2025 Евгений Храмов
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package manager
 
@@ -23,31 +24,30 @@ import (
 	"os/exec"
 )
 
-// DNF представляет менеджер пакетов DNF
 type DNF struct {
+	CommonPackageManager
 	CommonRPM
-	rootCmd string // rootCmd хранит команду, используемую для выполнения команд с правами root
 }
 
-// Exists проверяет, доступен ли DNF в системе, возвращает true если да
+func NewDNF() *DNF {
+	return &DNF{
+		CommonPackageManager: CommonPackageManager{
+			noConfirmArg: "-y",
+		},
+	}
+}
+
 func (*DNF) Exists() bool {
 	_, err := exec.LookPath("dnf")
 	return err == nil
 }
 
-// Name возвращает имя менеджера пакетов, в данном случае "dnf"
 func (*DNF) Name() string {
 	return "dnf"
 }
 
-// Format возвращает формат пакетов "rpm", используемый DNF
 func (*DNF) Format() string {
 	return "rpm"
-}
-
-// SetRootCmd устанавливает команду, используемую для выполнения операций с правами root
-func (d *DNF) SetRootCmd(s string) {
-	d.rootCmd = s
 }
 
 // Sync выполняет upgrade всех установленных пакетов, обновляя их до более новых версий
@@ -117,22 +117,4 @@ func (d *DNF) UpgradeAll(opts *Opts) error {
 		return fmt.Errorf("dnf: upgradeall: %w", err)
 	}
 	return nil
-}
-
-// getCmd создает и возвращает команду exec.Cmd для менеджера пакетов DNF
-func (d *DNF) getCmd(opts *Opts, mgrCmd string, args ...string) *exec.Cmd {
-	var cmd *exec.Cmd
-	if opts.AsRoot {
-		cmd = exec.Command(getRootCmd(d.rootCmd), mgrCmd)
-		cmd.Args = append(cmd.Args, opts.Args...)
-		cmd.Args = append(cmd.Args, args...)
-	} else {
-		cmd = exec.Command(mgrCmd, args...)
-	}
-
-	if opts.NoConfirm {
-		cmd.Args = append(cmd.Args, "-y") // Добавляет параметр автоматического подтверждения (-y)
-	}
-
-	return cmd
 }

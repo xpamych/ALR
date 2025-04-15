@@ -28,14 +28,12 @@ import (
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
+	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/osutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
 func BuildCmd() *cli.Command {
@@ -66,32 +64,67 @@ func BuildCmd() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			ctx := c.Context
-			cfg := config.New()
-			err := cfg.Load()
-			if err != nil {
-				slog.Error(gotext.Get("Error loading config"), "err", err)
-				os.Exit(1)
+			if err := utils.EnuseIsPrivilegedGroupMember(); err != nil {
+				return err
 			}
 
-			db := database.New(cfg)
-			rs := repos.New(cfg, db)
-			err = db.Init(ctx)
+			wd, err := os.Getwd()
 			if err != nil {
-				slog.Error(gotext.Get("Error initialization database"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Error getting working directory"), err)
 			}
+
+			wd, wdCleanup, err := Mount(wd)
+			if err != nil {
+				return err
+			}
+			defer wdCleanup()
+
+			ctx := c.Context
+
+			deps, err := appbuilder.
+				New(ctx).
+				WithConfig().
+				WithDB().
+				WithReposNoPull().
+				WithDistroInfo().
+				WithManager().
+				Build()
+			if err != nil {
+				return cli.Exit(err, 1)
+			}
+			defer deps.Defer()
 
 			var script string
 			var packages []string
-			repository := "default"
 
-			repoDir := cfg.GetPaths().RepoDir
+			var res *build.BuildResult
+
+			var scriptArgs *build.BuildPackageFromScriptArgs
+			var dbArgs *build.BuildPackageFromDbArgs
+
+			buildArgs := &build.BuildArgs{
+				Opts: &types.BuildOpts{
+					Clean:       c.Bool("clean"),
+					Interactive: c.Bool("interactive"),
+				},
+				PkgFormat_: build.GetPkgFormat(deps.Manager),
+				Info:       deps.Info,
+			}
 
 			switch {
 			case c.IsSet("script"):
-				script = c.String("script")
+				script, err = filepath.Abs(c.String("script"))
+				if err != nil {
+					return cliutils.FormatCliExit(gotext.Get("Cannot get absolute script path"), err)
+				}
+
 				packages = append(packages, c.String("script-package"))
+
+				scriptArgs = &build.BuildPackageFromScriptArgs{
+					Script:    script,
+					Packages:  packages,
+					BuildArgs: *buildArgs,
+				}
 			case c.IsSet("package"):
 				// TODO: handle multiple packages
 				packageInput := c.String("package")
@@ -104,85 +137,96 @@ func BuildCmd() *cli.Command {
 					packageSearch = arr[0]
 				}
 
-				pkgs, _, _ := rs.FindPkgs(ctx, []string{packageSearch})
-				pkg, ok := pkgs[packageSearch]
-				if len(pkg) < 1 || !ok {
-					slog.Error(gotext.Get("Package not found"))
-					os.Exit(1)
+				pkgs, _, err := deps.Repos.FindPkgs(ctx, []string{packageSearch})
+				if err != nil {
+					return cliutils.FormatCliExit("failed to find pkgs", err)
 				}
 
-				repository = pkg[0].Repository
+				pkg := cliutils.FlattenPkgs(ctx, pkgs, "build", c.Bool("interactive"))
+
+				if len(pkg) < 1 {
+					return cliutils.FormatCliExit(gotext.Get("Package not found"), nil)
+				}
 
 				if pkg[0].BasePkgName != "" {
-					script = filepath.Join(repoDir, repository, pkg[0].BasePkgName, "alr.sh")
 					packages = append(packages, pkg[0].Name)
-				} else {
-					script = filepath.Join(repoDir, repository, pkg[0].Name, "alr.sh")
+				}
+
+				dbArgs = &build.BuildPackageFromDbArgs{
+					Package:   &pkg[0],
+					Packages:  packages,
+					BuildArgs: *buildArgs,
 				}
 			default:
-				script = filepath.Join(repoDir, "alr.sh")
+				return cliutils.FormatCliExit(gotext.Get("Nothing to build"), nil)
 			}
 
-			// Проверка автоматического пулла репозиториев
-			if cfg.AutoPull() {
-				err := rs.Pull(ctx, cfg.Repos())
+			if scriptArgs != nil {
+				scriptFile := filepath.Base(scriptArgs.Script)
+				newScriptDir, scriptDirCleanup, err := Mount(filepath.Dir(scriptArgs.Script))
 				if err != nil {
-					slog.Error(gotext.Get("Error pulling repositories"), "err", err)
-					os.Exit(1)
+					return err
 				}
+				defer scriptDirCleanup()
+				scriptArgs.Script = filepath.Join(newScriptDir, scriptFile)
 			}
 
-			// Обнаружение менеджера пакетов
-			mgr := manager.Detect()
-			if mgr == nil {
-				slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
-				os.Exit(1)
+			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
+				return err
 			}
 
-			info, err := distro.ParseOSRelease(ctx)
+			installer, installerClose, err := build.GetSafeInstaller()
 			if err != nil {
-				slog.Error(gotext.Get("Error parsing os release"), "err", err)
-				os.Exit(1)
+				return err
+			}
+			defer installerClose()
+
+			if err := utils.ExitIfCantSetNoNewPrivs(); err != nil {
+				return err
 			}
 
-			builder := build.NewBuilder(
-				ctx,
-				types.BuildOpts{
-					Packages:    packages,
-					Repository:  repository,
-					Script:      script,
-					Manager:     mgr,
-					Clean:       c.Bool("clean"),
-					Interactive: c.Bool("interactive"),
-				},
-				rs,
-				info,
-				cfg,
+			scripter, scripterClose, err := build.GetSafeScriptExecutor()
+			if err != nil {
+				return err
+			}
+			defer scripterClose()
+
+			builder, err := build.NewMainBuilder(
+				deps.Cfg,
+				deps.Manager,
+				deps.Repos,
+				scripter,
+				installer,
 			)
-
-			// Сборка пакета
-			pkgPaths, _, err := builder.BuildPackage(ctx)
 			if err != nil {
-				slog.Error(gotext.Get("Error building package"), "err", err)
-				os.Exit(1)
+				return err
 			}
 
-			// Получение текущей рабочей директории
-			wd, err := os.Getwd()
-			if err != nil {
-				slog.Error(gotext.Get("Error getting working directory"), "err", err)
-				os.Exit(1)
+			if scriptArgs != nil {
+				res, err = builder.BuildPackageFromScript(
+					ctx,
+					scriptArgs,
+				)
+			} else if dbArgs != nil {
+				res, err = builder.BuildPackageFromDb(
+					ctx,
+					dbArgs,
+				)
 			}
 
-			// Перемещение собранных пакетов в рабочую директорию
-			for _, pkgPath := range pkgPaths {
+			if err != nil {
+				return cliutils.FormatCliExit(gotext.Get("Error building package"), err)
+			}
+
+			for _, pkgPath := range res.PackagePaths {
 				name := filepath.Base(pkgPath)
 				err = osutils.Move(pkgPath, filepath.Join(wd, name))
 				if err != nil {
-					slog.Error(gotext.Get("Error moving the package"), "err", err)
-					os.Exit(1)
+					return cliutils.FormatCliExit(gotext.Get("Error moving the package"), err)
 				}
 			}
+
+			slog.Info(gotext.Get("Done"))
 
 			return nil
 		},

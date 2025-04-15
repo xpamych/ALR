@@ -277,7 +277,7 @@ meta_bar() {
 			fl, err := syntax.NewParser().Parse(strings.NewReader(tc.Script), "alr.sh")
 			assert.NoError(t, err)
 
-			_, allVars, err := b.executeFirstPass(fl)
+			_, allVars, err := b.scriptExecutor.ExecuteSecondPass(fl)
 			assert.NoError(t, err)
 
 			tc.Expected(t, allVars)

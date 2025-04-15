@@ -19,13 +19,11 @@
 
 package types
 
-import "gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
-
 type BuildOpts struct {
-	Script      string
-	Repository  string
-	Packages    []string
-	Manager     manager.Manager
+	// Script      string
+	// Repository  string
+	// Packages    []string
+	// Manager     manager.Manager
 	Clean       bool
 	Interactive bool
 }

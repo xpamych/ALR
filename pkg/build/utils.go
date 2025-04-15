@@ -39,7 +39,6 @@ import (
 	"github.com/goreleaser/nfpm/v2/files"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
@@ -173,19 +172,23 @@ func buildContents(vars *types.BuildVars, dirs types.Directories, preferedConten
 
 var RegexpALRPackageName = regexp.MustCompile(`^(?P<package>[^+]+)\+alr-(?P<repo>.+)$`)
 
-func getBasePkgInfo(vars *types.BuildVars, info *distro.OSRelease, opts *types.BuildOpts) *nfpm.Info {
+func getBasePkgInfo(vars *types.BuildVars, input interface {
+	RepositoryProvider
+	OsInfoProvider
+},
+) *nfpm.Info {
 	return &nfpm.Info{
-		Name:    fmt.Sprintf("%s+alr-%s", vars.Name, opts.Repository),
+		Name:    fmt.Sprintf("%s+alr-%s", vars.Name, input.Repository()),
 		Arch:    cpu.Arch(),
 		Version: vars.Version,
-		Release: overrides.ReleasePlatformSpecific(vars.Release, info),
+		Release: overrides.ReleasePlatformSpecific(vars.Release, input.OSRelease()),
 		Epoch:   strconv.FormatUint(uint64(vars.Epoch), 10),
 	}
 }
 
 // Функция getPkgFormat возвращает формат пакета из менеджера пакетов,
 // или ALR_PKG_FORMAT, если он установлен.
-func getPkgFormat(mgr manager.Manager) string {
+func GetPkgFormat(mgr manager.Manager) string {
 	pkgFormat := mgr.Format()
 	if format, ok := os.LookupEnv("ALR_PKG_FORMAT"); ok {
 		pkgFormat = format
@@ -272,25 +275,9 @@ func setVersion(ctx context.Context, r *interp.Runner, to string) error {
 	return r.Run(ctx, fl)
 }
 */
-// Returns not installed dependencies
-func removeAlreadyInstalled(opts types.BuildOpts, dependencies []string) ([]string, error) {
-	filteredPackages := []string{}
-
-	for _, dep := range dependencies {
-		installed, err := opts.Manager.IsInstalled(dep)
-		if err != nil {
-			return nil, err
-		}
-		if installed {
-			continue
-		}
-		filteredPackages = append(filteredPackages, dep)
-	}
-
-	return filteredPackages, nil
-}
 
 // Функция packageNames возвращает имена всех предоставленных пакетов.
+/*
 func packageNames(pkgs []db.Package) []string {
 	names := make([]string, len(pkgs))
 	for i, p := range pkgs {
@@ -298,6 +285,7 @@ func packageNames(pkgs []db.Package) []string {
 	}
 	return names
 }
+*/
 
 // Функция removeDuplicates убирает любые дубликаты из предоставленного среза.
 func removeDuplicates(slice []string) []string {

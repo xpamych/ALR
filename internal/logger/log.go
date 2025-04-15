@@ -22,96 +22,90 @@ import (
 	"os"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/log"
+
+	chLog "github.com/charmbracelet/log"
 	"github.com/leonelquinteros/gotext"
 )
 
 type Logger struct {
-	lOut slog.Handler
-	lErr slog.Handler
+	l *chLog.Logger
 }
 
-func setupOutLogger() *log.Logger {
-	styles := log.DefaultStyles()
-	logger := log.New(os.Stdout)
-	styles.Levels[log.InfoLevel] = lipgloss.NewStyle().
+func setupLogger() *chLog.Logger {
+	styles := chLog.DefaultStyles()
+	logger := chLog.New(os.Stderr)
+	styles.Levels[chLog.InfoLevel] = lipgloss.NewStyle().
 		SetString("-->").
 		Foreground(lipgloss.Color("35"))
-	logger.SetStyles(styles)
-	return logger
-}
-
-func setupErrorLogger() *log.Logger {
-	styles := log.DefaultStyles()
-	styles.Levels[log.ErrorLevel] = lipgloss.NewStyle().
+	styles.Levels[chLog.ErrorLevel] = lipgloss.NewStyle().
 		SetString(gotext.Get("ERROR")).
 		Padding(0, 1, 0, 1).
 		Background(lipgloss.Color("204")).
 		Foreground(lipgloss.Color("0"))
-	logger := log.New(os.Stderr)
 	logger.SetStyles(styles)
 	return logger
 }
 
 func New() *Logger {
-	standardLogger := setupOutLogger()
-	errLogger := setupErrorLogger()
 	return &Logger{
-		lOut: standardLogger,
-		lErr: errLogger,
+		l: setupLogger(),
 	}
 }
 
-func slogLevelToLog(level slog.Level) log.Level {
+func slogLevelToLog(level slog.Level) chLog.Level {
 	switch level {
 	case slog.LevelDebug:
-		return log.DebugLevel
+		return chLog.DebugLevel
 	case slog.LevelInfo:
-		return log.InfoLevel
+		return chLog.InfoLevel
 	case slog.LevelWarn:
-		return log.WarnLevel
+		return chLog.WarnLevel
 	case slog.LevelError:
-		return log.ErrorLevel
+		return chLog.ErrorLevel
 	}
-	return log.FatalLevel
+	return chLog.FatalLevel
 }
 
 func (l *Logger) SetLevel(level slog.Level) {
-	l.lOut.(*log.Logger).SetLevel(slogLevelToLog(level))
-	l.lErr.(*log.Logger).SetLevel(slogLevelToLog(level))
+	l.l.SetLevel(slogLevelToLog(level))
 }
 
 func (l *Logger) Enabled(ctx context.Context, level slog.Level) bool {
-	if level <= slog.LevelInfo {
-		return l.lOut.Enabled(ctx, level)
-	}
-	return l.lErr.Enabled(ctx, level)
+	return l.l.Enabled(ctx, level)
 }
 
 func (l *Logger) Handle(ctx context.Context, rec slog.Record) error {
-	if rec.Level <= slog.LevelInfo {
-		return l.lOut.Handle(ctx, rec)
-	}
-	return l.lErr.Handle(ctx, rec)
+	return l.l.Handle(ctx, rec)
 }
 
 func (l *Logger) WithAttrs(attrs []slog.Attr) slog.Handler {
 	sl := *l
-	sl.lOut = l.lOut.WithAttrs(attrs)
-	sl.lErr = l.lErr.WithAttrs(attrs)
+	sl.l = l.l.WithAttrs(attrs).(*chLog.Logger)
 	return &sl
 }
 
 func (l *Logger) WithGroup(name string) slog.Handler {
 	sl := *l
-	sl.lOut = l.lOut.WithGroup(name)
-	sl.lErr = l.lErr.WithGroup(name)
+	sl.l = l.l.WithGroup(name).(*chLog.Logger)
 	return &sl
 }
 
+var logger *Logger
+
 func SetupDefault() *Logger {
-	l := New()
-	logger := slog.New(l)
-	slog.SetDefault(logger)
-	return l
+	logger = New()
+	slogLogger := slog.New(logger)
+	slog.SetDefault(slogLogger)
+	return logger
+}
+
+func SetupForGoPlugin() {
+	logger.l.SetFormatter(chLog.JSONFormatter)
+	chLog.TimestampKey = "@timestamp"
+	chLog.MessageKey = "@message"
+	chLog.LevelKey = "@level"
+}
+
+func GetLogger() *Logger {
+	return logger
 }

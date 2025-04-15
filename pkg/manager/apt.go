@@ -28,7 +28,15 @@ import (
 
 // APT represents the APT package manager
 type APT struct {
-	rootCmd string
+	CommonPackageManager
+}
+
+func NewAPT() *APT {
+	return &APT{
+		CommonPackageManager: CommonPackageManager{
+			noConfirmArg: "-y",
+		},
+	}
 }
 
 func (*APT) Exists() bool {
@@ -42,10 +50,6 @@ func (*APT) Name() string {
 
 func (*APT) Format() string {
 	return "deb"
-}
-
-func (a *APT) SetRootCmd(s string) {
-	a.rootCmd = s
 }
 
 func (a *APT) Sync(opts *Opts) error {
@@ -148,21 +152,4 @@ func (a *APT) IsInstalled(pkg string) (bool, error) {
 		return false, fmt.Errorf("apt: isinstalled: %w, output: %s", err, output)
 	}
 	return true, nil
-}
-
-func (a *APT) getCmd(opts *Opts, mgrCmd string, args ...string) *exec.Cmd {
-	var cmd *exec.Cmd
-	if opts.AsRoot {
-		cmd = exec.Command(getRootCmd(a.rootCmd), mgrCmd)
-		cmd.Args = append(cmd.Args, opts.Args...)
-		cmd.Args = append(cmd.Args, args...)
-	} else {
-		cmd = exec.Command(mgrCmd, args...)
-	}
-
-	if opts.NoConfirm {
-		cmd.Args = append(cmd.Args, "-y")
-	}
-
-	return cmd
 }

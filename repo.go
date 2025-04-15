@@ -20,7 +20,6 @@
 package main
 
 import (
-	"log/slog"
 	"os"
 	"path/filepath"
 
@@ -28,10 +27,10 @@ import (
 	"github.com/urfave/cli/v2"
 	"golang.org/x/exp/slices"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
+	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 )
 
 func AddRepoCmd() *cli.Command {
@@ -54,27 +53,32 @@ func AddRepoCmd() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			ctx := c.Context
+			if err := utils.ExitIfNotRoot(); err != nil {
+				return err
+			}
 
 			name := c.String("name")
 			repoURL := c.String("url")
 
-			cfg := config.New()
-			err := cfg.Load()
+			ctx := c.Context
+
+			deps, err := appbuilder.
+				New(ctx).
+				WithConfig().
+				Build()
 			if err != nil {
-				slog.Error(gotext.Get("Error loading config"), "err", err)
-				os.Exit(1)
+				return err
 			}
+			defer deps.Defer()
+
+			cfg := deps.Cfg
 
 			reposSlice := cfg.Repos()
-
 			for _, repo := range reposSlice {
-				if repo.URL == repoURL {
-					slog.Error("Repo already exists", "name", repo.Name)
-					os.Exit(1)
+				if repo.URL == repoURL || repo.Name == name {
+					return cliutils.FormatCliExit(gotext.Get("Repo %s already exists", repo.Name), nil)
 				}
 			}
-
 			reposSlice = append(reposSlice, types.Repo{
 				Name: name,
 				URL:  repoURL,
@@ -83,22 +87,23 @@ func AddRepoCmd() *cli.Command {
 
 			err = cfg.SaveUserConfig()
 			if err != nil {
-				slog.Error(gotext.Get("Error saving config"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Error saving config"), err)
 			}
 
-			db := database.New(cfg)
-			err = db.Init(ctx)
-			if err != nil {
-				slog.Error(gotext.Get("Error pulling repos"), "err", err)
+			if err := utils.ExitIfCantDropCapsToAlrUserNoPrivs(); err != nil {
+				return err
 			}
 
-			rs := repos.New(cfg, db)
-			err = rs.Pull(ctx, cfg.Repos())
+			deps, err = appbuilder.
+				New(ctx).
+				UseConfig(cfg).
+				WithDB().
+				WithReposForcePull().
+				Build()
 			if err != nil {
-				slog.Error(gotext.Get("Error pulling repos"), "err", err)
-				os.Exit(1)
+				return err
 			}
+			defer deps.Defer()
 
 			return nil
 		},
@@ -119,15 +124,24 @@ func RemoveRepoCmd() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
+			if err := utils.ExitIfNotRoot(); err != nil {
+				return err
+			}
+
 			ctx := c.Context
 
 			name := c.String("name")
-			cfg := config.New()
-			err := cfg.Load()
+
+			deps, err := appbuilder.
+				New(ctx).
+				WithConfig().
+				Build()
 			if err != nil {
-				slog.Error(gotext.Get("Error loading config"), "err", err)
-				os.Exit(1)
+				return err
 			}
+			defer deps.Defer()
+
+			cfg := deps.Cfg
 
 			found := false
 			index := 0
@@ -139,33 +153,37 @@ func RemoveRepoCmd() *cli.Command {
 				}
 			}
 			if !found {
-				slog.Error(gotext.Get("Repo does not exist"), "name", name)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Repo \"%s\" does not exist", name), nil)
 			}
 
 			cfg.SetRepos(slices.Delete(reposSlice, index, index+1))
 
 			err = os.RemoveAll(filepath.Join(cfg.GetPaths().RepoDir, name))
 			if err != nil {
-				slog.Error(gotext.Get("Error removing repo directory"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Error removing repo directory"), err)
 			}
-
 			err = cfg.SaveUserConfig()
 			if err != nil {
-				slog.Error(gotext.Get("Error saving config"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Error saving config"), err)
 			}
 
-			db := database.New(cfg)
-			err = db.Init(ctx)
-			if err != nil {
-				os.Exit(1)
+			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
+				return err
 			}
-			err = db.DeletePkgs(ctx, "repository = ?", name)
+
+			deps, err = appbuilder.
+				New(ctx).
+				UseConfig(cfg).
+				WithDB().
+				Build()
 			if err != nil {
-				slog.Error(gotext.Get("Error removing packages from database"), "err", err)
-				os.Exit(1)
+				return err
+			}
+			defer deps.Defer()
+
+			err = deps.DB.DeletePkgs(ctx, "repository = ?", name)
+			if err != nil {
+				return cliutils.FormatCliExit(gotext.Get("Error removing packages from database"), err)
 			}
 
 			return nil
@@ -179,25 +197,22 @@ func RefreshCmd() *cli.Command {
 		Usage:   gotext.Get("Pull all repositories that have changed"),
 		Aliases: []string{"ref"},
 		Action: func(c *cli.Context) error {
-			ctx := c.Context
-			cfg := config.New()
-			err := cfg.Load()
-			if err != nil {
-				slog.Error(gotext.Get("Error loading config"), "err", err)
-				os.Exit(1)
+			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
+				return err
 			}
 
-			db := database.New(cfg)
-			err = db.Init(ctx)
+			ctx := c.Context
+
+			deps, err := appbuilder.
+				New(ctx).
+				WithConfig().
+				WithDB().
+				WithReposForcePull().
+				Build()
 			if err != nil {
-				os.Exit(1)
+				return err
 			}
-			rs := repos.New(cfg, db)
-			err = rs.Pull(ctx, cfg.Repos())
-			if err != nil {
-				slog.Error(gotext.Get("Error pulling repos"), "err", err)
-				os.Exit(1)
-			}
+			defer deps.Defer()
 			return nil
 		},
 	}

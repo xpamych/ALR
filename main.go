@@ -82,29 +82,22 @@ func GetApp() *cli.App {
 			HelperCmd(),
 			VersionCmd(),
 			SearchCmd(),
+			// Internal commands
+			InternalBuildCmd(),
+			InternalInstallCmd(),
+			InternalMountCmd(),
 		},
 		Before: func(c *cli.Context) error {
-			cfg := config.New()
-			err := cfg.Load()
-			if err != nil {
-				slog.Error(gotext.Get("Error loading config"), "err", err)
-				os.Exit(1)
-			}
-
-			cmd := c.Args().First()
-			if cmd != "helper" && !cfg.AllowRunAsRoot() && os.Geteuid() == 0 {
-				slog.Error(gotext.Get("Running ALR as root is forbidden as it may cause catastrophic damage to your system"))
-				os.Exit(1)
-			}
-
 			if trimmed := strings.TrimSpace(c.String("pm-args")); trimmed != "" {
 				args := strings.Split(trimmed, " ")
 				manager.Args = append(manager.Args, args...)
 			}
-
 			return nil
 		},
 		EnableBashCompletion: true,
+		ExitErrHandler: func(cCtx *cli.Context, err error) {
+			cliutils.HandleExitCoder(err)
+		},
 	}
 }
 
@@ -142,8 +135,6 @@ func main() {
 		os.Exit(1)
 	}
 	setLogLevel(cfg.LogLevel())
-	// Set the root command to the one set in the ALR config
-	manager.DefaultRootCmd = cfg.RootCmd()
 
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()

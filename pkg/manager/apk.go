@@ -28,7 +28,15 @@ import (
 
 // APK represents the APK package manager
 type APK struct {
-	rootCmd string
+	CommonPackageManager
+}
+
+func NewAPK() *APK {
+	return &APK{
+		CommonPackageManager: CommonPackageManager{
+			noConfirmArg: "-i",
+		},
+	}
 }
 
 func (*APK) Exists() bool {
@@ -42,10 +50,6 @@ func (*APK) Name() string {
 
 func (*APK) Format() string {
 	return "apk"
-}
-
-func (a *APK) SetRootCmd(s string) {
-	a.rootCmd = s
 }
 
 func (a *APK) Sync(opts *Opts) error {
@@ -162,21 +166,4 @@ func (a *APK) IsInstalled(pkg string) (bool, error) {
 		return false, fmt.Errorf("apk: isinstalled: %w, output: %s", err, output)
 	}
 	return true, nil
-}
-
-func (a *APK) getCmd(opts *Opts, mgrCmd string, args ...string) *exec.Cmd {
-	var cmd *exec.Cmd
-	if opts.AsRoot {
-		cmd = exec.Command(getRootCmd(a.rootCmd), mgrCmd)
-		cmd.Args = append(cmd.Args, opts.Args...)
-		cmd.Args = append(cmd.Args, args...)
-	} else {
-		cmd = exec.Command(mgrCmd, args...)
-	}
-
-	if !opts.NoConfirm {
-		cmd.Args = append(cmd.Args, "-i")
-	}
-
-	return cmd
 }

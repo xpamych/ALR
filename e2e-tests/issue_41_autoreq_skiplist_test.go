@@ -32,6 +32,7 @@ func TestE2EIssue41AutoreqSkiplist(t *testing.T) {
 		AUTOREQ_AUTOPROV_SYSTEMS,
 		func(t *testing.T, r e2e.Runnable) {
 			err := r.Exec(e2e.NewCommand(
+				"sudo",
 				"alr",
 				"addrepo",
 				"--name",

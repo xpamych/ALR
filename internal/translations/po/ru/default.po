@@ -16,91 +16,87 @@ msgstr ""
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 47.1\n"
 
-#: build.go:44
+#: build.go:42
 msgid "Build a local package"
 msgstr "Сборка локального пакета"
 
-#: build.go:50
+#: build.go:48
 msgid "Path to the build script"
 msgstr "Путь к скрипту сборки"
 
-#: build.go:55
+#: build.go:53
 msgid "Specify subpackage in script (for multi package script only)"
 msgstr "Укажите подпакет в скрипте (только для многопакетного скрипта)"
 
-#: build.go:60
+#: build.go:58
 msgid "Name of the package to build and its repo (example: default/go-bin)"
 msgstr "Имя пакета для сборки и его репозиторий (пример: default/go-bin)"
 
-#: build.go:65
+#: build.go:63
 msgid ""
 "Build package from scratch even if there's an already built package available"
 msgstr "Создайте пакет с нуля, даже если уже имеется готовый пакет"
 
 #: build.go:73
-#, fuzzy
-msgid "Error loading config"
-msgstr "Ошибка при кодировании конфигурации"
-
-#: build.go:81
-msgid "Error initialization database"
-msgstr "Ошибка инициализации базы данных"
-
-#: build.go:110
-msgid "Package not found"
-msgstr "Пакет не найден"
-
-#: build.go:130
-msgid "Error pulling repositories"
-msgstr "Ошибка при извлечении репозиториев"
-
-#: build.go:138
-msgid "Unable to detect a supported package manager on the system"
-msgstr "Не удалось обнаружить поддерживаемый менеджер пакетов в системе"
-
-#: build.go:144
-msgid "Error parsing os release"
-msgstr "Ошибка при разборе файла выпуска операционной системы"
-
-#: build.go:166
-msgid "Error building package"
-msgstr "Ошибка при сборке пакета"
-
-#: build.go:173
 msgid "Error getting working directory"
 msgstr "Ошибка при получении рабочего каталога"
 
-#: build.go:182
+#: build.go:118
+msgid "Cannot get absolute script path"
+msgstr ""
+
+#: build.go:148
+msgid "Package not found"
+msgstr "Пакет не найден"
+
+#: build.go:161
+#, fuzzy
+msgid "Nothing to build"
+msgstr "Исполнение build()"
+
+#: build.go:218
+msgid "Error building package"
+msgstr "Ошибка при сборке пакета"
+
+#: build.go:225
 msgid "Error moving the package"
 msgstr "Ошибка при перемещении пакета"
 
-#: fix.go:37
+#: build.go:229
+msgid "Done"
+msgstr "Сделано"
+
+#: fix.go:38
 msgid "Attempt to fix problems with ALR"
 msgstr "Попытка устранить проблемы с ALR"
 
-#: fix.go:49
-msgid "Removing cache directory"
+#: fix.go:59
+#, fuzzy
+msgid "Clearing cache directory"
 msgstr "Удаление каталога кэша"
 
-#: fix.go:53
-msgid "Unable to remove cache directory"
+#: fix.go:64
+#, fuzzy
+msgid "Unable to open cache directory"
 msgstr "Не удалось удалить каталог кэша"
 
-#: fix.go:57
+#: fix.go:70
+#, fuzzy
+msgid "Unable to read cache directory contents"
+msgstr "Не удалось удалить каталог кэша"
+
+#: fix.go:76
+#, fuzzy
+msgid "Unable to remove cache item (%s)"
+msgstr "Не удалось удалить каталог кэша"
+
+#: fix.go:80
 msgid "Rebuilding cache"
 msgstr "Восстановление кэша"
 
-#: fix.go:61
+#: fix.go:84
 msgid "Unable to create new cache directory"
 msgstr "Не удалось создать новый каталог кэша"
-
-#: fix.go:81
-msgid "Error pulling repos"
-msgstr "Ошибка при извлечении репозиториев"
-
-#: fix.go:85
-msgid "Done"
-msgstr "Сделано"
 
 #: gen.go:34
 msgid "Generate a ALR script from a template"
@@ -110,81 +106,107 @@ msgstr "Генерация скрипта ALR из шаблона"
 msgid "Generate a ALR script for a pip module"
 msgstr "Генерация скрипта ALR для модуля pip"
 
-#: helper.go:41
+#: helper.go:42
 msgid "List all the available helper commands"
 msgstr "Список всех доступных вспомогательных команды"
 
-#: helper.go:53
+#: helper.go:54
 msgid "Run a ALR helper command"
 msgstr "Запустить вспомогательную команду ALR"
 
-#: helper.go:60
+#: helper.go:61
 msgid "The directory that the install commands will install to"
 msgstr "Каталог, в который будут устанавливать команды установки"
 
-#: helper.go:73
+#: helper.go:74 helper.go:75
 msgid "No such helper command"
 msgstr "Такой вспомогательной команды нет"
 
-#: info.go:43
-msgid "Print information about a package"
-msgstr "Отобразить информацию о пакете"
-
-#: info.go:48
-msgid "Show all information, not just for the current distro"
-msgstr "Показывать всю информацию, не только для текущего дистрибутива"
-
-#: info.go:69
-msgid "Error getting packages"
-msgstr "Ошибка при получении пакетов"
-
-#: info.go:78
-msgid "Error iterating over packages"
-msgstr "Ошибка при переборе пакетов"
-
-#: info.go:105
-msgid "Command info expected at least 1 argument, got %d"
-msgstr "Для команды info ожидался хотя бы 1 аргумент, получено %d"
-
-#: info.go:119
-msgid "Error finding packages"
-msgstr "Ошибка при поиске пакетов"
-
-#: info.go:144
+#: helper.go:85
 msgid "Error parsing os-release file"
 msgstr "Ошибка при разборе файла выпуска операционной системы"
 
-#: info.go:153
+#: info.go:42
+msgid "Print information about a package"
+msgstr "Отобразить информацию о пакете"
+
+#: info.go:47
+msgid "Show all information, not just for the current distro"
+msgstr "Показывать всю информацию, не только для текущего дистрибутива"
+
+#: info.go:68
+msgid "Error getting packages"
+msgstr "Ошибка при получении пакетов"
+
+#: info.go:76
+msgid "Error iterating over packages"
+msgstr "Ошибка при переборе пакетов"
+
+#: info.go:90
+msgid "Command info expected at least 1 argument, got %d"
+msgstr "Для команды info ожидался хотя бы 1 аргумент, получено %d"
+
+#: info.go:110
+msgid "Error finding packages"
+msgstr "Ошибка при поиске пакетов"
+
+#: info.go:124
+#, fuzzy
+msgid "Can't detect system language"
+msgstr "Ошибка при парсинге языка системы"
+
+#: info.go:141
 msgid "Error resolving overrides"
 msgstr "Ошибка устранения переорпеделений"
 
-#: info.go:162 info.go:168
+#: info.go:149 info.go:154
 msgid "Error encoding script variables"
 msgstr "Ошибка кодирования переменных скрита"
 
-#: install.go:43
+#: install.go:40
 msgid "Install a new package"
 msgstr "Установить новый пакет"
 
-#: install.go:57
+#: install.go:56
 msgid "Command install expected at least 1 argument, got %d"
 msgstr "Для команды install ожидался хотя бы 1 аргумент, получено %d"
+
+#: install.go:118
+msgid "Error parsing os release"
+msgstr "Ошибка при разборе файла выпуска операционной системы"
 
 #: install.go:163
 msgid "Remove an installed package"
 msgstr "Удалить установленный пакет"
 
-#: install.go:188
+#: install.go:182
 msgid "Error listing installed packages"
 msgstr "Ошибка при составлении списка установленных пакетов"
 
-#: install.go:226
+#: install.go:223
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr "Для команды remove ожидался хотя бы 1 аргумент, получено %d"
 
-#: install.go:241
+#: install.go:238
 msgid "Error removing packages"
 msgstr "Ошибка при удалении пакетов"
+
+#: internal/cliutils/app_builder/builder.go:75
+#, fuzzy
+msgid "Error loading config"
+msgstr "Ошибка при кодировании конфигурации"
+
+#: internal/cliutils/app_builder/builder.go:96
+msgid "Error initialization database"
+msgstr "Ошибка инициализации базы данных"
+
+#: internal/cliutils/app_builder/builder.go:135
+msgid "Error pulling repositories"
+msgstr "Ошибка при извлечении репозиториев"
+
+#: internal/cliutils/app_builder/builder.go:165
+msgid "Unable to detect a supported package manager on the system"
+msgstr "Не удалось обнаружить поддерживаемый менеджер пакетов в системе"
 
 #: internal/cliutils/prompt.go:60
 msgid "Would you like to view the build script for %s"
@@ -266,19 +288,6 @@ msgstr "КАТЕГОРИЯ"
 msgid "OPTIONS"
 msgstr "ПАРАМЕТРЫ"
 
-#: internal/config/config.go:176
-#, fuzzy
-msgid "Unable to create config directory"
-msgstr "Не удалось создать каталог конфигурации ALR"
-
-#: internal/config/config.go:182
-msgid "Unable to create repo cache directory"
-msgstr "Не удалось создать каталог кэша репозитория"
-
-#: internal/config/config.go:188
-msgid "Unable to create package cache directory"
-msgstr "Не удалось создать каталог кэша пакетов"
-
 #: internal/db/db.go:133
 msgid "Database version mismatch; resetting"
 msgstr "Несоответствие версий базы данных; сброс настроек"
@@ -313,9 +322,22 @@ msgstr "%s: выполнено!\n"
 msgid "%s %s downloading at %s/s\n"
 msgstr "%s %s загружается — %s/с\n"
 
-#: internal/logger/log.go:47
+#: internal/logger/log.go:41
 msgid "ERROR"
 msgstr "ОШИБКА"
+
+#: internal/utils/cmd.go:95
+#, fuzzy
+msgid "Error dropping capabilities"
+msgstr "Ошибка при открытии базы данных"
+
+#: internal/utils/cmd.go:123
+msgid "You need to be root to perform this action"
+msgstr ""
+
+#: internal/utils/cmd.go:165
+msgid "You need to be a %s member to perform this action"
+msgstr ""
 
 #: list.go:41
 msgid "List ALR repo packages"
@@ -333,47 +355,31 @@ msgstr "Аргументы, которые будут переданы мене�
 msgid "Enable interactive questions and prompts"
 msgstr "Включение интерактивных вопросов и запросов"
 
-#: main.go:96
-msgid ""
-"Running ALR as root is forbidden as it may cause catastrophic damage to your "
-"system"
-msgstr ""
-"Запуск ALR от имени root запрещён, так как это может привести к "
-"катастрофическому повреждению вашей системы"
-
-#: main.go:154
+#: main.go:145
 msgid "Show help"
 msgstr "Показать справку"
 
-#: main.go:158
+#: main.go:149
 msgid "Error while running app"
 msgstr "Ошибка при запуске приложения"
 
-#: pkg/build/build.go:157
-msgid "Failed to prompt user to view build script"
-msgstr "Не удалось предложить пользователю просмотреть скрипт сборки"
-
-#: pkg/build/build.go:161
+#: pkg/build/build.go:394
 msgid "Building package"
 msgstr "Сборка пакета"
 
-#: pkg/build/build.go:209
+#: pkg/build/build.go:423
 msgid "The checksums array must be the same length as sources"
 msgstr "Массив контрольных сумм должен быть той же длины, что и источники"
 
-#: pkg/build/build.go:238
+#: pkg/build/build.go:454
 msgid "Downloading sources"
 msgstr "Скачивание источников"
 
-#: pkg/build/build.go:260
-msgid "Building package metadata"
-msgstr "Сборка метаданных пакета"
+#: pkg/build/build.go:543
+msgid "Installing dependencies"
+msgstr "Установка зависимостей"
 
-#: pkg/build/build.go:282
-msgid "Compressing package"
-msgstr "Сжатие пакета"
-
-#: pkg/build/build.go:441
+#: pkg/build/checker.go:43
 msgid ""
 "Your system's CPU architecture doesn't match this package. Do you want to "
 "build anyway?"
@@ -381,41 +387,9 @@ msgstr ""
 "Архитектура процессора вашей системы не соответствует этому пакету. Вы все "
 "равно хотите выполнить сборку?"
 
-#: pkg/build/build.go:455
+#: pkg/build/checker.go:67
 msgid "This package is already installed"
 msgstr "Этот пакет уже установлен"
-
-#: pkg/build/build.go:479
-msgid "Installing build dependencies"
-msgstr "Установка зависимостей сборки"
-
-#: pkg/build/build.go:524
-msgid "Installing dependencies"
-msgstr "Установка зависимостей"
-
-#: pkg/build/build.go:605
-msgid "Would you like to remove the build dependencies?"
-msgstr "Хотели бы вы удалить зависимости сборки?"
-
-#: pkg/build/build.go:668
-msgid "Executing prepare()"
-msgstr "Исполнение prepare()"
-
-#: pkg/build/build.go:678
-msgid "Executing build()"
-msgstr "Исполнение build()"
-
-#: pkg/build/build.go:708 pkg/build/build.go:728
-msgid "Executing %s()"
-msgstr "Исполнение %s()"
-
-#: pkg/build/build.go:787
-msgid "Error installing native packages"
-msgstr "Ошибка при установке нативных пакетов"
-
-#: pkg/build/build.go:811
-msgid "Error installing package"
-msgstr "Ошибка при установке пакета"
 
 #: pkg/build/find_deps/alt_linux.go:35
 msgid "Command not found on the system"
@@ -439,6 +413,22 @@ msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 "AutoReq не реализовано для этого формата пакета, поэтому будет пропущено"
 
+#: pkg/build/script_executor.go:237
+msgid "Building package metadata"
+msgstr "Сборка метаданных пакета"
+
+#: pkg/build/script_executor.go:356
+msgid "Executing prepare()"
+msgstr "Исполнение prepare()"
+
+#: pkg/build/script_executor.go:365
+msgid "Executing build()"
+msgstr "Исполнение build()"
+
+#: pkg/build/script_executor.go:394 pkg/build/script_executor.go:414
+msgid "Executing %s()"
+msgstr "Исполнение %s()"
+
 #: pkg/repos/pull.go:79
 msgid "Pulling repository"
 msgstr "Скачивание репозитория"
@@ -459,44 +449,50 @@ msgstr ""
 "Минимальная версия ALR для ALR-репозитория выше текущей версии. Попробуйте "
 "обновить ALR, если что-то не работает."
 
-#: repo.go:40
+#: repo.go:39
 msgid "Add a new repository"
 msgstr "Добавить новый репозиторий"
 
-#: repo.go:47
+#: repo.go:46
 msgid "Name of the new repo"
 msgstr "Название нового репозитория"
 
-#: repo.go:53
+#: repo.go:52
 msgid "URL of the new repo"
 msgstr "URL-адрес нового репозитория"
 
-#: repo.go:86 repo.go:156
+#: repo.go:79
+#, fuzzy
+msgid "Repo %s already exists"
+msgstr "Репозитория не существует"
+
+#: repo.go:90 repo.go:167
 #, fuzzy
 msgid "Error saving config"
 msgstr "Ошибка при кодировании конфигурации"
 
-#: repo.go:111
+#: repo.go:116
 msgid "Remove an existing repository"
 msgstr "Удалить существующий репозиторий"
 
-#: repo.go:118
+#: repo.go:123
 msgid "Name of the repo to be deleted"
 msgstr "Название репозитория  удалён"
 
-#: repo.go:142
-msgid "Repo does not exist"
+#: repo.go:156
+#, fuzzy
+msgid "Repo \"%s\" does not exist"
 msgstr "Репозитория не существует"
 
-#: repo.go:150
+#: repo.go:163
 msgid "Error removing repo directory"
 msgstr "Ошибка при удалении каталога репозитория"
 
-#: repo.go:167
+#: repo.go:186
 msgid "Error removing packages from database"
 msgstr "Ошибка при удалении пакетов из базы данных"
 
-#: repo.go:179
+#: repo.go:197
 msgid "Pull all repositories that have changed"
 msgstr "Скачать все изменённые репозитории"
 
@@ -524,11 +520,16 @@ msgstr "Иcкать по provides"
 msgid "Format output using a Go template"
 msgstr "Формат выходных данных с использованием шаблона Go"
 
-#: search.go:88 search.go:105
+#: search.go:96
+#, fuzzy
+msgid "Error while executing search"
+msgstr "Ошибка при запуске приложения"
+
+#: search.go:104
 msgid "Error parsing format template"
 msgstr "Ошибка при разборе шаблона"
 
-#: search.go:113
+#: search.go:112
 msgid "Error executing template"
 msgstr "Ошибка при выполнении шаблона"
 
@@ -536,13 +537,59 @@ msgstr "Ошибка при выполнении шаблона"
 msgid "Upgrade all installed packages"
 msgstr "Обновить все установленные пакеты"
 
-#: upgrade.go:96
+#: upgrade.go:109 upgrade.go:126
 msgid "Error checking for updates"
 msgstr "Ошибка при проверке обновлений"
 
-#: upgrade.go:118
+#: upgrade.go:129
 msgid "There is nothing to do."
 msgstr "Здесь нечего делать."
+
+#~ msgid "Error pulling repos"
+#~ msgstr "Ошибка при извлечении репозиториев"
+
+#, fuzzy
+#~ msgid "Error getting current executable"
+#~ msgstr "Ошибка при получении рабочего каталога"
+
+#, fuzzy
+#~ msgid "Error mounting"
+#~ msgstr "Ошибка при кодировании конфигурации"
+
+#, fuzzy
+#~ msgid "Unable to create config directory"
+#~ msgstr "Не удалось создать каталог конфигурации ALR"
+
+#~ msgid "Unable to create repo cache directory"
+#~ msgstr "Не удалось создать каталог кэша репозитория"
+
+#~ msgid "Unable to create package cache directory"
+#~ msgstr "Не удалось создать каталог кэша пакетов"
+
+#~ msgid ""
+#~ "Running ALR as root is forbidden as it may cause catastrophic damage to "
+#~ "your system"
+#~ msgstr ""
+#~ "Запуск ALR от имени root запрещён, так как это может привести к "
+#~ "катастрофическому повреждению вашей системы"
+
+#~ msgid "Failed to prompt user to view build script"
+#~ msgstr "Не удалось предложить пользователю просмотреть скрипт сборки"
+
+#~ msgid "Compressing package"
+#~ msgstr "Сжатие пакета"
+
+#~ msgid "Installing build dependencies"
+#~ msgstr "Установка зависимостей сборки"
+
+#~ msgid "Would you like to remove the build dependencies?"
+#~ msgstr "Хотели бы вы удалить зависимости сборки?"
+
+#~ msgid "Error installing native packages"
+#~ msgstr "Ошибка при установке нативных пакетов"
+
+#~ msgid "Error installing package"
+#~ msgstr "Ошибка при установке пакета"
 
 #~ msgid "Error opening config file, using defaults"
 #~ msgstr ""
@@ -568,12 +615,6 @@ msgstr "Здесь нечего делать."
 
 #~ msgid "Error opening config file"
 #~ msgstr "Ошибка при открытии конфигурационного файла"
-
-#~ msgid "Error parsing system language"
-#~ msgstr "Ошибка при парсинге языка системы"
-
-#~ msgid "Error opening database"
-#~ msgstr "Ошибка при открытии базы данных"
 
 #~ msgid "Executing version()"
 #~ msgstr "Исполнение версия()"

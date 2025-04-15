@@ -23,21 +23,21 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"os"
 
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 	"go.elara.ws/vercmp"
 	"golang.org/x/exp/maps"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
+	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
 	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/search"
 )
 
@@ -54,66 +54,77 @@ func UpgradeCmd() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
+			if err := utils.ExitIfNotRoot(); err != nil {
+				return err
+			}
+
+			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
+				return err
+			}
+
+			installer, installerClose, err := build.GetSafeInstaller()
+			if err != nil {
+				return err
+			}
+			defer installerClose()
+
+			if err := utils.ExitIfCantSetNoNewPrivs(); err != nil {
+				return err
+			}
+
+			scripter, scripterClose, err := build.GetSafeScriptExecutor()
+			if err != nil {
+				return err
+			}
+			defer scripterClose()
+
 			ctx := c.Context
 
-			cfg := config.New()
-			err := cfg.Load()
+			deps, err := appbuilder.
+				New(ctx).
+				WithConfig().
+				WithDB().
+				WithRepos().
+				WithDistroInfo().
+				WithManager().
+				Build()
 			if err != nil {
-				slog.Error(gotext.Get("Error loading config"), "err", err)
-				os.Exit(1)
+				return err
 			}
+			defer deps.Defer()
 
-			db := database.New(cfg)
-			rs := repos.New(cfg, db)
-			err = db.Init(ctx)
+			builder, err := build.NewMainBuilder(
+				deps.Cfg,
+				deps.Manager,
+				deps.Repos,
+				scripter,
+				installer,
+			)
 			if err != nil {
-				slog.Error(gotext.Get("Error initialization database"), "err", err)
-				os.Exit(1)
+				return err
 			}
 
-			info, err := distro.ParseOSRelease(ctx)
+			updates, err := checkForUpdates(ctx, deps.Manager, deps.DB, deps.Info)
 			if err != nil {
-				slog.Error(gotext.Get("Error parsing os-release file"), "err", err)
-				os.Exit(1)
-			}
-
-			mgr := manager.Detect()
-			if mgr == nil {
-				slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
-				os.Exit(1)
-			}
-
-			if cfg.AutoPull() {
-				err = rs.Pull(ctx, cfg.Repos())
-				if err != nil {
-					slog.Error(gotext.Get("Error pulling repos"), "err", err)
-					os.Exit(1)
-				}
-			}
-
-			updates, err := checkForUpdates(ctx, mgr, cfg, db, rs, info)
-			if err != nil {
-				slog.Error(gotext.Get("Error checking for updates"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Error checking for updates"), err)
 			}
 
 			if len(updates) > 0 {
-				builder := build.NewBuilder(
+				err = builder.InstallALRPackages(
 					ctx,
-					types.BuildOpts{
-						Manager:     mgr,
-						Clean:       c.Bool("clean"),
-						Interactive: c.Bool("interactive"),
+					&build.BuildArgs{
+						Opts: &types.BuildOpts{
+							Clean:       c.Bool("clean"),
+							Interactive: c.Bool("interactive"),
+						},
+						Info:       deps.Info,
+						PkgFormat_: build.GetPkgFormat(deps.Manager),
 					},
-					rs,
-					info,
-					cfg,
+					updates,
 				)
-				builder.InstallPkgs(ctx, updates, nil, types.BuildOpts{
-					Manager:     mgr,
-					Clean:       c.Bool("clean"),
-					Interactive: c.Bool("interactive"),
-				})
+				if err != nil {
+					return cliutils.FormatCliExit(gotext.Get("Error checking for updates"), err)
+				}
 			} else {
 				slog.Info(gotext.Get("There is nothing to do."))
 			}
@@ -126,9 +137,7 @@ func UpgradeCmd() *cli.Command {
 func checkForUpdates(
 	ctx context.Context,
 	mgr manager.Manager,
-	cfg *config.ALRConfig,
 	db *database.Database,
-	rs *repos.Repos,
 	info *distro.OSRelease,
 ) ([]database.Package, error) {
 	installed, err := mgr.ListInstalled(nil)

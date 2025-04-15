@@ -33,6 +33,7 @@ func TestE2EAlrAddRepo(t *testing.T) {
 		COMMON_SYSTEMS,
 		func(t *testing.T, r e2e.Runnable) {
 			err := r.Exec(e2e.NewCommand(
+				"sudo",
 				"alr",
 				"addrepo",
 				"--name",
@@ -45,11 +46,12 @@ func TestE2EAlrAddRepo(t *testing.T) {
 			err = r.Exec(e2e.NewCommand(
 				"bash",
 				"-c",
-				"cat $HOME/.config/alr/alr.toml",
+				"cat /etc/alr/alr.toml",
 			))
 			assert.NoError(t, err)
 
 			err = r.Exec(e2e.NewCommand(
+				"sudo",
 				"alr",
 				"removerepo",
 				"--name",
@@ -61,7 +63,7 @@ func TestE2EAlrAddRepo(t *testing.T) {
 			err = r.Exec(e2e.NewCommand(
 				"bash",
 				"-c",
-				"cat $HOME/.config/alr/alr.toml",
+				"cat /etc/alr/alr.toml",
 			), e2e.WithExecOptionStdout(&buf))
 			assert.NoError(t, err)
 			assert.Contains(t, buf.String(), "rootCmd")

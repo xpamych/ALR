@@ -14,27 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-//go:build e2e
+package constants
 
-package e2etests_test
-
-import (
-	"testing"
-
-	"github.com/alecthomas/assert/v2"
-	"github.com/efficientgo/e2e"
+const (
+	SystemConfigPath = "/etc/alr/alr.toml"
+	SystemCachePath  = "/var/cache/alr"
+	AlrRunDir        = "/var/run/alr"
+	PrivilegedGroup  = "wheel"
 )
-
-func TestE2EIssue32Interactive(t *testing.T) {
-	dockerMultipleRun(
-		t,
-		"issue-32-interactive",
-		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
-			err := r.Exec(e2e.NewCommand(
-				"sudo", "alr", "--interactive=false", "remove", "ca-certificates",
-			))
-			assert.NoError(t, err)
-		},
-	)
-}

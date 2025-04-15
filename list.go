@@ -22,17 +22,17 @@ package main
 import (
 	"fmt"
 	"log/slog"
-	"os"
 
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/exp/slices"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
+	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
 	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
 func ListCmd() *cli.Command {
@@ -47,29 +47,26 @@ func ListCmd() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
+			if err := utils.ExitIfCantDropCapsToAlrUserNoPrivs(); err != nil {
+				return err
+			}
+
 			ctx := c.Context
-			cfg := config.New()
-			err := cfg.Load()
-			if err != nil {
-				slog.Error(gotext.Get("Error loading config"), "err", err)
-				os.Exit(1)
-			}
 
-			db := database.New(cfg)
-			err = db.Init(ctx)
+			deps, err := appbuilder.
+				New(ctx).
+				WithConfig().
+				WithDB().
+				// autoPull only
+				WithRepos().
+				Build()
 			if err != nil {
-				slog.Error(gotext.Get("Error initialization database"), "err", err)
-				os.Exit(1)
+				return err
 			}
-			rs := repos.New(cfg, db)
+			defer deps.Defer()
 
-			if cfg.AutoPull() {
-				err = rs.Pull(ctx, cfg.Repos())
-				if err != nil {
-					slog.Error(gotext.Get("Error pulling repositories"), "err", err)
-					os.Exit(1)
-				}
-			}
+			cfg := deps.Cfg
+			db := deps.DB
 
 			where := "true"
 			args := []any(nil)
@@ -80,8 +77,7 @@ func ListCmd() *cli.Command {
 
 			result, err := db.GetPkgs(ctx, where, args...)
 			if err != nil {
-				slog.Error(gotext.Get("Error getting packages"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Error getting packages"), err)
 			}
 			defer result.Close()
 
@@ -89,14 +85,13 @@ func ListCmd() *cli.Command {
 			if c.Bool("installed") {
 				mgr := manager.Detect()
 				if mgr == nil {
-					slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
-					os.Exit(1)
+					return cli.Exit(gotext.Get("Unable to detect a supported package manager on the system"), 1)
 				}
 
-				installed, err := mgr.ListInstalled(&manager.Opts{AsRoot: false})
+				installed, err := mgr.ListInstalled(&manager.Opts{})
 				if err != nil {
 					slog.Error(gotext.Get("Error listing installed packages"), "err", err)
-					os.Exit(1)
+					return cli.Exit(err, 1)
 				}
 
 				for pkgName, version := range installed {
@@ -113,7 +108,7 @@ func ListCmd() *cli.Command {
 				var pkg database.Package
 				err := result.StructScan(&pkg)
 				if err != nil {
-					return err
+					return cli.Exit(err, 1)
 				}
 
 				if slices.Contains(cfg.IgnorePkgUpdates(), pkg.Name) {
@@ -131,11 +126,6 @@ func ListCmd() *cli.Command {
 				}
 
 				fmt.Printf("%s/%s %s\n", pkg.Repository, pkg.Name, version)
-			}
-
-			if err != nil {
-				slog.Error(gotext.Get("Error iterating over packages"), "err", err)
-				os.Exit(1)
 			}
 
 			return nil

@@ -37,6 +37,7 @@ install: \
 
 $(INSTALED_BIN): $(BIN)
 	install -Dm755 $< $@
+	setcap cap_setuid,cap_setgid+ep $(INSTALED_BIN)
 
 $(INSTALLED_BASH_COMPLETION): $(BASH_COMPLETION)
 	install -Dm755 $< $@

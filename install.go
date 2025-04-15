@@ -21,20 +21,17 @@ package main
 
 import (
 	"fmt"
-	"log/slog"
-	"os"
 
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
 	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/repos"
 )
 
 func InstallCmd() *cli.Command {
@@ -50,96 +47,98 @@ func InstallCmd() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			ctx := c.Context
+			if err := utils.ExitIfNotRoot(); err != nil {
+				return err
+			}
 
 			args := c.Args()
 			if args.Len() < 1 {
-				slog.Error(gotext.Get("Command install expected at least 1 argument, got %d", args.Len()))
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Command install expected at least 1 argument, got %d", args.Len()), nil)
 			}
 
-			mgr := manager.Detect()
-			if mgr == nil {
-				slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
-				os.Exit(1)
+			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
+				return err
 			}
 
-			cfg := config.New()
-			err := cfg.Load()
+			installer, installerClose, err := build.GetSafeInstaller()
 			if err != nil {
-				slog.Error(gotext.Get("Error loading config"), "err", err)
-				os.Exit(1)
+				return err
+			}
+			defer installerClose()
+
+			if err := utils.ExitIfCantSetNoNewPrivs(); err != nil {
+				return err
 			}
 
-			db := database.New(cfg)
-			rs := repos.New(cfg, db)
-			err = db.Init(ctx)
+			scripter, scripterClose, err := build.GetSafeScriptExecutor()
 			if err != nil {
-				slog.Error(gotext.Get("Error initialization database"), "err", err)
-				os.Exit(1)
+				return err
 			}
+			defer scripterClose()
 
-			if cfg.AutoPull() {
-				err := rs.Pull(ctx, cfg.Repos())
-				if err != nil {
-					slog.Error(gotext.Get("Error pulling repositories"), "err", err)
-					os.Exit(1)
-				}
-			}
+			ctx := c.Context
 
-			found, notFound, err := rs.FindPkgs(ctx, args.Slice())
+			deps, err := appbuilder.
+				New(ctx).
+				WithConfig().
+				WithDB().
+				WithRepos().
+				WithDistroInfo().
+				WithManager().
+				Build()
 			if err != nil {
-				slog.Error(gotext.Get("Error finding packages"), "err", err)
-				os.Exit(1)
+				return err
 			}
+			defer deps.Defer()
 
-			pkgs := cliutils.FlattenPkgs(ctx, found, "install", c.Bool("interactive"))
-
-			opts := types.BuildOpts{
-				Manager:     mgr,
-				Clean:       c.Bool("clean"),
-				Interactive: c.Bool("interactive"),
-			}
-
-			info, err := distro.ParseOSRelease(ctx)
-			if err != nil {
-				slog.Error(gotext.Get("Error parsing os release"), "err", err)
-				os.Exit(1)
-			}
-
-			builder := build.NewBuilder(
-				ctx,
-				opts,
-				rs,
-				info,
-				cfg,
+			builder, err := build.NewMainBuilder(
+				deps.Cfg,
+				deps.Manager,
+				deps.Repos,
+				scripter,
+				installer,
 			)
+			if err != nil {
+				return err
+			}
 
-			builder.InstallPkgs(ctx, pkgs, notFound, types.BuildOpts{
-				Manager:     mgr,
-				Clean:       c.Bool("clean"),
-				Interactive: c.Bool("interactive"),
-			})
+			err = builder.InstallPkgs(
+				ctx,
+				&build.BuildArgs{
+					Opts: &types.BuildOpts{
+						Clean:       c.Bool("clean"),
+						Interactive: c.Bool("interactive"),
+					},
+					Info:       deps.Info,
+					PkgFormat_: build.GetPkgFormat(deps.Manager),
+				},
+				args.Slice(),
+			)
+			if err != nil {
+				return cliutils.FormatCliExit(gotext.Get("Error parsing os release"), err)
+			}
+
 			return nil
 		},
-		BashComplete: func(c *cli.Context) {
-			cfg := config.New()
-			err := cfg.Load()
-			if err != nil {
-				slog.Error(gotext.Get("Error loading config"), "err", err)
-				os.Exit(1)
+		BashComplete: cliutils.BashCompleteWithError(func(c *cli.Context) error {
+			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
+				return err
 			}
 
-			db := database.New(cfg)
-			err = db.Init(c.Context)
+			ctx := c.Context
+			deps, err := appbuilder.
+				New(ctx).
+				WithConfig().
+				WithDB().
+				Build()
 			if err != nil {
-				slog.Error(gotext.Get("Error initialization database"), "err", err)
-				os.Exit(1)
+				return err
 			}
-			result, err := db.GetPkgs(c.Context, "true")
+			defer deps.Defer()
+
+			result, err := deps.DB.GetPkgs(c.Context, "true")
 			if err != nil {
-				slog.Error(gotext.Get("Error getting packages"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Error getting packages"), err)
 			}
 			defer result.Close()
 
@@ -147,13 +146,14 @@ func InstallCmd() *cli.Command {
 				var pkg database.Package
 				err = result.StructScan(&pkg)
 				if err != nil {
-					slog.Error(gotext.Get("Error iterating over packages"), "err", err)
-					os.Exit(1)
+					return cliutils.FormatCliExit(gotext.Get("Error iterating over packages"), err)
 				}
 
 				fmt.Println(pkg.Name)
 			}
-		},
+
+			return nil
+		}),
 	}
 }
 
@@ -162,31 +162,24 @@ func RemoveCmd() *cli.Command {
 		Name:    "remove",
 		Usage:   gotext.Get("Remove an installed package"),
 		Aliases: []string{"rm"},
-		BashComplete: func(c *cli.Context) {
-			cfg := config.New()
-			err := cfg.Load()
-			if err != nil {
-				slog.Error(gotext.Get("Error loading config"), "err", err)
-				os.Exit(1)
-			}
+		BashComplete: cliutils.BashCompleteWithError(func(c *cli.Context) error {
+			ctx := c.Context
 
-			db := database.New(cfg)
-			err = db.Init(c.Context)
+			deps, err := appbuilder.
+				New(ctx).
+				WithConfig().
+				WithDB().
+				WithManager().
+				Build()
 			if err != nil {
-				slog.Error(gotext.Get("Error initialization database"), "err", err)
-				os.Exit(1)
+				return cli.Exit(err, 1)
 			}
+			defer deps.Defer()
 
 			installedAlrPackages := map[string]string{}
-			mgr := manager.Detect()
-			if mgr == nil {
-				slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
-				os.Exit(1)
-			}
-			installed, err := mgr.ListInstalled(&manager.Opts{AsRoot: false})
+			installed, err := deps.Manager.ListInstalled(&manager.Opts{})
 			if err != nil {
-				slog.Error(gotext.Get("Error listing installed packages"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Error listing installed packages"), err)
 			}
 			for pkgName, version := range installed {
 				matches := build.RegexpALRPackageName.FindStringSubmatch(pkgName)
@@ -197,10 +190,9 @@ func RemoveCmd() *cli.Command {
 				}
 			}
 
-			result, err := db.GetPkgs(c.Context, "true")
+			result, err := deps.DB.GetPkgs(c.Context, "true")
 			if err != nil {
-				slog.Error(gotext.Get("Error getting packages"), "err", err)
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Error getting packages"), err)
 			}
 			defer result.Close()
 
@@ -208,8 +200,7 @@ func RemoveCmd() *cli.Command {
 				var pkg database.Package
 				err = result.StructScan(&pkg)
 				if err != nil {
-					slog.Error(gotext.Get("Error iterating over packages"), "err", err)
-					os.Exit(1)
+					return cliutils.FormatCliExit(gotext.Get("Error iterating over packages"), err)
 				}
 
 				_, ok := installedAlrPackages[fmt.Sprintf("%s/%s", pkg.Repository, pkg.Name)]
@@ -219,27 +210,32 @@ func RemoveCmd() *cli.Command {
 
 				fmt.Println(pkg.Name)
 			}
-		},
+
+			return nil
+		}),
 		Action: func(c *cli.Context) error {
+			if err := utils.ExitIfNotRoot(); err != nil {
+				return err
+			}
+
 			args := c.Args()
 			if args.Len() < 1 {
-				slog.Error(gotext.Get("Command remove expected at least 1 argument, got %d", args.Len()))
-				os.Exit(1)
+				return cliutils.FormatCliExit(gotext.Get("Command remove expected at least 1 argument, got %d", args.Len()), nil)
 			}
 
-			mgr := manager.Detect()
-			if mgr == nil {
-				slog.Error(gotext.Get("Unable to detect a supported package manager on the system"))
-				os.Exit(1)
-			}
-
-			err := mgr.Remove(&manager.Opts{
-				AsRoot:    true,
-				NoConfirm: !c.Bool("interactive"),
-			}, c.Args().Slice()...)
+			deps, err := appbuilder.
+				New(c.Context).
+				WithManager().
+				Build()
 			if err != nil {
-				slog.Error(gotext.Get("Error removing packages"), "err", err)
-				os.Exit(1)
+				return err
+			}
+			defer deps.Defer()
+
+			if err := deps.Manager.Remove(&manager.Opts{
+				NoConfirm: !c.Bool("interactive"),
+			}, c.Args().Slice()...); err != nil {
+				return cliutils.FormatCliExit(gotext.Get("Error removing packages"), err)
 			}
 
 			return nil
