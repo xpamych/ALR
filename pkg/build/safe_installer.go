@@ -90,28 +90,7 @@ func GetSafeInstaller() (InstallerExecutor, func(), error) {
 		return nil, nil, err
 	}
 	cmd := exec.Command(executable, "_internal-installer")
-	cmd.Env = []string{
-		"HOME=/var/cache/alr",
-		"LOGNAME=alr",
-		"USER=alr",
-		"PATH=/usr/bin:/bin:/usr/local/bin",
-		"ALR_LOG_LEVEL=DEBUG",
-	}
-
-	/*
-		uid, gid, err := utils.GetUidGidAlrUser()
-		if err != nil {
-			return nil, nil, err
-		}
-
-
-			cmd.SysProcAttr = &syscall.SysProcAttr{
-				Credential: &syscall.Credential{
-					Uid: uint32(uid),
-					Gid: uint32(gid),
-				},
-			}
-	*/
+	setCommonCmdEnv(cmd)
 
 	slog.Debug("safe installer setup", "uid", syscall.Getuid(), "gid", syscall.Getgid())
 
