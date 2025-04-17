@@ -347,19 +347,19 @@ msgstr ""
 msgid "Error while running app"
 msgstr ""
 
-#: pkg/build/build.go:394
+#: pkg/build/build.go:395
 msgid "Building package"
 msgstr ""
 
-#: pkg/build/build.go:423
+#: pkg/build/build.go:424
 msgid "The checksums array must be the same length as sources"
 msgstr ""
 
-#: pkg/build/build.go:454
+#: pkg/build/build.go:455
 msgid "Downloading sources"
 msgstr ""
 
-#: pkg/build/build.go:543
+#: pkg/build/build.go:549
 msgid "Installing dependencies"
 msgstr ""
 

@@ -17,38 +17,24 @@
 package build
 
 import (
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
+	"os"
+	"os/exec"
+	"strings"
 )
 
-func NewInstaller(mgr manager.Manager) *Installer {
-	return &Installer{
-		mgr: mgr,
+func setCommonCmdEnv(cmd *exec.Cmd) {
+	cmd.Env = []string{
+		"HOME=/var/cache/alr",
+		"LOGNAME=alr",
+		"USER=alr",
+		"PATH=/usr/bin:/bin:/usr/local/bin",
 	}
-}
-
-type Installer struct{ mgr manager.Manager }
-
-func (i *Installer) InstallLocal(paths []string, opts *manager.Opts) error {
-	return i.mgr.InstallLocal(opts, paths...)
-}
-
-func (i *Installer) Install(pkgs []string, opts *manager.Opts) error {
-	return i.mgr.Install(opts, pkgs...)
-}
-
-func (i *Installer) RemoveAlreadyInstalled(pkgs []string) ([]string, error) {
-	filteredPackages := []string{}
-
-	for _, dep := range pkgs {
-		installed, err := i.mgr.IsInstalled(dep)
-		if err != nil {
-			return nil, err
+	for _, env := range os.Environ() {
+		if strings.HasPrefix(env, "LANG=") ||
+			strings.HasPrefix(env, "LANGUAGE=") ||
+			strings.HasPrefix(env, "LC_") ||
+			strings.HasPrefix(env, "ALR_LOG_LEVEL=") {
+			cmd.Env = append(cmd.Env, env)
 		}
-		if installed {
-			continue
-		}
-		filteredPackages = append(filteredPackages, dep)
 	}
-
-	return filteredPackages, nil
 }

@@ -31,10 +31,21 @@ func TestE2EIssue32Interactive(t *testing.T) {
 		"issue-32-interactive",
 		COMMON_SYSTEMS,
 		func(t *testing.T, r e2e.Runnable) {
-			err := r.Exec(e2e.NewCommand(
+			assert.NoError(t, r.Exec(e2e.NewCommand(
 				"sudo", "alr", "--interactive=false", "remove", "ca-certificates",
-			))
-			assert.NoError(t, err)
+			)))
+
+			assert.NoError(t, r.Exec(e2e.NewCommand(
+				"sudo", "alr", "--interactive=false", "remove", "openssl",
+			)))
+
+			assert.NoError(t, r.Exec(e2e.NewCommand(
+				"alr", "fix",
+			)))
+
+			assert.NoError(t, r.Exec(e2e.NewCommand(
+				"sudo", "alr", "--interactive=false", "install", "ca-certificates",
+			)))
 		},
 	)
 }

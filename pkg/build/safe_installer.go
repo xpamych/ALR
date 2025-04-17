@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/go-plugin"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/logger"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 )
 
 type InstallerPlugin struct {
@@ -42,21 +43,31 @@ type InstallerRPCServer struct {
 	Impl InstallerExecutor
 }
 
-func (r *InstallerRPC) InstallLocal(paths []string) error {
-	return r.client.Call("Plugin.InstallLocal", paths, nil)
+type InstallArgs struct {
+	PackagesOrPaths []string
+	Opts            *manager.Opts
 }
 
-func (s *InstallerRPCServer) InstallLocal(paths []string, reply *struct{}) error {
-	return s.Impl.InstallLocal(paths)
+func (r *InstallerRPC) InstallLocal(paths []string, opts *manager.Opts) error {
+	return r.client.Call("Plugin.InstallLocal", &InstallArgs{
+		PackagesOrPaths: paths,
+		Opts:            opts,
+	}, nil)
 }
 
-func (r *InstallerRPC) Install(pkgs []string) error {
-	return r.client.Call("Plugin.Install", pkgs, nil)
+func (s *InstallerRPCServer) InstallLocal(args *InstallArgs, reply *struct{}) error {
+	return s.Impl.InstallLocal(args.PackagesOrPaths, args.Opts)
 }
 
-func (s *InstallerRPCServer) Install(pkgs []string, reply *struct{}) error {
-	slog.Debug("install", "pkgs", pkgs)
-	return s.Impl.Install(pkgs)
+func (r *InstallerRPC) Install(pkgs []string, opts *manager.Opts) error {
+	return r.client.Call("Plugin.Install", &InstallArgs{
+		PackagesOrPaths: pkgs,
+		Opts:            opts,
+	}, nil)
+}
+
+func (s *InstallerRPCServer) Install(args *InstallArgs, reply *struct{}) error {
+	return s.Impl.Install(args.PackagesOrPaths, args.Opts)
 }
 
 func (r *InstallerRPC) RemoveAlreadyInstalled(paths []string) ([]string, error) {
@@ -90,28 +101,7 @@ func GetSafeInstaller() (InstallerExecutor, func(), error) {
 		return nil, nil, err
 	}
 	cmd := exec.Command(executable, "_internal-installer")
-	cmd.Env = []string{
-		"HOME=/var/cache/alr",
-		"LOGNAME=alr",
-		"USER=alr",
-		"PATH=/usr/bin:/bin:/usr/local/bin",
-		"ALR_LOG_LEVEL=DEBUG",
-	}
-
-	/*
-		uid, gid, err := utils.GetUidGidAlrUser()
-		if err != nil {
-			return nil, nil, err
-		}
-
-
-			cmd.SysProcAttr = &syscall.SysProcAttr{
-				Credential: &syscall.Credential{
-					Uid: uint32(uid),
-					Gid: uint32(gid),
-				},
-			}
-	*/
+	setCommonCmdEnv(cmd)
 
 	slog.Debug("safe installer setup", "uid", syscall.Getuid(), "gid", syscall.Getgid())
 

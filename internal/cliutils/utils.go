@@ -46,6 +46,9 @@ func HandleExitCoder(err error) {
 		cli.OsExiter(exitErr.ExitCode())
 		return
 	}
+
+	slog.Error(err.Error())
+	cli.OsExiter(1)
 }
 
 func FormatCliExit(msg string, err error) cli.ExitCoder {

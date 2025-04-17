@@ -363,19 +363,19 @@ msgstr "Показать справку"
 msgid "Error while running app"
 msgstr "Ошибка при запуске приложения"
 
-#: pkg/build/build.go:394
+#: pkg/build/build.go:395
 msgid "Building package"
 msgstr "Сборка пакета"
 
-#: pkg/build/build.go:423
+#: pkg/build/build.go:424
 msgid "The checksums array must be the same length as sources"
 msgstr "Массив контрольных сумм должен быть той же длины, что и источники"
 
-#: pkg/build/build.go:454
+#: pkg/build/build.go:455
 msgid "Downloading sources"
 msgstr "Скачивание источников"
 
-#: pkg/build/build.go:543
+#: pkg/build/build.go:549
 msgid "Installing dependencies"
 msgstr "Установка зависимостей"
 
