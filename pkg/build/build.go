@@ -35,6 +35,7 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 )
 
 type BuildInput struct {
@@ -233,8 +234,8 @@ type CheckerExecutor interface {
 }
 
 type InstallerExecutor interface {
-	InstallLocal(paths []string) error
-	Install(pkgs []string) error
+	InstallLocal(paths []string, opts *manager.Opts) error
+	Install(pkgs []string, opts *manager.Opts) error
 	RemoveAlreadyInstalled(pkgs []string) ([]string, error)
 }
 
@@ -521,7 +522,12 @@ func (b *Builder) InstallALRPackages(
 			return err
 		}
 
-		err = b.installerExecutor.InstallLocal(res.PackagePaths)
+		err = b.installerExecutor.InstallLocal(
+			res.PackagePaths,
+			&manager.Opts{
+				NoConfirm: !input.BuildOpts().Interactive,
+			},
+		)
 		if err != nil {
 			return err
 		}
@@ -681,14 +687,18 @@ func (i *Builder) InstallPkgs(
 	}
 
 	if len(builtPaths) > 0 {
-		err = i.installerExecutor.InstallLocal(builtPaths)
+		err = i.installerExecutor.InstallLocal(builtPaths, &manager.Opts{
+			NoConfirm: !input.BuildOpts().Interactive,
+		})
 		if err != nil {
 			return err
 		}
 	}
 
 	if len(repoDeps) > 0 {
-		err = i.installerExecutor.Install(repoDeps)
+		err = i.installerExecutor.Install(repoDeps, &manager.Opts{
+			NoConfirm: !input.BuildOpts().Interactive,
+		})
 		if err != nil {
 			return err
 		}

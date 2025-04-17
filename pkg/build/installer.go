@@ -28,12 +28,12 @@ func NewInstaller(mgr manager.Manager) *Installer {
 
 type Installer struct{ mgr manager.Manager }
 
-func (i *Installer) InstallLocal(paths []string) error {
-	return i.mgr.InstallLocal(nil, paths...)
+func (i *Installer) InstallLocal(paths []string, opts *manager.Opts) error {
+	return i.mgr.InstallLocal(opts, paths...)
 }
 
-func (i *Installer) Install(pkgs []string) error {
-	return i.mgr.Install(nil, pkgs...)
+func (i *Installer) Install(pkgs []string, opts *manager.Opts) error {
+	return i.mgr.Install(opts, pkgs...)
 }
 
 func (i *Installer) RemoveAlreadyInstalled(pkgs []string) ([]string, error) {
