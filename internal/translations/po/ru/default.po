@@ -5,16 +5,16 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: unnamed project\n"
-"PO-Revision-Date: 2025-03-09 17:31+0300\n"
+"PO-Revision-Date: 2025-04-18 07:38+0300\n"
 "Last-Translator: Maxim Slipenko <maks1ms@alt-gnome.ru>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Gtranslator 47.1\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Gtranslator 48.0\n"
 
 #: build.go:42
 msgid "Build a local package"
@@ -43,16 +43,15 @@ msgstr "Ошибка при получении рабочего каталога
 
 #: build.go:118
 msgid "Cannot get absolute script path"
-msgstr ""
+msgstr "Невозможно получить абсолютный путь к скрипту"
 
 #: build.go:148
 msgid "Package not found"
 msgstr "Пакет не найден"
 
 #: build.go:161
-#, fuzzy
 msgid "Nothing to build"
-msgstr "Исполнение build()"
+msgstr "Нечего собирать"
 
 #: build.go:218
 msgid "Error building package"
@@ -71,24 +70,20 @@ msgid "Attempt to fix problems with ALR"
 msgstr "Попытка устранить проблемы с ALR"
 
 #: fix.go:59
-#, fuzzy
 msgid "Clearing cache directory"
-msgstr "Удаление каталога кэша"
+msgstr "Очистка каталога кэша"
 
 #: fix.go:64
-#, fuzzy
 msgid "Unable to open cache directory"
-msgstr "Не удалось удалить каталог кэша"
+msgstr "Невозможно открыть каталог кэша"
 
 #: fix.go:70
-#, fuzzy
 msgid "Unable to read cache directory contents"
-msgstr "Не удалось удалить каталог кэша"
+msgstr "Невозможно прочитать содержимое каталога кэша"
 
 #: fix.go:76
-#, fuzzy
 msgid "Unable to remove cache item (%s)"
-msgstr "Не удалось удалить каталог кэша"
+msgstr "Невозможно удалить элемент кэша (%s)"
 
 #: fix.go:80
 msgid "Rebuilding cache"
@@ -151,9 +146,8 @@ msgid "Error finding packages"
 msgstr "Ошибка при поиске пакетов"
 
 #: info.go:124
-#, fuzzy
 msgid "Can't detect system language"
-msgstr "Ошибка при парсинге языка системы"
+msgstr "Ошибка при определении языка системы"
 
 #: info.go:141
 msgid "Error resolving overrides"
@@ -192,9 +186,8 @@ msgid "Error removing packages"
 msgstr "Ошибка при удалении пакетов"
 
 #: internal/cliutils/app_builder/builder.go:75
-#, fuzzy
 msgid "Error loading config"
-msgstr "Ошибка при кодировании конфигурации"
+msgstr "Ошибка при загрузке"
 
 #: internal/cliutils/app_builder/builder.go:96
 msgid "Error initialization database"
@@ -327,17 +320,16 @@ msgid "ERROR"
 msgstr "ОШИБКА"
 
 #: internal/utils/cmd.go:95
-#, fuzzy
-msgid "Error dropping capabilities"
-msgstr "Ошибка при открытии базы данных"
+msgid "Error on dropping capabilities"
+msgstr "Ошибка при понижении привилегий"
 
 #: internal/utils/cmd.go:123
 msgid "You need to be root to perform this action"
-msgstr ""
+msgstr "Вы должны быть root чтобы выполнить это"
 
 #: internal/utils/cmd.go:165
 msgid "You need to be a %s member to perform this action"
-msgstr ""
+msgstr "Вы должны быть членом %s чтобы выполнить это"
 
 #: list.go:41
 msgid "List ALR repo packages"
@@ -419,15 +411,15 @@ msgstr "Сборка метаданных пакета"
 
 #: pkg/build/script_executor.go:356
 msgid "Executing prepare()"
-msgstr "Исполнение prepare()"
+msgstr "Выполнение prepare()"
 
 #: pkg/build/script_executor.go:365
 msgid "Executing build()"
-msgstr "Исполнение build()"
+msgstr "Выполнение build()"
 
 #: pkg/build/script_executor.go:394 pkg/build/script_executor.go:414
 msgid "Executing %s()"
-msgstr "Исполнение %s()"
+msgstr "Выполнение %s()"
 
 #: pkg/repos/pull.go:79
 msgid "Pulling repository"
@@ -462,14 +454,12 @@ msgid "URL of the new repo"
 msgstr "URL-адрес нового репозитория"
 
 #: repo.go:79
-#, fuzzy
-msgid "Repo %s already exists"
-msgstr "Репозитория не существует"
+msgid "Repo \"%s\" already exists"
+msgstr "Репозиторий \"%s\" уже существует"
 
 #: repo.go:90 repo.go:167
-#, fuzzy
 msgid "Error saving config"
-msgstr "Ошибка при кодировании конфигурации"
+msgstr "Ошибка при сохранении конфигурации"
 
 #: repo.go:116
 msgid "Remove an existing repository"
@@ -480,9 +470,8 @@ msgid "Name of the repo to be deleted"
 msgstr "Название репозитория  удалён"
 
 #: repo.go:156
-#, fuzzy
 msgid "Repo \"%s\" does not exist"
-msgstr "Репозитория не существует"
+msgstr "Репозитория \"%s\" не существует"
 
 #: repo.go:163
 msgid "Error removing repo directory"
@@ -521,9 +510,8 @@ msgid "Format output using a Go template"
 msgstr "Формат выходных данных с использованием шаблона Go"
 
 #: search.go:96
-#, fuzzy
 msgid "Error while executing search"
-msgstr "Ошибка при запуске приложения"
+msgstr "Ошибка при выполнении поиска"
 
 #: search.go:104
 msgid "Error parsing format template"
