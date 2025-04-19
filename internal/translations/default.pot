@@ -312,7 +312,7 @@ msgid "ERROR"
 msgstr ""
 
 #: internal/utils/cmd.go:95
-msgid "Error dropping capabilities"
+msgid "Error on dropping capabilities"
 msgstr ""
 
 #: internal/utils/cmd.go:123
@@ -440,7 +440,7 @@ msgid "URL of the new repo"
 msgstr ""
 
 #: repo.go:79
-msgid "Repo %s already exists"
+msgid "Repo \"%s\" already exists"
 msgstr ""
 
 #: repo.go:90 repo.go:167

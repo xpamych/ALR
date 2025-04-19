@@ -76,7 +76,7 @@ func AddRepoCmd() *cli.Command {
 			reposSlice := cfg.Repos()
 			for _, repo := range reposSlice {
 				if repo.URL == repoURL || repo.Name == name {
-					return cliutils.FormatCliExit(gotext.Get("Repo %s already exists", repo.Name), nil)
+					return cliutils.FormatCliExit(gotext.Get("Repo \"%s\" already exists", repo.Name), nil)
 				}
 			}
 			reposSlice = append(reposSlice, types.Repo{

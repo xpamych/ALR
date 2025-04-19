@@ -92,14 +92,14 @@ func ExitIfCantDropGidToAlr() cli.ExitCoder {
 func ExitIfCantDropCapsToAlrUser() cli.ExitCoder {
 	err := DropCapsToAlrUser()
 	if err != nil {
-		return cliutils.FormatCliExit(gotext.Get("Error dropping capabilities"), err)
+		return cliutils.FormatCliExit(gotext.Get("Error on dropping capabilities"), err)
 	}
 	return nil
 }
 
 func ExitIfCantSetNoNewPrivs() cli.ExitCoder {
 	if err := NoNewPrivs(); err != nil {
-		return cliutils.FormatCliExit("error no new privs", err)
+		return cliutils.FormatCliExit("error on NoNewPrivs", err)
 	}
 
 	return nil
