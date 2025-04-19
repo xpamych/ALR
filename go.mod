@@ -45,6 +45,7 @@ require (
 
 require (
 	dario.cat/mergo v1.0.1 // indirect
+	gitea.plemya-x.ru/Plemya-x/fakeroot v0.0.2-0.20250408104831-427aaa7713c3 // indirect
 	github.com/AlekSi/pointer v1.2.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.3.0 // indirect
