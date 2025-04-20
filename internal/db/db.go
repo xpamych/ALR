@@ -31,7 +31,7 @@ import (
 
 // CurrentVersion is the current version of the database.
 // The database is reset if its version doesn't match this.
-const CurrentVersion = 3
+const CurrentVersion = 4
 
 // Package is a ALR package's database representation
 type Package struct {
@@ -40,7 +40,9 @@ type Package struct {
 	Version       string                    `sh:"version,required" db:"version"`
 	Release       int                       `sh:"release,required" db:"release"`
 	Epoch         uint                      `sh:"epoch" db:"epoch"`
+	Summary       JSON[map[string]string]   `db:"summary"`
 	Description   JSON[map[string]string]   `db:"description"`
+	Group         JSON[map[string]string]   `db:"group_name"`
 	Homepage      JSON[map[string]string]   `db:"homepage"`
 	Maintainer    JSON[map[string]string]   `db:"maintainer"`
 	Architectures JSON[[]string]            `sh:"architectures" db:"architectures"`
@@ -106,7 +108,9 @@ func (d *Database) initDB(ctx context.Context) error {
 			version       TEXT NOT NULL,
 			release       INT  NOT NULL,
 			epoch         INT,
+			summary       TEXT CHECK(summary = 'null' OR (JSON_VALID(summary) AND JSON_TYPE(summary) = 'object')),
 			description   TEXT CHECK(description = 'null' OR (JSON_VALID(description) AND JSON_TYPE(description) = 'object')),
+			group_name    TEXT CHECK(group_name = 'null' OR (JSON_VALID(group_name) AND JSON_TYPE(group_name) = 'object')),
 			homepage      TEXT CHECK(homepage = 'null' OR (JSON_VALID(homepage) AND JSON_TYPE(homepage) = 'object')),
 			maintainer    TEXT CHECK(maintainer = 'null' OR (JSON_VALID(maintainer) AND JSON_TYPE(maintainer) = 'object')),
 			architectures TEXT CHECK(architectures = 'null' OR (JSON_VALID(architectures) AND JSON_TYPE(architectures) = 'array')),
@@ -204,7 +208,9 @@ func (d *Database) InsertPackage(ctx context.Context, pkg Package) error {
 			version,
 			release,
 			epoch,
+			summary,
 			description,
+			group_name,
 			homepage,
 			maintainer,
 			architectures,
@@ -222,7 +228,9 @@ func (d *Database) InsertPackage(ctx context.Context, pkg Package) error {
 			:version,
 			:release,
 			:epoch,
+			:summary,
 			:description,
+			:group_name,
 			:homepage,
 			:maintainer,
 			:architectures,

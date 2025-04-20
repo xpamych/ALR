@@ -20,10 +20,6 @@
 package types
 
 type BuildOpts struct {
-	// Script      string
-	// Repository  string
-	// Packages    []string
-	// Manager     manager.Manager
 	Clean       bool
 	Interactive bool
 }
@@ -32,7 +28,9 @@ type BuildVarsPre struct {
 	Version          string   `sh:"version,required"`
 	Release          int      `sh:"release,required"`
 	Epoch            uint     `sh:"epoch"`
+	Summary          string   `sh:"summary"`
 	Description      string   `sh:"desc"`
+	Group            string   `sh:"group"`
 	Homepage         string   `sh:"homepage"`
 	Maintainer       string   `sh:"maintainer"`
 	Architectures    []string `sh:"architectures"`

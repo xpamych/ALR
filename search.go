@@ -21,12 +21,16 @@ import (
 	"os"
 	"text/template"
 
+	"github.com/jeandeaual/go-locale"
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/search"
 )
 
@@ -36,6 +40,11 @@ func SearchCmd() *cli.Command {
 		Usage:   gotext.Get("Search packages"),
 		Aliases: []string{"s"},
 		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "all",
+				Aliases: []string{"a"},
+				Usage:   gotext.Get("Show all information, not just for the current distro"),
+			},
 			&cli.StringFlag{
 				Name:    "name",
 				Aliases: []string{"n"},
@@ -69,6 +78,31 @@ func SearchCmd() *cli.Command {
 
 			ctx := c.Context
 
+			var names []string
+			all := c.Bool("all")
+
+			systemLang, err := locale.GetLanguage()
+			if err != nil {
+				return cliutils.FormatCliExit(gotext.Get("Can't detect system language"), err)
+			}
+			if systemLang == "" {
+				systemLang = "en"
+			}
+			if !all {
+				info, err := distro.ParseOSRelease(ctx)
+				if err != nil {
+					return cliutils.FormatCliExit(gotext.Get("Error parsing os-release file"), err)
+				}
+				names, err = overrides.Resolve(
+					info,
+					overrides.DefaultOpts.
+						WithLanguages([]string{systemLang}),
+				)
+				if err != nil {
+					return cliutils.FormatCliExit(gotext.Get("Error resolving overrides"), err)
+				}
+			}
+
 			deps, err := appbuilder.
 				New(ctx).
 				WithConfig().
@@ -79,9 +113,9 @@ func SearchCmd() *cli.Command {
 			}
 			defer deps.Defer()
 
-			db := deps.DB
+			database := deps.DB
 
-			s := search.New(db)
+			s := search.New(database)
 
 			packages, err := s.Search(
 				ctx,
@@ -106,14 +140,26 @@ func SearchCmd() *cli.Command {
 			}
 
 			for _, dbPkg := range packages {
+				var pkg any
+				if !all {
+					pkg = overrides.ResolvePackage(&dbPkg, names)
+				} else {
+					pkg = &dbPkg
+				}
+
 				if tmpl != nil {
-					err = tmpl.Execute(os.Stdout, dbPkg)
+					err = tmpl.Execute(os.Stdout, pkg)
 					if err != nil {
 						return cliutils.FormatCliExit(gotext.Get("Error executing template"), err)
 					}
 					fmt.Println()
 				} else {
-					fmt.Println(dbPkg.Name)
+					switch v := pkg.(type) {
+					case *overrides.ResolvedPackage:
+						fmt.Println(v.Name)
+					case *db.Package:
+						fmt.Println(v.Name)
+					}
 				}
 			}
 

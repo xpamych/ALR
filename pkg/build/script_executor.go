@@ -304,6 +304,7 @@ func buildPkgMetadata(
 		Provides:  append(vars.Provides, vars.Name),
 		Depends:   deps,
 	}
+	pkgInfo.Section = vars.Group
 
 	pkgFormat := input.PkgFormat()
 	info := input.OSRelease()
@@ -313,6 +314,17 @@ func buildPkgMetadata(
 		pkgInfo.Overridables.Provides = slices.DeleteFunc(pkgInfo.Overridables.Provides, func(s string) bool {
 			return s == pkgInfo.Name
 		})
+	}
+
+	if pkgFormat == "rpm" {
+		pkgInfo.RPM.Group = vars.Group
+
+		if vars.Summary != "" {
+			pkgInfo.RPM.Summary = vars.Summary
+		} else {
+			lines := strings.SplitN(vars.Description, "\n", 2)
+			pkgInfo.RPM.Summary = lines[0]
+		}
 	}
 
 	if vars.Epoch != 0 {

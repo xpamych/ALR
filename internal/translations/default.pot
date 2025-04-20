@@ -274,11 +274,11 @@ msgstr ""
 msgid "OPTIONS"
 msgstr ""
 
-#: internal/db/db.go:133
+#: internal/db/db.go:137
 msgid "Database version mismatch; resetting"
 msgstr ""
 
-#: internal/db/db.go:140
+#: internal/db/db.go:144
 msgid ""
 "Database version does not exist. Run alr fix if something isn't working."
 msgstr ""
@@ -397,15 +397,15 @@ msgstr ""
 msgid "Building package metadata"
 msgstr ""
 
-#: pkg/build/script_executor.go:356
+#: pkg/build/script_executor.go:368
 msgid "Executing prepare()"
 msgstr ""
 
-#: pkg/build/script_executor.go:365
+#: pkg/build/script_executor.go:377
 msgid "Executing build()"
 msgstr ""
 
-#: pkg/build/script_executor.go:394 pkg/build/script_executor.go:414
+#: pkg/build/script_executor.go:406 pkg/build/script_executor.go:426
 msgid "Executing %s()"
 msgstr ""
 
@@ -471,39 +471,39 @@ msgstr ""
 msgid "Pull all repositories that have changed"
 msgstr ""
 
-#: search.go:36
+#: search.go:40
 msgid "Search packages"
 msgstr ""
 
-#: search.go:42
+#: search.go:51
 msgid "Search by name"
 msgstr ""
 
-#: search.go:47
+#: search.go:56
 msgid "Search by description"
 msgstr ""
 
-#: search.go:52
+#: search.go:61
 msgid "Search by repository"
 msgstr ""
 
-#: search.go:57
+#: search.go:66
 msgid "Search by provides"
 msgstr ""
 
-#: search.go:62
+#: search.go:71
 msgid "Format output using a Go template"
 msgstr ""
 
-#: search.go:96
+#: search.go:130
 msgid "Error while executing search"
 msgstr ""
 
-#: search.go:104
+#: search.go:138
 msgid "Error parsing format template"
 msgstr ""
 
-#: search.go:112
+#: search.go:153
 msgid "Error executing template"
 msgstr ""
 

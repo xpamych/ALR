@@ -12,8 +12,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 48.0\n"
 
 #: build.go:42
@@ -281,11 +281,11 @@ msgstr "КАТЕГОРИЯ"
 msgid "OPTIONS"
 msgstr "ПАРАМЕТРЫ"
 
-#: internal/db/db.go:133
+#: internal/db/db.go:137
 msgid "Database version mismatch; resetting"
 msgstr "Несоответствие версий базы данных; сброс настроек"
 
-#: internal/db/db.go:140
+#: internal/db/db.go:144
 msgid ""
 "Database version does not exist. Run alr fix if something isn't working."
 msgstr ""
@@ -409,15 +409,15 @@ msgstr ""
 msgid "Building package metadata"
 msgstr "Сборка метаданных пакета"
 
-#: pkg/build/script_executor.go:356
+#: pkg/build/script_executor.go:368
 msgid "Executing prepare()"
 msgstr "Выполнение prepare()"
 
-#: pkg/build/script_executor.go:365
+#: pkg/build/script_executor.go:377
 msgid "Executing build()"
 msgstr "Выполнение build()"
 
-#: pkg/build/script_executor.go:394 pkg/build/script_executor.go:414
+#: pkg/build/script_executor.go:406 pkg/build/script_executor.go:426
 msgid "Executing %s()"
 msgstr "Выполнение %s()"
 
@@ -485,39 +485,39 @@ msgstr "Ошибка при удалении пакетов из базы дан
 msgid "Pull all repositories that have changed"
 msgstr "Скачать все изменённые репозитории"
 
-#: search.go:36
+#: search.go:40
 msgid "Search packages"
 msgstr "Поиск пакетов"
 
-#: search.go:42
+#: search.go:51
 msgid "Search by name"
 msgstr "Искать по имени"
 
-#: search.go:47
+#: search.go:56
 msgid "Search by description"
 msgstr "Искать по описанию"
 
-#: search.go:52
+#: search.go:61
 msgid "Search by repository"
 msgstr "Искать по репозиторию"
 
-#: search.go:57
+#: search.go:66
 msgid "Search by provides"
 msgstr "Иcкать по provides"
 
-#: search.go:62
+#: search.go:71
 msgid "Format output using a Go template"
 msgstr "Формат выходных данных с использованием шаблона Go"
 
-#: search.go:96
+#: search.go:130
 msgid "Error while executing search"
 msgstr "Ошибка при выполнении поиска"
 
-#: search.go:104
+#: search.go:138
 msgid "Error parsing format template"
 msgstr "Ошибка при разборе шаблона"
 
-#: search.go:112
+#: search.go:153
 msgid "Error executing template"
 msgstr "Ошибка при выполнении шаблона"
 
