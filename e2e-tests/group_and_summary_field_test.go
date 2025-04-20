@@ -25,11 +25,11 @@ import (
 	"github.com/efficientgo/e2e"
 )
 
-func TestE2EIssue50InstallMultiple(t *testing.T) {
+func TestE2EGroupAndSummaryField(t *testing.T) {
 	dockerMultipleRun(
 		t,
-		"issue-50-install-multiple",
-		COMMON_SYSTEMS,
+		"group-and-summary-field",
+		RPM_SYSTEMS,
 		func(t *testing.T, r e2e.Runnable) {
 			err := r.Exec(e2e.NewCommand(
 				"sudo",
@@ -43,13 +43,13 @@ func TestE2EIssue50InstallMultiple(t *testing.T) {
 			assert.NoError(t, err)
 
 			err = r.Exec(e2e.NewCommand(
-				"sudo", "alr", "in", "foo-pkg", "bar-pkg",
+				"sh", "-c", "alr search --name test-group-and-summary --format \"{{.Group}}\" | grep ^System/Base$",
 			))
 			assert.NoError(t, err)
 
-			err = r.Exec(e2e.NewCommand("cat", "/opt/foo"))
-			assert.NoError(t, err)
-			err = r.Exec(e2e.NewCommand("cat", "/opt/bar"))
+			err = r.Exec(e2e.NewCommand(
+				"sh", "-c", "alr search --name test-group-and-summary --format \"{{.Summary}}\" | grep \"^Custom summary$\"",
+			))
 			assert.NoError(t, err)
 		},
 	)

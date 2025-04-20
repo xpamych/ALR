@@ -113,6 +113,10 @@ var AUTOREQ_AUTOPROV_SYSTEMS []string = []string{
 	"fedora-41",
 }
 
+var RPM_SYSTEMS []string = []string{
+	"fedora-41",
+}
+
 var COMMON_SYSTEMS []string = []string{
 	"ubuntu-24.04",
 }

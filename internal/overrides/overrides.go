@@ -157,6 +157,8 @@ type ResolvedPackage struct {
 	Version       string   `sh:"version"`
 	Release       int      `sh:"release"`
 	Epoch         uint     `sh:"epoch"`
+	Group         string   `db:"group_name"`
+	Summary       string   `db:"summary"`
 	Description   string   `db:"description"`
 	Homepage      string   `db:"homepage"`
 	Maintainer    string   `db:"maintainer"`

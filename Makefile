@@ -73,6 +73,9 @@ test-coverage:
 	go test ./... -v -coverpkg=./... -coverprofile=coverage.out
 	bash scripts/coverage-badge.sh
 
+update-deps-cve:
+	bash scripts/update-deps-cve.sh
+
 e2e-test: clean build
 	rm -f ./e2e-tests/alr
 	cp alr e2e-tests

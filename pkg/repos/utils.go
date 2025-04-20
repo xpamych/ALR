@@ -79,26 +79,22 @@ type PackageInfo struct {
 }
 
 func (inf *PackageInfo) ToPackage(repoName string) *db.Package {
-	return &db.Package{
-		Version:       inf.Version,
-		Release:       inf.Release,
-		Epoch:         inf.Epoch,
-		Architectures: inf.Architectures,
-		Licenses:      inf.Licenses,
-		Provides:      inf.Provides,
-		Conflicts:     inf.Conflicts,
-		Replaces:      inf.Replaces,
-		Description:   db.NewJSON(map[string]string{}),
-		Homepage:      db.NewJSON(map[string]string{}),
-		Maintainer:    db.NewJSON(map[string]string{}),
-		Depends:       db.NewJSON(map[string][]string{}),
-		BuildDepends:  db.NewJSON(map[string][]string{}),
-		Repository:    repoName,
-	}
+	pkg := EmptyPackage(repoName)
+	pkg.Version = inf.Version
+	pkg.Release = inf.Release
+	pkg.Epoch = inf.Epoch
+	pkg.Architectures = inf.Architectures
+	pkg.Licenses = inf.Licenses
+	pkg.Provides = inf.Provides
+	pkg.Conflicts = inf.Conflicts
+	pkg.Replaces = inf.Replaces
+	return pkg
 }
 
 func EmptyPackage(repoName string) *db.Package {
 	return &db.Package{
+		Group:        db.NewJSON(map[string]string{}),
+		Summary:      db.NewJSON(map[string]string{}),
 		Description:  db.NewJSON(map[string]string{}),
 		Homepage:     db.NewJSON(map[string]string{}),
 		Maintainer:   db.NewJSON(map[string]string{}),
@@ -114,6 +110,8 @@ var overridable = map[string]string{
 	"desc":       "Description",
 	"homepage":   "Homepage",
 	"maintainer": "Maintainer",
+	"group":      "Group",
+	"summary":    "Summary",
 }
 
 func resolveOverrides(runner *interp.Runner, pkg *db.Package) {
