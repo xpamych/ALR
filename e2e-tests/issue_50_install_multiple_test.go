@@ -43,7 +43,7 @@ func TestE2EIssue50InstallMultiple(t *testing.T) {
 			assert.NoError(t, err)
 
 			err = r.Exec(e2e.NewCommand(
-				"alr", "in", "foo-pkg", "bar-pkg",
+				"sudo", "alr", "in", "foo-pkg", "bar-pkg",
 			))
 			assert.NoError(t, err)
 
