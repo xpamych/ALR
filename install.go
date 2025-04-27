@@ -115,7 +115,7 @@ func InstallCmd() *cli.Command {
 				args.Slice(),
 			)
 			if err != nil {
-				return cliutils.FormatCliExit(gotext.Get("Error parsing os release"), err)
+				return cliutils.FormatCliExit(gotext.Get("Error when installing the package"), err)
 			}
 
 			return nil

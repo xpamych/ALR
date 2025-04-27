@@ -73,7 +73,7 @@ func (e *LocalScriptExecutor) ExecuteFirstPass(ctx context.Context, input *Build
 
 	runner, err := interp.New(
 		interp.Env(expand.ListEnviron(env...)),                               // Устанавливаем окружение
-		interp.StdIO(os.Stdin, os.Stdout, os.Stderr),                         // Устанавливаем стандартный ввод-вывод
+		interp.StdIO(os.Stdin, os.Stderr, os.Stderr),                         // Устанавливаем стандартный ввод-вывод
 		interp.ExecHandler(helpers.Restricted.ExecHandler(handlers.NopExec)), // Ограничиваем выполнение
 		interp.ReadDirHandler2(handlers.RestrictedReadDir(scriptDir)),        // Ограничиваем чтение директорий
 		interp.StatHandler(handlers.RestrictedStat(scriptDir)),               // Ограничиваем доступ к статистике файлов
@@ -193,7 +193,7 @@ func (e *LocalScriptExecutor) ExecuteSecondPass(
 	fakeroot := handlers.FakerootExecHandler(2 * time.Second)
 	runner, err := interp.New(
 		interp.Env(expand.ListEnviron(env...)),       // Устанавливаем окружение
-		interp.StdIO(os.Stdin, os.Stdout, os.Stderr), // Устанавливаем стандартный ввод-вывод
+		interp.StdIO(os.Stdin, os.Stderr, os.Stderr), // Устанавливаем стандартный ввод-вывод
 		interp.ExecHandlers(func(next interp.ExecHandlerFunc) interp.ExecHandlerFunc {
 			return helpers.Helpers.ExecHandler(fakeroot)
 		}), // Обрабатываем выполнение через fakeroot
