@@ -237,6 +237,7 @@ func GetSafeScriptExecutor() (ScriptExecutor, func(), error) {
 		UnixSocketConfig: &plugin.UnixSocketConfig{
 			Group: "alr",
 		},
+		SyncStderr: os.Stderr,
 	})
 	rpcClient, err := client.Client()
 	if err != nil {

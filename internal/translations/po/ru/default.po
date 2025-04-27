@@ -5,15 +5,15 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: unnamed project\n"
-"PO-Revision-Date: 2025-04-18 07:38+0300\n"
+"PO-Revision-Date: 2025-04-27 18:27+0300\n"
 "Last-Translator: Maxim Slipenko <maks1ms@alt-gnome.ru>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 48.0\n"
 
 #: build.go:42
@@ -166,8 +166,8 @@ msgid "Command install expected at least 1 argument, got %d"
 msgstr "Для команды install ожидался хотя бы 1 аргумент, получено %d"
 
 #: install.go:118
-msgid "Error parsing os release"
-msgstr "Ошибка при разборе файла выпуска операционной системы"
+msgid "Error when installing the package"
+msgstr "Ошибка при установке пакета"
 
 #: install.go:163
 msgid "Remove an installed package"
@@ -196,6 +196,10 @@ msgstr "Ошибка инициализации базы данных"
 #: internal/cliutils/app_builder/builder.go:135
 msgid "Error pulling repositories"
 msgstr "Ошибка при извлечении репозиториев"
+
+#: internal/cliutils/app_builder/builder.go:152
+msgid "Error parsing os release"
+msgstr "Ошибка при разборе файла выпуска операционной системы"
 
 #: internal/cliutils/app_builder/builder.go:165
 msgid "Unable to detect a supported package manager on the system"
@@ -575,9 +579,6 @@ msgstr "Здесь нечего делать."
 
 #~ msgid "Error installing native packages"
 #~ msgstr "Ошибка при установке нативных пакетов"
-
-#~ msgid "Error installing package"
-#~ msgstr "Ошибка при установке пакета"
 
 #~ msgid "Error opening config file, using defaults"
 #~ msgstr ""

@@ -159,7 +159,7 @@ msgid "Command install expected at least 1 argument, got %d"
 msgstr ""
 
 #: install.go:118
-msgid "Error parsing os release"
+msgid "Error when installing the package"
 msgstr ""
 
 #: install.go:163
@@ -188,6 +188,10 @@ msgstr ""
 
 #: internal/cliutils/app_builder/builder.go:135
 msgid "Error pulling repositories"
+msgstr ""
+
+#: internal/cliutils/app_builder/builder.go:152
+msgid "Error parsing os release"
 msgstr ""
 
 #: internal/cliutils/app_builder/builder.go:165
