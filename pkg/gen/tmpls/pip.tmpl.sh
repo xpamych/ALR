@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-name='{{.Info.Name | tolower}}'
+name='python3-{{.Info.Name | tolower}}'
 version='{{.Info.Version}}'
 release='1'
 desc='{{.Info.Summary}}'
@@ -47,4 +47,9 @@ build() {
 package() {
 	cd "$srcdir/{{.Info.Name}}-${version}"
 	pip install --root="${pkgdir}/" . --no-deps --ignore-installed --disable-pip-version-check
+}
+
+files() {
+  printf '"%s" ' ./usr/local/lib/python3.*/site-packages/{{.Info.Name | tolower}}/*
+  printf '"%s" ' ./usr/local/lib/python3.*/site-packages/{{.Info.Name | tolower}}-${version}.dist-info/*
 }
