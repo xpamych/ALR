@@ -439,7 +439,7 @@ func (b *Builder) BuildPackage(
 	}
 
 	slog.Debug("BuildALRDeps")
-	_, builtNames, repoDeps, err := b.BuildALRDeps(ctx, input, depends)
+	builtPaths, builtNames, repoDeps, err := b.BuildALRDeps(ctx, input, depends)
 	if err != nil {
 		return nil, err
 	}
@@ -481,8 +481,8 @@ func (b *Builder) BuildPackage(
 		return nil, err
 	}
 
-	pkgPaths := removeDuplicates(res.BuiltPaths)
-	pkgNames := removeDuplicates(res.BuiltNames)
+	pkgPaths := removeDuplicates(append(builtPaths, res.BuiltPaths...))
+	pkgNames := removeDuplicates(append(builtNames, res.BuiltNames...))
 
 	return &BuildResult{
 		PackagePaths: pkgPaths,
