@@ -1,8 +1,8 @@
 // This file was originally part of the project "LURE - Linux User REpository", created by Elara Musayelyan.
-// It has been modified as part of "ALR - Any Linux Repository" by Евгений Храмов.
+// It has been modified as part of "ALR - Any Linux Repository" by the ALR Authors.
 //
 // ALR - Any Linux Repository
-// Copyright (C) 2025 Евгений Храмов
+// Copyright (C) 2025 The ALR Authors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by

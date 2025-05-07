@@ -1,6 +1,6 @@
 #!/bin/bash
 # ALR - Any Linux Repository
-# Copyright (C) 2025 Евгений Храмов
+# Copyright (C) 2025 The ALR Authors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
