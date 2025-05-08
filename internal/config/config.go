@@ -39,6 +39,7 @@ type ALRConfig struct {
 
 var defaultConfig = &types.Config{
 	RootCmd:          "sudo",
+	UseRootCmd:       true,
 	PagerStyle:       "native",
 	IgnorePkgUpdates: []string{},
 	AutoPull:         true,
@@ -140,6 +141,10 @@ func (c *ALRConfig) IgnorePkgUpdates() []string {
 
 func (c *ALRConfig) LogLevel() string {
 	return c.cfg.LogLevel
+}
+
+func (c *ALRConfig) UseRootCmd() bool {
+	return c.cfg.UseRootCmd
 }
 
 func (c *ALRConfig) GetPaths() *Paths {

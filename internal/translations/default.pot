@@ -154,27 +154,27 @@ msgstr ""
 msgid "Install a new package"
 msgstr ""
 
-#: install.go:56
+#: install.go:52
 msgid "Command install expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:118
+#: install.go:114
 msgid "Error when installing the package"
 msgstr ""
 
-#: install.go:163
+#: install.go:159
 msgid "Remove an installed package"
 msgstr ""
 
-#: install.go:182
+#: install.go:178
 msgid "Error listing installed packages"
 msgstr ""
 
-#: install.go:223
+#: install.go:215
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:238
+#: install.go:230
 msgid "Error removing packages"
 msgstr ""
 
@@ -315,16 +315,16 @@ msgstr ""
 msgid "ERROR"
 msgstr ""
 
-#: internal/utils/cmd.go:95
+#: internal/utils/cmd.go:97
 msgid "Error on dropping capabilities"
 msgstr ""
 
-#: internal/utils/cmd.go:123
-msgid "You need to be root to perform this action"
+#: internal/utils/cmd.go:164
+msgid "You need to be a %s member to perform this action"
 msgstr ""
 
-#: internal/utils/cmd.go:165
-msgid "You need to be a %s member to perform this action"
+#: internal/utils/cmd.go:200
+msgid "You need to be root to perform this action"
 msgstr ""
 
 #: list.go:41
@@ -443,35 +443,35 @@ msgstr ""
 msgid "URL of the new repo"
 msgstr ""
 
-#: repo.go:79
+#: repo.go:75
 msgid "Repo \"%s\" already exists"
 msgstr ""
 
-#: repo.go:90 repo.go:167
+#: repo.go:86 repo.go:159
 msgid "Error saving config"
 msgstr ""
 
-#: repo.go:116
+#: repo.go:112
 msgid "Remove an existing repository"
 msgstr ""
 
-#: repo.go:123
+#: repo.go:119
 msgid "Name of the repo to be deleted"
 msgstr ""
 
-#: repo.go:156
+#: repo.go:148
 msgid "Repo \"%s\" does not exist"
 msgstr ""
 
-#: repo.go:163
+#: repo.go:155
 msgid "Error removing repo directory"
 msgstr ""
 
-#: repo.go:186
+#: repo.go:178
 msgid "Error removing packages from database"
 msgstr ""
 
-#: repo.go:197
+#: repo.go:189
 msgid "Pull all repositories that have changed"
 msgstr ""
 
@@ -515,10 +515,10 @@ msgstr ""
 msgid "Upgrade all installed packages"
 msgstr ""
 
-#: upgrade.go:109 upgrade.go:126
+#: upgrade.go:105 upgrade.go:122
 msgid "Error checking for updates"
 msgstr ""
 
-#: upgrade.go:129
+#: upgrade.go:125
 msgid "There is nothing to do."
 msgstr ""

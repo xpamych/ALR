@@ -53,11 +53,7 @@ func UpgradeCmd() *cli.Command {
 				Usage:   gotext.Get("Build package from scratch even if there's an already built package available"),
 			},
 		},
-		Action: func(c *cli.Context) error {
-			if err := utils.ExitIfNotRoot(); err != nil {
-				return err
-			}
-
+		Action: utils.RootNeededAction(func(c *cli.Context) error {
 			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
 				return err
 			}
@@ -130,7 +126,7 @@ func UpgradeCmd() *cli.Command {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 

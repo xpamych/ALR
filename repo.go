@@ -52,11 +52,7 @@ func AddRepoCmd() *cli.Command {
 				Usage:    gotext.Get("URL of the new repo"),
 			},
 		},
-		Action: func(c *cli.Context) error {
-			if err := utils.ExitIfNotRoot(); err != nil {
-				return err
-			}
-
+		Action: utils.RootNeededAction(func(c *cli.Context) error {
 			name := c.String("name")
 			repoURL := c.String("url")
 
@@ -106,7 +102,7 @@ func AddRepoCmd() *cli.Command {
 			defer deps.Defer()
 
 			return nil
-		},
+		}),
 	}
 }
 
@@ -123,11 +119,7 @@ func RemoveRepoCmd() *cli.Command {
 				Usage:    gotext.Get("Name of the repo to be deleted"),
 			},
 		},
-		Action: func(c *cli.Context) error {
-			if err := utils.ExitIfNotRoot(); err != nil {
-				return err
-			}
-
+		Action: utils.RootNeededAction(func(c *cli.Context) error {
 			ctx := c.Context
 
 			name := c.String("name")
@@ -187,7 +179,7 @@ func RemoveRepoCmd() *cli.Command {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
 
