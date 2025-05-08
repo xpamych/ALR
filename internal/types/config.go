@@ -22,6 +22,7 @@ package types
 // Config represents the ALR configuration file
 type Config struct {
 	RootCmd          string   `toml:"rootCmd" env:"ALR_ROOT_CMD"`
+	UseRootCmd       bool     `toml:"useRootCmd"`
 	PagerStyle       string   `toml:"pagerStyle" env:"ALR_PAGER_STYLE"`
 	IgnorePkgUpdates []string `toml:"ignorePkgUpdates"`
 	Repos            []Repo   `toml:"repo"`

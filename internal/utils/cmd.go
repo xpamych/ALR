@@ -19,6 +19,7 @@ package utils
 import (
 	"errors"
 	"os"
+	"os/exec"
 	"os/user"
 	"strconv"
 	"syscall"
@@ -27,6 +28,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
+	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/constants"
 )
 
@@ -118,11 +120,8 @@ func ExitIfCantDropCapsToAlrUserNoPrivs() cli.ExitCoder {
 	return nil
 }
 
-func ExitIfNotRoot() error {
-	if os.Getuid() != 0 {
-		return cli.Exit(gotext.Get("You need to be root to perform this action"), 1)
-	}
-	return nil
+func IsNotRoot() bool {
+	return os.Getuid() != 0
 }
 
 func EnsureIsAlrUser() error {
@@ -183,4 +182,34 @@ func EscalateToRoot() error {
 		return err
 	}
 	return nil
+}
+
+func RootNeededAction(f cli.ActionFunc) cli.ActionFunc {
+	return func(ctx *cli.Context) error {
+		deps, err := appbuilder.
+			New(ctx.Context).
+			WithConfig().
+			Build()
+		if err != nil {
+			return err
+		}
+		defer deps.Defer()
+
+		if IsNotRoot() {
+			if !deps.Cfg.UseRootCmd() {
+				return cli.Exit(gotext.Get("You need to be root to perform this action"), 1)
+			}
+			executable, err := os.Executable()
+			if err != nil {
+				return cliutils.FormatCliExit("failed to get executable path", err)
+			}
+			args := append([]string{executable}, os.Args[1:]...)
+			cmd := exec.Command(deps.Cfg.RootCmd(), args...)
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			return cmd.Run()
+		}
+		return f(ctx)
+	}
 }

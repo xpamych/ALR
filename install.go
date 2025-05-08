@@ -46,11 +46,7 @@ func InstallCmd() *cli.Command {
 				Usage:   gotext.Get("Build package from scratch even if there's an already built package available"),
 			},
 		},
-		Action: func(c *cli.Context) error {
-			if err := utils.ExitIfNotRoot(); err != nil {
-				return err
-			}
-
+		Action: utils.RootNeededAction(func(c *cli.Context) error {
 			args := c.Args()
 			if args.Len() < 1 {
 				return cliutils.FormatCliExit(gotext.Get("Command install expected at least 1 argument, got %d", args.Len()), nil)
@@ -119,7 +115,7 @@ func InstallCmd() *cli.Command {
 			}
 
 			return nil
-		},
+		}),
 		BashComplete: cliutils.BashCompleteWithError(func(c *cli.Context) error {
 			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
 				return err
@@ -213,11 +209,7 @@ func RemoveCmd() *cli.Command {
 
 			return nil
 		}),
-		Action: func(c *cli.Context) error {
-			if err := utils.ExitIfNotRoot(); err != nil {
-				return err
-			}
-
+		Action: utils.RootNeededAction(func(c *cli.Context) error {
 			args := c.Args()
 			if args.Len() < 1 {
 				return cliutils.FormatCliExit(gotext.Get("Command remove expected at least 1 argument, got %d", args.Len()), nil)
@@ -239,6 +231,6 @@ func RemoveCmd() *cli.Command {
 			}
 
 			return nil
-		},
+		}),
 	}
 }
