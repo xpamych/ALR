@@ -413,19 +413,19 @@ msgstr ""
 msgid "Executing %s()"
 msgstr ""
 
-#: pkg/repos/pull.go:79
+#: pkg/repos/pull.go:80
 msgid "Pulling repository"
 msgstr ""
 
-#: pkg/repos/pull.go:103
+#: pkg/repos/pull.go:116
 msgid "Repository up to date"
 msgstr ""
 
-#: pkg/repos/pull.go:160
+#: pkg/repos/pull.go:207
 msgid "Git repository does not appear to be a valid ALR repo"
 msgstr ""
 
-#: pkg/repos/pull.go:176
+#: pkg/repos/pull.go:223
 msgid ""
 "ALR repo's minimum ALR version is greater than the current version. Try "
 "updating ALR if something doesn't work."

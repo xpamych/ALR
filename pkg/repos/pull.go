@@ -33,6 +33,7 @@ import (
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
+	gitConfig "github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/leonelquinteros/gotext"
 	"github.com/pelletier/go-toml/v2"
@@ -88,6 +89,14 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 				return err
 			}
 
+			err = r.FetchContext(ctx, &git.FetchOptions{
+				Progress: os.Stderr,
+				Force:    true,
+			})
+			if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
+				return err
+			}
+
 			w, err := r.Worktree()
 			if err != nil {
 				return err
@@ -98,34 +107,41 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 				return err
 			}
 
-			err = w.PullContext(ctx, &git.PullOptions{Progress: os.Stderr})
-			if errors.Is(err, git.NoErrAlreadyUpToDate) {
+			revHash, err := resolveHash(r, repo.Ref)
+			if err != nil {
+				return fmt.Errorf("error resolving hash: %w", err)
+			}
+
+			if old.Hash() == *revHash {
 				slog.Info(gotext.Get("Repository up to date"), "name", repo.Name)
-			} else if err != nil {
+			}
+
+			err = w.Checkout(&git.CheckoutOptions{
+				Hash:  plumbing.NewHash(revHash.String()),
+				Force: true,
+			})
+			if err != nil {
 				return err
 			}
 			repoFS = w.Filesystem
 
-			// Make sure the DB is created even if the repo is up to date
-			if !errors.Is(err, git.NoErrAlreadyUpToDate) || rs.db.IsEmpty(ctx) {
-				new, err := r.Head()
+			new, err := r.Head()
+			if err != nil {
+				return err
+			}
+
+			// If the DB was not present at startup, that means it's
+			// empty. In this case, we need to update the DB fully
+			// rather than just incrementally.
+			if rs.db.IsEmpty(ctx) {
+				err = rs.processRepoFull(ctx, repo, repoDir)
 				if err != nil {
 					return err
 				}
-
-				// If the DB was not present at startup, that means it's
-				// empty. In this case, we need to update the DB fully
-				// rather than just incrementally.
-				if rs.db.IsEmpty(ctx) {
-					err = rs.processRepoFull(ctx, repo, repoDir)
-					if err != nil {
-						return err
-					}
-				} else {
-					err = rs.processRepoChanges(ctx, repo, r, w, old, new)
-					if err != nil {
-						return err
-					}
+			} else {
+				err = rs.processRepoChanges(ctx, repo, r, w, old, new)
+				if err != nil {
+					return err
 				}
 			}
 		} else {
@@ -139,9 +155,40 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 				return err
 			}
 
-			_, err = git.PlainCloneContext(ctx, repoDir, false, &git.CloneOptions{
-				URL:      repoURL.String(),
+			r, err := git.PlainInit(repoDir, false)
+			if err != nil {
+				return err
+			}
+
+			_, err = r.CreateRemote(&gitConfig.RemoteConfig{
+				Name: git.DefaultRemoteName,
+				URLs: []string{repoURL.String()},
+			})
+			if err != nil {
+				return err
+			}
+
+			err = r.FetchContext(ctx, &git.FetchOptions{
 				Progress: os.Stderr,
+				Force:    true,
+			})
+			if err != nil {
+				return err
+			}
+
+			w, err := r.Worktree()
+			if err != nil {
+				return err
+			}
+
+			revHash, err := resolveHash(r, repo.Ref)
+			if err != nil {
+				return fmt.Errorf("error resolving hash: %w", err)
+			}
+
+			err = w.Checkout(&git.CheckoutOptions{
+				Hash:  plumbing.NewHash(revHash.String()),
+				Force: true,
 			})
 			if err != nil {
 				return err
@@ -268,7 +315,8 @@ func (rs *Repos) processRepoChangesRunner(repoDir, scriptDir string) (*interp.Ru
 		interp.StatHandler(handlers.RestrictedStat(repoDir)),
 		interp.OpenHandler(handlers.RestrictedOpen(repoDir)),
 		interp.StdIO(handlers.NopRWC{}, handlers.NopRWC{}, handlers.NopRWC{}),
-		interp.Dir(scriptDir),
+		// Use temp dir instead script dir because runner may be for deleted file
+		interp.Dir(os.TempDir()),
 	)
 }
 
@@ -285,7 +333,7 @@ func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git
 
 	patch, err := oldCommit.Patch(newCommit)
 	if err != nil {
-		return err
+		return fmt.Errorf("error to create patch: %w", err)
 	}
 
 	var actions []action
@@ -319,6 +367,7 @@ func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git
 				},
 			)
 		default:
+			slog.Debug("unexpected, but I'll try to do")
 			actions = append(actions, action{
 				Type: actionUpdate,
 				File: to.Path(),
@@ -332,7 +381,7 @@ func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git
 	for _, action := range actions {
 		runner, err := rs.processRepoChangesRunner(repoDir, filepath.Dir(filepath.Join(repoDir, action.File)))
 		if err != nil {
-			return err
+			return fmt.Errorf("error creating process repo changes runner: %w", err)
 		}
 
 		switch action.Type {
@@ -340,7 +389,6 @@ func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git
 			if filepath.Base(action.File) != "alr.sh" {
 				continue
 			}
-
 			scriptFl, err := oldCommit.File(action.File)
 			if err != nil {
 				return nil
@@ -378,7 +426,7 @@ func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git
 
 			err = rs.updatePkg(ctx, repo, runner, r)
 			if err != nil {
-				return err
+				return fmt.Errorf("error updatePkg: %w", err)
 			}
 		}
 	}

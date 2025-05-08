@@ -34,4 +34,5 @@ type Config struct {
 type Repo struct {
 	Name string `toml:"name"`
 	URL  string `toml:"url"`
+	Ref  string `toml:"ref"`
 }
