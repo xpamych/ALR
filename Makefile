@@ -54,7 +54,7 @@ uninstall:
 clean clear:
 	rm -f $(BIN)
 
-OLD_FILES=$$(< old-files)
+OLD_FILES=$(shell cat old-files)
 IGNORE_OLD_FILES := $(foreach file,$(shell cat old-files),-ignore $(file))
 update-license:
 	$(ADD_LICENSE_BIN) -v -f license-header-old-files.tmpl $(OLD_FILES)
