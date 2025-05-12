@@ -40,6 +40,9 @@ jobs:
         uses: https://github.com/actions/setup-python@v5
         with:
           python-version: '3.12'
+      
+      - name: Install deps
+        run: apt-get update && apt-get install -y gettext bc
 
       - run: pip install pre-commit
       - run: pre-commit install
