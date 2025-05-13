@@ -104,7 +104,7 @@ func Resolve(info *distro.OSRelease, opts *Opts) ([]string, error) {
 	out = append(out, opts.Name)
 
 	for index, item := range out {
-		out[index] = strings.TrimPrefix(strings.ReplaceAll(item, "-", "_"), "_")
+		out[index] = strings.TrimPrefix(item, "_")
 	}
 
 	return out, nil

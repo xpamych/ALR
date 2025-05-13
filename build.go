@@ -118,7 +118,11 @@ func BuildCmd() *cli.Command {
 					return cliutils.FormatCliExit(gotext.Get("Cannot get absolute script path"), err)
 				}
 
-				packages = append(packages, c.String("script-package"))
+				subpackage := c.String("subpackage")
+
+				if subpackage != "" {
+					packages = append(packages, subpackage)
+				}
 
 				scriptArgs = &build.BuildPackageFromScriptArgs{
 					Script:    script,

@@ -188,3 +188,5 @@ func runTestCommands(t *testing.T, r e2e.Runnable, timeout time.Duration, expect
 	)
 	assert.NoError(t, err)
 }
+
+const REPO_FOR_E2E_TESTS = "https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git"

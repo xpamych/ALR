@@ -43,11 +43,8 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
 
 type actionType uint8
@@ -231,79 +228,19 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 func (rs *Repos) updatePkg(ctx context.Context, repo types.Repo, runner *interp.Runner, scriptFl io.ReadCloser) error {
 	parser := syntax.NewParser()
 
-	defer scriptFl.Close()
-	fl, err := parser.Parse(scriptFl, "alr.sh")
+	pkgs, err := parseScript(ctx, repo, parser, runner, scriptFl)
 	if err != nil {
 		return err
 	}
 
-	runner.Reset()
-	err = runner.Run(ctx, fl)
-	if err != nil {
-		return err
-	}
-
-	type packages struct {
-		BasePkgName string   `sh:"basepkg_name"`
-		Names       []string `sh:"name"`
-	}
-
-	var pkgs packages
-
-	d := decoder.New(&distro.OSRelease{}, runner)
-	d.Overrides = false
-	d.LikeDistros = false
-	err = d.DecodeVars(&pkgs)
-	if err != nil {
-		return err
-	}
-
-	if len(pkgs.Names) > 1 {
-		if pkgs.BasePkgName == "" {
-			pkgs.BasePkgName = pkgs.Names[0]
+	for _, pkg := range pkgs {
+		err = rs.db.InsertPackage(ctx, *pkg)
+		if err != nil {
+			return err
 		}
-		for _, pkgName := range pkgs.Names {
-			pkgInfo := PackageInfo{}
-			funcName := fmt.Sprintf("meta_%s", pkgName)
-			runner.Reset()
-			err = runner.Run(ctx, fl)
-			if err != nil {
-				return err
-			}
-			meta, ok := d.GetFuncWithSubshell(funcName)
-			if !ok {
-				return errors.New("func is missing")
-			}
-			r, err := meta(ctx)
-			if err != nil {
-				return err
-			}
-			d := decoder.New(&distro.OSRelease{}, r)
-			d.Overrides = false
-			d.LikeDistros = false
-			err = d.DecodeVars(&pkgInfo)
-			if err != nil {
-				return err
-			}
-			pkg := pkgInfo.ToPackage(repo.Name)
-			resolveOverrides(r, pkg)
-			pkg.Name = pkgName
-			pkg.BasePkgName = pkgs.BasePkgName
-			err = rs.db.InsertPackage(ctx, *pkg)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
 	}
 
-	pkg := EmptyPackage(repo.Name)
-	err = d.DecodeVars(pkg)
-	if err != nil {
-		return err
-	}
-	resolveOverrides(runner, pkg)
-	return rs.db.InsertPackage(ctx, *pkg)
+	return nil
 }
 
 func (rs *Repos) processRepoChangesRunner(repoDir, scriptDir string) (*interp.Runner, error) {
@@ -399,15 +336,16 @@ func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git
 				return nil
 			}
 
-			var pkg db.Package
-			err = parseScript(ctx, parser, runner, r, &pkg)
+			pkgs, err := parseScript(ctx, repo, parser, runner, r)
 			if err != nil {
 				return err
 			}
 
-			err = rs.db.DeletePkgs(ctx, "name = ? AND repository = ?", pkg.Name, repo.Name)
-			if err != nil {
-				return err
+			for _, pkg := range pkgs {
+				err = rs.db.DeletePkgs(ctx, "name = ? AND repository = ?", pkg.Name, repo.Name)
+				if err != nil {
+					return err
+				}
 			}
 		case actionUpdate:
 			if filepath.Base(action.File) != "alr.sh" {

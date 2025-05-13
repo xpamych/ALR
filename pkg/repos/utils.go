@@ -18,6 +18,7 @@ package repos
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -35,7 +36,9 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/parser"
 )
 
 // isValid makes sure the path of the file being updated is valid.
@@ -54,23 +57,85 @@ func isValid(from, to diff.File) bool {
 	return match
 }
 
-func parseScript(ctx context.Context, parser *syntax.Parser, runner *interp.Runner, r io.ReadCloser, pkg *db.Package) error {
-	defer r.Close()
-	fl, err := parser.Parse(r, "alr.sh")
+func parseScript(
+	ctx context.Context,
+	repo types.Repo,
+	syntaxParser *syntax.Parser,
+	runner *interp.Runner,
+	r io.ReadCloser,
+) ([]*db.Package, error) {
+	fl, err := syntaxParser.Parse(r, "alr.sh")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	runner.Reset()
 	err = runner.Run(ctx, fl)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	d := decoder.New(&distro.OSRelease{}, runner)
 	d.Overrides = false
 	d.LikeDistros = false
-	return d.DecodeVars(pkg)
+
+	pkgNames, err := parser.ParseNames(d)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing package names: %w", err)
+	}
+
+	if len(pkgNames.Names) == 0 {
+		return nil, errors.New("package name is missing")
+	}
+
+	var dbPkgs []*db.Package
+
+	if len(pkgNames.Names) > 1 {
+		if pkgNames.BasePkgName == "" {
+			pkgNames.BasePkgName = pkgNames.Names[0]
+		}
+		for _, pkgName := range pkgNames.Names {
+			pkgInfo := PackageInfo{}
+			funcName := fmt.Sprintf("meta_%s", pkgName)
+			runner.Reset()
+			err = runner.Run(ctx, fl)
+			if err != nil {
+				return nil, err
+			}
+			meta, ok := d.GetFuncWithSubshell(funcName)
+			if !ok {
+				return nil, fmt.Errorf("func %s is missing", funcName)
+			}
+			r, err := meta(ctx)
+			if err != nil {
+				return nil, err
+			}
+			d := decoder.New(&distro.OSRelease{}, r)
+			d.Overrides = false
+			d.LikeDistros = false
+			err = d.DecodeVars(&pkgInfo)
+			if err != nil {
+				return nil, err
+			}
+			pkg := pkgInfo.ToPackage(repo.Name)
+			resolveOverrides(r, pkg)
+			pkg.Name = pkgName
+			pkg.BasePkgName = pkgNames.BasePkgName
+			dbPkgs = append(dbPkgs, pkg)
+		}
+
+		return dbPkgs, nil
+	}
+
+	pkg := EmptyPackage(repo.Name)
+	err = d.DecodeVars(pkg)
+	if err != nil {
+		return nil, err
+	}
+	resolveOverrides(runner, pkg)
+	dbPkgs = append(dbPkgs, pkg)
+
+	return dbPkgs, nil
 }
 
 type PackageInfo struct {

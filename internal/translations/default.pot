@@ -38,23 +38,23 @@ msgstr ""
 msgid "Cannot get absolute script path"
 msgstr ""
 
-#: build.go:148
+#: build.go:152
 msgid "Package not found"
 msgstr ""
 
-#: build.go:161
+#: build.go:165
 msgid "Nothing to build"
 msgstr ""
 
-#: build.go:218
+#: build.go:222
 msgid "Error building package"
 msgstr ""
 
-#: build.go:225
+#: build.go:229
 msgid "Error moving the package"
 msgstr ""
 
-#: build.go:229
+#: build.go:233
 msgid "Done"
 msgstr ""
 
@@ -397,35 +397,35 @@ msgstr ""
 msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 
-#: pkg/build/script_executor.go:237
+#: pkg/build/script_executor.go:241
 msgid "Building package metadata"
 msgstr ""
 
-#: pkg/build/script_executor.go:368
+#: pkg/build/script_executor.go:372
 msgid "Executing prepare()"
 msgstr ""
 
-#: pkg/build/script_executor.go:377
+#: pkg/build/script_executor.go:381
 msgid "Executing build()"
 msgstr ""
 
-#: pkg/build/script_executor.go:406 pkg/build/script_executor.go:426
+#: pkg/build/script_executor.go:410 pkg/build/script_executor.go:430
 msgid "Executing %s()"
 msgstr ""
 
-#: pkg/repos/pull.go:80
+#: pkg/repos/pull.go:77
 msgid "Pulling repository"
 msgstr ""
 
-#: pkg/repos/pull.go:116
+#: pkg/repos/pull.go:113
 msgid "Repository up to date"
 msgstr ""
 
-#: pkg/repos/pull.go:207
+#: pkg/repos/pull.go:204
 msgid "Git repository does not appear to be a valid ALR repo"
 msgstr ""
 
-#: pkg/repos/pull.go:223
+#: pkg/repos/pull.go:220
 msgid ""
 "ALR repo's minimum ALR version is greater than the current version. Try "
 "updating ALR if something doesn't work."

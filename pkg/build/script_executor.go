@@ -118,16 +118,20 @@ func (e *LocalScriptExecutor) ExecuteFirstPass(ctx context.Context, input *Build
 		return vars.Name, varsOfPackages, nil
 	}
 
-	if len(input.packages) == 0 {
-		return "", nil, errors.New("script has multiple packages but package is not specified")
+	var pkgNames []string
+
+	if len(input.packages) != 0 {
+		pkgNames = input.packages
+	} else {
+		pkgNames = pkgs.Names
 	}
 
-	for _, pkgName := range input.packages {
+	for _, pkgName := range pkgNames {
 		var preVars types.BuildVarsPre
 		funcName := fmt.Sprintf("meta_%s", pkgName)
 		meta, ok := dec.GetFuncWithSubshell(funcName)
 		if !ok {
-			return "", nil, errors.New("func is missing")
+			return "", nil, fmt.Errorf("func %s is missing", funcName)
 		}
 		r, err := meta(ctx)
 		if err != nil {
