@@ -186,7 +186,7 @@ func ListCmd() *cli.Command {
 				if err != nil {
 					return cliutils.FormatCliExit(gotext.Get("Error parsing format template"), err)
 				}
-				err = tmpl.Execute(os.Stdout, pkg)
+				err = tmpl.Execute(os.Stdout, pkgInfo)
 				if err != nil {
 					return cliutils.FormatCliExit(gotext.Get("Error executing template"), err)
 				}
