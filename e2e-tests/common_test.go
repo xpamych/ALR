@@ -175,6 +175,11 @@ func dockerMultipleRun(t *testing.T, name string, ids []string, f func(t *testin
 	})
 }
 
+func simpleExec(t *testing.T, r e2e.Runnable, cmd string, args ...string) {
+	err := r.Exec(e2e.NewCommand(cmd, args...))
+	assert.NoError(t, err)
+}
+
 func runTestCommands(t *testing.T, r e2e.Runnable, timeout time.Duration, expects []expect.Batcher) {
 	exp, _, err, _ := e2eSpawn(
 		r,

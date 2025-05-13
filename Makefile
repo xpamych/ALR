@@ -76,7 +76,9 @@ test-coverage:
 update-deps-cve:
 	bash scripts/update-deps-cve.sh
 
-e2e-test: clean build
+prepare-for-e2e-test: clean build
 	rm -f ./e2e-tests/alr
 	cp alr e2e-tests
+
+e2e-test: prepare-for-e2e-test
 	go test -tags=e2e ./...

@@ -22,10 +22,12 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"os"
+	"slices"
+	"text/template"
 
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
-	"golang.org/x/exp/slices"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
@@ -45,6 +47,15 @@ func ListCmd() *cli.Command {
 				Name:    "installed",
 				Aliases: []string{"I"},
 			},
+			&cli.BoolFlag{
+				Name:    "upgradable",
+				Aliases: []string{"U"},
+			},
+			&cli.StringFlag{
+				Name:    "format",
+				Aliases: []string{"f"},
+				Usage:   gotext.Get("Format output using a Go template"),
+			},
 		},
 		Action: func(c *cli.Context) error {
 			if err := utils.ExitIfCantDropCapsToAlrUserNoPrivs(); err != nil {
@@ -57,8 +68,10 @@ func ListCmd() *cli.Command {
 				New(ctx).
 				WithConfig().
 				WithDB().
+				WithManager().
 				// autoPull only
 				WithRepos().
+				WithDistroInfo().
 				Build()
 			if err != nil {
 				return err
@@ -67,6 +80,39 @@ func ListCmd() *cli.Command {
 
 			cfg := deps.Cfg
 			db := deps.DB
+			mgr := deps.Manager
+			info := deps.Info
+
+			if c.Bool("upgradable") {
+				updates, err := checkForUpdates(ctx, mgr, db, info)
+				if err != nil {
+					return cliutils.FormatCliExit(gotext.Get("Error getting packages for upgrade"), err)
+				}
+				if len(updates) == 0 {
+					slog.Info(gotext.Get("No packages for upgrade"))
+					return nil
+				}
+
+				format := c.String("format")
+				if format == "" {
+					format = "{{.Package.Repository}}/{{.Package.Name}} {{.FromVersion}} -> {{.ToVersion}}\n"
+				}
+				tmpl, err := template.New("format").Parse(format)
+				if err != nil {
+					return cliutils.FormatCliExit(gotext.Get("Error parsing format template"), err)
+				}
+
+				for _, updateInfo := range updates {
+					err = tmpl.Execute(os.Stdout, updateInfo)
+					if err != nil {
+						return cliutils.FormatCliExit(gotext.Get("Error executing template"), err)
+					}
+				}
+
+				return nil
+			}
+
+			// TODO: refactor code below
 
 			where := "true"
 			args := []any(nil)
@@ -115,17 +161,35 @@ func ListCmd() *cli.Command {
 					continue
 				}
 
-				version := pkg.Version
+				type packageInfo struct {
+					Package *database.Package
+					Version string
+				}
+
+				pkgInfo := &packageInfo{}
+				pkgInfo.Package = &pkg
+				pkgInfo.Version = pkg.Version
 				if c.Bool("installed") {
 					instVersion, ok := installedAlrPackages[fmt.Sprintf("%s/%s", pkg.Repository, pkg.Name)]
 					if !ok {
 						continue
 					} else {
-						version = instVersion
+						pkgInfo.Version = instVersion
 					}
 				}
 
-				fmt.Printf("%s/%s %s\n", pkg.Repository, pkg.Name, version)
+				format := c.String("format")
+				if format == "" {
+					format = "{{.Package.Repository}}/{{.Package.Name}} {{.Version}}\n"
+				}
+				tmpl, err := template.New("format").Parse(format)
+				if err != nil {
+					return cliutils.FormatCliExit(gotext.Get("Error parsing format template"), err)
+				}
+				err = tmpl.Execute(os.Stdout, pkg)
+				if err != nil {
+					return cliutils.FormatCliExit(gotext.Get("Error executing template"), err)
+				}
 			}
 
 			return nil

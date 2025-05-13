@@ -327,8 +327,28 @@ msgstr ""
 msgid "You need to be root to perform this action"
 msgstr ""
 
-#: list.go:41
+#: list.go:43
 msgid "List ALR repo packages"
+msgstr ""
+
+#: list.go:57
+msgid "Format output using a Go template"
+msgstr ""
+
+#: list.go:89
+msgid "Error getting packages for upgrade"
+msgstr ""
+
+#: list.go:92
+msgid "No packages for upgrade"
+msgstr ""
+
+#: list.go:102 list.go:187
+msgid "Error parsing format template"
+msgstr ""
+
+#: list.go:108 list.go:191
+msgid "Error executing template"
 msgstr ""
 
 #: main.go:45
@@ -495,20 +515,8 @@ msgstr ""
 msgid "Search by provides"
 msgstr ""
 
-#: search.go:71
-msgid "Format output using a Go template"
-msgstr ""
-
 #: search.go:130
 msgid "Error while executing search"
-msgstr ""
-
-#: search.go:138
-msgid "Error parsing format template"
-msgstr ""
-
-#: search.go:153
-msgid "Error executing template"
 msgstr ""
 
 #: upgrade.go:47

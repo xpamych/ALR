@@ -116,7 +116,7 @@ func UpgradeCmd() *cli.Command {
 						Info:       deps.Info,
 						PkgFormat_: build.GetPkgFormat(deps.Manager),
 					},
-					updates,
+					mapUptatesInfoToPackages(updates),
 				)
 				if err != nil {
 					return cliutils.FormatCliExit(gotext.Get("Error checking for updates"), err)
@@ -130,12 +130,27 @@ func UpgradeCmd() *cli.Command {
 	}
 }
 
+func mapUptatesInfoToPackages(updates []UpdateInfo) []database.Package {
+	var pkgs []database.Package
+	for _, info := range updates {
+		pkgs = append(pkgs, *info.Package)
+	}
+	return pkgs
+}
+
+type UpdateInfo struct {
+	Package *database.Package
+
+	FromVersion string
+	ToVersion   string
+}
+
 func checkForUpdates(
 	ctx context.Context,
 	mgr manager.Manager,
 	db *database.Database,
 	info *distro.OSRelease,
-) ([]database.Package, error) {
+) ([]UpdateInfo, error) {
 	installed, err := mgr.ListInstalled(nil)
 	if err != nil {
 		return nil, err
@@ -145,7 +160,7 @@ func checkForUpdates(
 
 	s := search.New(db)
 
-	var out []database.Package
+	var out []UpdateInfo
 	for _, pkgName := range pkgNames {
 		matches := build.RegexpALRPackageName.FindStringSubmatch(pkgName)
 		if matches != nil {
@@ -179,10 +194,13 @@ func checkForUpdates(
 			}
 
 			c := vercmp.Compare(repoVer, installed[pkgName])
-			if c == 0 || c == -1 {
-				continue
-			} else if c == 1 {
-				out = append(out, pkg)
+
+			if c == 1 {
+				out = append(out, UpdateInfo{
+					Package:     &pkg,
+					FromVersion: installed[pkgName],
+					ToVersion:   repoVer,
+				})
 			}
 		}
 
