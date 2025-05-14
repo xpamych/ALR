@@ -278,6 +278,12 @@ msgstr ""
 msgid "OPTIONS"
 msgstr ""
 
+#: internal/cliutils/utils.go:69
+msgid ""
+"This command is deprecated and would be removed in the future, use \"%s\" "
+"instead!"
+msgstr ""
+
 #: internal/db/db.go:137
 msgid "Database version mismatch; resetting"
 msgstr ""
@@ -363,11 +369,11 @@ msgstr ""
 msgid "Enable interactive questions and prompts"
 msgstr ""
 
-#: main.go:145
+#: main.go:146
 msgid "Show help"
 msgstr ""
 
-#: main.go:149
+#: main.go:150
 msgid "Error while running app"
 msgstr ""
 
@@ -451,48 +457,60 @@ msgid ""
 "updating ALR if something doesn't work."
 msgstr ""
 
-#: repo.go:39
-msgid "Add a new repository"
+#: refresh.go:30
+msgid "Pull all repositories that have changed"
 msgstr ""
 
-#: repo.go:46
-msgid "Name of the new repo"
+#: repo.go:39
+msgid "Manage repos"
+msgstr ""
+
+#: repo.go:50 repo.go:220
+msgid "Remove an existing repository"
 msgstr ""
 
 #: repo.go:52
-msgid "URL of the new repo"
+msgid "<name>"
 msgstr ""
 
-#: repo.go:75
-msgid "Repo \"%s\" already exists"
+#: repo.go:82
+msgid "Repo \"%s\" does not exist"
 msgstr ""
 
-#: repo.go:86 repo.go:159
+#: repo.go:89
+msgid "Error removing repo directory"
+msgstr ""
+
+#: repo.go:93 repo.go:160
 msgid "Error saving config"
 msgstr ""
 
 #: repo.go:112
-msgid "Remove an existing repository"
-msgstr ""
-
-#: repo.go:119
-msgid "Name of the repo to be deleted"
-msgstr ""
-
-#: repo.go:148
-msgid "Repo \"%s\" does not exist"
-msgstr ""
-
-#: repo.go:155
-msgid "Error removing repo directory"
-msgstr ""
-
-#: repo.go:178
 msgid "Error removing packages from database"
 msgstr ""
 
-#: repo.go:189
-msgid "Pull all repositories that have changed"
+#: repo.go:123 repo.go:190
+msgid "Add a new repository"
+msgstr ""
+
+#: repo.go:124
+msgid "<name> <url>"
+msgstr ""
+
+#: repo.go:149
+msgid "Repo \"%s\" already exists"
+msgstr ""
+
+#: repo.go:197
+msgid "Name of the new repo"
+msgstr ""
+
+#: repo.go:203
+msgid "URL of the new repo"
+msgstr ""
+
+#: repo.go:227
+msgid "Name of the repo to be deleted"
 msgstr ""
 
 #: search.go:40

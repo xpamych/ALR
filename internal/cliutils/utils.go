@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 )
 
@@ -60,4 +61,12 @@ func FormatCliExitWithCode(msg string, err error, exitCode int) cli.ExitCoder {
 		return cli.Exit(errors.New(msg), exitCode)
 	}
 	return cli.Exit(fmt.Errorf("%s: %w", msg, err), exitCode)
+}
+
+func WarnLegacyCommand(newSyntax string) {
+	slog.Warn(
+		gotext.Get(
+			"This command is deprecated and would be removed in the future, use \"%s\" instead!", newSyntax,
+		),
+	)
 }

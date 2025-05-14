@@ -1,6 +1,6 @@
 NAME := alr
 GIT_VERSION = $(shell git describe --tags )
-
+IGNORE_ROOT_CHECK ?= 0
 DESTDIR ?=
 PREFIX ?= /usr/local
 BIN := ./$(NAME)
@@ -24,8 +24,9 @@ $(BIN):
 	go build -ldflags="-X 'gitea.plemya-x.ru/Plemya-x/ALR/internal/config.Version=$(GIT_VERSION)'" -o $@
 
 check-no-root:
-	@if [[ "$$(whoami)" == 'root' ]]; then \
+	@if [[ "$(IGNORE_ROOT_CHECK)" != "1" ]] && [[ "$$(whoami)" == 'root' ]]; then \
 		echo "This target shouldn't run as root" 1>&2; \
+		echo "Set IGNORE_ROOT_CHECK=1 to override" 1>&2; \
 		exit 1; \
 	fi
 

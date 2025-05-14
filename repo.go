@@ -33,96 +33,30 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 )
 
-func AddRepoCmd() *cli.Command {
+func RepoCmd() *cli.Command {
 	return &cli.Command{
-		Name:    "addrepo",
-		Usage:   gotext.Get("Add a new repository"),
-		Aliases: []string{"ar"},
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "name",
-				Aliases:  []string{"n"},
-				Required: true,
-				Usage:    gotext.Get("Name of the new repo"),
-			},
-			&cli.StringFlag{
-				Name:     "url",
-				Aliases:  []string{"u"},
-				Required: true,
-				Usage:    gotext.Get("URL of the new repo"),
-			},
+		Name:  "repo",
+		Usage: gotext.Get("Manage repos"),
+		Subcommands: []*cli.Command{
+			RemoveRepoCmd(),
+			AddRepoCmd(),
 		},
-		Action: utils.RootNeededAction(func(c *cli.Context) error {
-			name := c.String("name")
-			repoURL := c.String("url")
-
-			ctx := c.Context
-
-			deps, err := appbuilder.
-				New(ctx).
-				WithConfig().
-				Build()
-			if err != nil {
-				return err
-			}
-			defer deps.Defer()
-
-			cfg := deps.Cfg
-
-			reposSlice := cfg.Repos()
-			for _, repo := range reposSlice {
-				if repo.URL == repoURL || repo.Name == name {
-					return cliutils.FormatCliExit(gotext.Get("Repo \"%s\" already exists", repo.Name), nil)
-				}
-			}
-			reposSlice = append(reposSlice, types.Repo{
-				Name: name,
-				URL:  repoURL,
-			})
-			cfg.SetRepos(reposSlice)
-
-			err = cfg.SaveUserConfig()
-			if err != nil {
-				return cliutils.FormatCliExit(gotext.Get("Error saving config"), err)
-			}
-
-			if err := utils.ExitIfCantDropCapsToAlrUserNoPrivs(); err != nil {
-				return err
-			}
-
-			deps, err = appbuilder.
-				New(ctx).
-				UseConfig(cfg).
-				WithDB().
-				WithReposForcePull().
-				Build()
-			if err != nil {
-				return err
-			}
-			defer deps.Defer()
-
-			return nil
-		}),
 	}
 }
 
 func RemoveRepoCmd() *cli.Command {
 	return &cli.Command{
-		Name:    "removerepo",
-		Usage:   gotext.Get("Remove an existing repository"),
-		Aliases: []string{"rr"},
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "name",
-				Aliases:  []string{"n"},
-				Required: true,
-				Usage:    gotext.Get("Name of the repo to be deleted"),
-			},
-		},
+		Name:      "remove",
+		Usage:     gotext.Get("Remove an existing repository"),
+		Aliases:   []string{"rm"},
+		ArgsUsage: gotext.Get("<name>"),
 		Action: utils.RootNeededAction(func(c *cli.Context) error {
-			ctx := c.Context
+			if c.Args().Len() < 1 {
+				return cliutils.FormatCliExit("missing args", nil)
+			}
+			name := c.Args().Get(0)
 
-			name := c.String("name")
+			ctx := c.Context
 
 			deps, err := appbuilder.
 				New(ctx).
@@ -183,21 +117,56 @@ func RemoveRepoCmd() *cli.Command {
 	}
 }
 
-func RefreshCmd() *cli.Command {
+func AddRepoCmd() *cli.Command {
 	return &cli.Command{
-		Name:    "refresh",
-		Usage:   gotext.Get("Pull all repositories that have changed"),
-		Aliases: []string{"ref"},
-		Action: func(c *cli.Context) error {
-			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
-				return err
+		Name:      "add",
+		Usage:     gotext.Get("Add a new repository"),
+		ArgsUsage: gotext.Get("<name> <url>"),
+		Action: utils.RootNeededAction(func(c *cli.Context) error {
+			if c.Args().Len() < 2 {
+				return cliutils.FormatCliExit("missing args", nil)
 			}
+
+			name := c.Args().Get(0)
+			repoURL := c.Args().Get(1)
 
 			ctx := c.Context
 
 			deps, err := appbuilder.
 				New(ctx).
 				WithConfig().
+				Build()
+			if err != nil {
+				return err
+			}
+			defer deps.Defer()
+
+			cfg := deps.Cfg
+
+			reposSlice := cfg.Repos()
+			for _, repo := range reposSlice {
+				if repo.URL == repoURL || repo.Name == name {
+					return cliutils.FormatCliExit(gotext.Get("Repo \"%s\" already exists", repo.Name), nil)
+				}
+			}
+			reposSlice = append(reposSlice, types.Repo{
+				Name: name,
+				URL:  repoURL,
+			})
+			cfg.SetRepos(reposSlice)
+
+			err = cfg.SaveUserConfig()
+			if err != nil {
+				return cliutils.FormatCliExit(gotext.Get("Error saving config"), err)
+			}
+
+			if err := utils.ExitIfCantDropCapsToAlrUserNoPrivs(); err != nil {
+				return err
+			}
+
+			deps, err = appbuilder.
+				New(ctx).
+				UseConfig(cfg).
 				WithDB().
 				WithReposForcePull().
 				Build()
@@ -205,7 +174,62 @@ func RefreshCmd() *cli.Command {
 				return err
 			}
 			defer deps.Defer()
+
 			return nil
+		}),
+	}
+}
+
+// TODO: remove
+//
+// Deprecated: use "alr repo add"
+func LegacyAddRepoCmd() *cli.Command {
+	return &cli.Command{
+		Hidden:  true,
+		Name:    "addrepo",
+		Usage:   gotext.Get("Add a new repository"),
+		Aliases: []string{"ar"},
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "name",
+				Aliases:  []string{"n"},
+				Required: true,
+				Usage:    gotext.Get("Name of the new repo"),
+			},
+			&cli.StringFlag{
+				Name:     "url",
+				Aliases:  []string{"u"},
+				Required: true,
+				Usage:    gotext.Get("URL of the new repo"),
+			},
 		},
+		Action: utils.RootNeededAction(func(c *cli.Context) error {
+			cliutils.WarnLegacyCommand("alr repo add <name> <url>")
+			return c.App.RunContext(c.Context, []string{"", "repo", "add", c.String("name"), c.String("url")})
+		}),
+	}
+}
+
+// TODO: remove
+//
+// Deprecated: use "alr repo rm"
+func LegacyRemoveRepoCmd() *cli.Command {
+	return &cli.Command{
+		Hidden:  true,
+		Name:    "removerepo",
+		Usage:   gotext.Get("Remove an existing repository"),
+		Aliases: []string{"rr"},
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "name",
+				Aliases:  []string{"n"},
+				Required: true,
+				Usage:    gotext.Get("Name of the repo to be deleted"),
+			},
+		},
+		Action: utils.RootNeededAction(func(c *cli.Context) error {
+			cliutils.WarnLegacyCommand("alr repo remove <name>")
+			return c.App.RunContext(c.Context, []string{"", "repo", "remove", c.String("name")})
+		}),
 	}
 }
