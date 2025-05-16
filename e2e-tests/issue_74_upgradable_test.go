@@ -30,21 +30,14 @@ func TestE2EIssue74Upgradable(t *testing.T) {
 		"issue-74-upgradable",
 		COMMON_SYSTEMS,
 		func(t *testing.T, r e2e.Runnable) {
-			simpleExec(t, r, "sudo",
-				"alr",
-				"addrepo",
-				"--name",
-				"alr-repo",
-				"--url",
-				REPO_FOR_E2E_TESTS,
-			)
-			simpleExec(t, r, "sudo", "sh", "-c", "sed -i 's/ref = .*/ref = \"bd26236cd7\"/' /etc/alr/alr.toml")
-			simpleExec(t, r, "alr", "ref")
-			simpleExec(t, r, "sudo", "alr", "in", "bar-pkg")
-			simpleExec(t, r, "sh", "-c", "test $(alr list -U | wc -l) -eq 0 || exit 1")
-			simpleExec(t, r, "sudo", "sh", "-c", "sed -i 's/ref = .*/ref = \"d9a3541561\"/' /etc/alr/alr.toml")
-			simpleExec(t, r, "sudo", "alr", "ref")
-			simpleExec(t, r, "sh", "-c", "test $(alr list -U | wc -l) -eq 1 || exit 1")
+			defaultPrepare(t, r)
+			execShouldNoError(t, r, "sudo", "alr", "repo", "set-ref", "alr-repo", "bd26236cd7")
+			execShouldNoError(t, r, "alr", "ref")
+			execShouldNoError(t, r, "sudo", "alr", "in", "bar-pkg")
+			execShouldNoError(t, r, "sh", "-c", "test $(alr list -U | wc -l) -eq 0 || exit 1")
+			execShouldNoError(t, r, "sudo", "alr", "repo", "set-ref", "alr-repo", "d9a3541561")
+			execShouldNoError(t, r, "sudo", "alr", "ref")
+			execShouldNoError(t, r, "sh", "-c", "test $(alr list -U | wc -l) -eq 1 || exit 1")
 		},
 	)
 }

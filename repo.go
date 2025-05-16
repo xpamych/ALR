@@ -40,6 +40,7 @@ func RepoCmd() *cli.Command {
 		Subcommands: []*cli.Command{
 			RemoveRepoCmd(),
 			AddRepoCmd(),
+			SetRepoRefCmd(),
 		},
 	}
 }
@@ -174,6 +175,54 @@ func AddRepoCmd() *cli.Command {
 				return err
 			}
 			defer deps.Defer()
+
+			return nil
+		}),
+	}
+}
+
+func SetRepoRefCmd() *cli.Command {
+	return &cli.Command{
+		Name:      "set-ref",
+		Usage:     gotext.Get("Set the reference of the repository"),
+		ArgsUsage: gotext.Get("<name> <ref>"),
+		Action: utils.RootNeededAction(func(c *cli.Context) error {
+			if c.Args().Len() < 2 {
+				return cliutils.FormatCliExit("missing args", nil)
+			}
+
+			name := c.Args().Get(0)
+			ref := c.Args().Get(1)
+
+			deps, err := appbuilder.
+				New(c.Context).
+				WithConfig().
+				WithDB().
+				WithReposNoPull().
+				Build()
+			if err != nil {
+				return err
+			}
+			defer deps.Defer()
+
+			repos := deps.Cfg.Repos()
+			newRepos := []types.Repo{}
+			for _, repo := range repos {
+				if repo.Name == name {
+					repo.Ref = ref
+				}
+				newRepos = append(newRepos, repo)
+			}
+			deps.Cfg.SetRepos(newRepos)
+			err = deps.Cfg.SaveUserConfig()
+			if err != nil {
+				return cliutils.FormatCliExit(gotext.Get("Error saving config"), err)
+			}
+
+			err = deps.Repos.Pull(c.Context, newRepos)
+			if err != nil {
+				return cliutils.FormatCliExit(gotext.Get("Error pulling repositories"), err)
+			}
 
 			return nil
 		}),

@@ -21,7 +21,6 @@ package e2etests_test
 import (
 	"testing"
 
-	"github.com/alecthomas/assert/v2"
 	"github.com/efficientgo/e2e"
 )
 
@@ -31,51 +30,11 @@ func TestE2EIssue41AutoreqSkiplist(t *testing.T) {
 		"issue-41-autoreq-skiplist",
 		AUTOREQ_AUTOPROV_SYSTEMS,
 		func(t *testing.T, r e2e.Runnable) {
-			err := r.Exec(e2e.NewCommand(
-				"sudo",
-				"alr",
-				"addrepo",
-				"--name",
-				"alr-repo",
-				"--url",
-				"https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git",
-			))
-			assert.NoError(t, err)
-
-			err = r.Exec(e2e.NewCommand(
-				"alr",
-				"ref",
-			))
-			assert.NoError(t, err)
-
-			err = r.Exec(e2e.NewCommand(
-				"alr",
-				"build",
-				"-p",
-				"alr-repo/test-autoreq-autoprov",
-			))
-			assert.NoError(t, err)
-
-			err = r.Exec(e2e.NewCommand(
-				"sh",
-				"-c",
-				"rpm -qp --requires *.rpm | grep \"^/bin/sh$\"",
-			))
-			assert.NoError(t, err)
-
-			err = r.Exec(e2e.NewCommand(
-				"sh",
-				"-c",
-				"rpm -qp --requires *.rpm | grep \"^/bin/bash$\"",
-			))
-			assert.Error(t, err)
-
-			err = r.Exec(e2e.NewCommand(
-				"sh",
-				"-c",
-				"rpm -qp --requires *.rpm | grep \"^/bin/zsh$\"",
-			))
-			assert.Error(t, err)
+			defaultPrepare(t, r)
+			execShouldNoError(t, r, "alr", "build", "-p", "alr-repo/test-autoreq-autoprov")
+			execShouldNoError(t, r, "sh", "-c", "rpm -qp --requires *.rpm | grep \"^/bin/sh$\"")
+			execShouldError(t, r, "sh", "-c", "rpm -qp --requires *.rpm | grep \"^/bin/bash$\"")
+			execShouldError(t, r, "sh", "-c", "rpm -qp --requires *.rpm | grep \"^/bin/zsh$\"")
 		},
 	)
 }

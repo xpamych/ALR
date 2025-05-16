@@ -21,7 +21,6 @@ package e2etests_test
 import (
 	"testing"
 
-	"github.com/alecthomas/assert/v2"
 	"github.com/efficientgo/e2e"
 )
 
@@ -31,26 +30,10 @@ func TestE2EIssue50InstallMultiple(t *testing.T) {
 		"issue-50-install-multiple",
 		COMMON_SYSTEMS,
 		func(t *testing.T, r e2e.Runnable) {
-			err := r.Exec(e2e.NewCommand(
-				"sudo",
-				"alr",
-				"addrepo",
-				"--name",
-				"alr-repo",
-				"--url",
-				"https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git",
-			))
-			assert.NoError(t, err)
-
-			err = r.Exec(e2e.NewCommand(
-				"sudo", "alr", "in", "foo-pkg", "bar-pkg",
-			))
-			assert.NoError(t, err)
-
-			err = r.Exec(e2e.NewCommand("cat", "/opt/foo"))
-			assert.NoError(t, err)
-			err = r.Exec(e2e.NewCommand("cat", "/opt/bar"))
-			assert.NoError(t, err)
+			defaultPrepare(t, r)
+			execShouldNoError(t, r, "sudo", "alr", "in", "foo-pkg", "bar-pkg")
+			execShouldNoError(t, r, "cat", "/opt/foo")
+			execShouldNoError(t, r, "cat", "/opt/bar")
 		},
 	)
 }

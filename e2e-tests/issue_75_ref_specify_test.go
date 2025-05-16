@@ -21,7 +21,6 @@ package e2etests_test
 import (
 	"testing"
 
-	"github.com/alecthomas/assert/v2"
 	"github.com/efficientgo/e2e"
 )
 
@@ -31,32 +30,9 @@ func TestE2EIssue75InstallWithDeps(t *testing.T) {
 		"issue-75-ref-specify",
 		COMMON_SYSTEMS,
 		func(t *testing.T, r e2e.Runnable) {
-			err := r.Exec(e2e.NewCommand(
-				"sudo",
-				"alr",
-				"addrepo",
-				"--name",
-				"alr-repo",
-				"--url",
-				"https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git",
-			))
-			assert.NoError(t, err)
-
-			err = r.Exec(e2e.NewCommand(
-				"sudo", "alr", "ref",
-			))
-			assert.NoError(t, err)
-
-			// TODO: replace with alr command when it be added
-			err = r.Exec(e2e.NewCommand(
-				"sudo", "sh", "-c", "sed -i 's/ref = .*/ref = \"bd26236cd7\"/' /etc/alr/alr.toml",
-			))
-			assert.NoError(t, err)
-
-			err = r.Exec(e2e.NewCommand(
-				"sh", "-c", "test $(alr list | wc -l) -eq 2 || exit 1",
-			))
-			assert.NoError(t, err)
+			defaultPrepare(t, r)
+			execShouldNoError(t, r, "sudo", "alr", "repo", "set-ref", "alr-repo", "bd26236cd7")
+			execShouldNoError(t, r, "sh", "-c", "test $(alr list | wc -l) -eq 2 || exit 1")
 		},
 	)
 }

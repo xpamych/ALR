@@ -21,7 +21,6 @@ package e2etests_test
 import (
 	"testing"
 
-	"github.com/alecthomas/assert/v2"
 	"github.com/efficientgo/e2e"
 )
 
@@ -31,23 +30,8 @@ func TestE2EIssue53LcAllCInfo(t *testing.T) {
 		"issue-53-lc-all-c-info",
 		COMMON_SYSTEMS,
 		func(t *testing.T, r e2e.Runnable) {
-			err := r.Exec(e2e.NewCommand(
-				"sudo",
-				"alr",
-				"addrepo",
-				"--name",
-				"alr-repo",
-				"--url",
-				"https://gitea.plemya-x.ru/Plemya-x/alr-repo.git",
-			))
-			assert.NoError(t, err)
-
-			err = r.Exec(e2e.NewCommand(
-				"bash",
-				"-c",
-				"LANG=C alr info alr-bin",
-			))
-			assert.NoError(t, err)
+			defaultPrepare(t, r)
+			execShouldNoError(t, r, "bash", "-c", "LANG=C alr info foo-pkg")
 		},
 	)
 }

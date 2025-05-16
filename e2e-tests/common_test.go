@@ -159,9 +159,12 @@ func dockerMultipleRun(t *testing.T, name string, ids []string, f func(t *testin
 	})
 }
 
-func simpleExec(t *testing.T, r e2e.Runnable, cmd string, args ...string) {
-	err := r.Exec(e2e.NewCommand(cmd, args...))
-	assert.NoError(t, err)
+func execShouldNoError(t *testing.T, r e2e.Runnable, cmd string, args ...string) {
+	assert.NoError(t, r.Exec(e2e.NewCommand(cmd, args...)))
+}
+
+func execShouldError(t *testing.T, r e2e.Runnable, cmd string, args ...string) {
+	assert.Error(t, r.Exec(e2e.NewCommand(cmd, args...)))
 }
 
 func runTestCommands(t *testing.T, r e2e.Runnable, timeout time.Duration, expects []expect.Batcher) {
@@ -178,4 +181,22 @@ func runTestCommands(t *testing.T, r e2e.Runnable, timeout time.Duration, expect
 	assert.NoError(t, err)
 }
 
-const REPO_FOR_E2E_TESTS = "https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git"
+const REPO_NAME_FOR_E2E_TESTS = "alr-repo"
+const REPO_URL_FOR_E2E_TESTS = "https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git"
+
+func defaultPrepare(t *testing.T, r e2e.Runnable) {
+	execShouldNoError(t, r,
+		"sudo",
+		"alr",
+		"repo",
+		"add",
+		REPO_NAME_FOR_E2E_TESTS,
+		REPO_URL_FOR_E2E_TESTS,
+	)
+
+	execShouldNoError(t, r,
+		"sudo",
+		"alr",
+		"ref",
+	)
+}

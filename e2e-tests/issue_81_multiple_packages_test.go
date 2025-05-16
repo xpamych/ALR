@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/efficientgo/e2e"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestE2EIssue81MultiplePackages(t *testing.T) {
@@ -31,29 +30,9 @@ func TestE2EIssue81MultiplePackages(t *testing.T) {
 		"issue-81-multiple-packages",
 		COMMON_SYSTEMS,
 		func(t *testing.T, r e2e.Runnable) {
-			err := r.Exec(e2e.NewCommand(
-				"sudo",
-				"alr",
-				"addrepo",
-				"--name",
-				"alr-repo",
-				"--url",
-				REPO_FOR_E2E_TESTS,
-			))
-			assert.NoError(t, err)
-
-			err = r.Exec(e2e.NewCommand(
-				"sudo", "alr", "ref",
-			))
-			assert.NoError(t, err)
-
-			err = r.Exec(e2e.NewCommand(
-				"sudo", "alr", "in", "first-package-with-dashes",
-			))
-			assert.NoError(t, err)
-
-			err = r.Exec(e2e.NewCommand("cat", "/opt/first-package"))
-			assert.NoError(t, err)
+			defaultPrepare(t, r)
+			execShouldNoError(t, r, "sudo", "alr", "in", "first-package-with-dashes")
+			execShouldNoError(t, r, "cat", "/opt/first-package")
 		},
 	)
 }

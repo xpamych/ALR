@@ -465,51 +465,59 @@ msgstr ""
 msgid "Manage repos"
 msgstr ""
 
-#: repo.go:50 repo.go:220
+#: repo.go:51 repo.go:269
 msgid "Remove an existing repository"
 msgstr ""
 
-#: repo.go:52
+#: repo.go:53
 msgid "<name>"
 msgstr ""
 
-#: repo.go:82
+#: repo.go:83
 msgid "Repo \"%s\" does not exist"
 msgstr ""
 
-#: repo.go:89
+#: repo.go:90
 msgid "Error removing repo directory"
 msgstr ""
 
-#: repo.go:93 repo.go:160
+#: repo.go:94 repo.go:161 repo.go:219
 msgid "Error saving config"
 msgstr ""
 
-#: repo.go:112
+#: repo.go:113
 msgid "Error removing packages from database"
 msgstr ""
 
-#: repo.go:123 repo.go:190
+#: repo.go:124 repo.go:239
 msgid "Add a new repository"
 msgstr ""
 
-#: repo.go:124
+#: repo.go:125
 msgid "<name> <url>"
 msgstr ""
 
-#: repo.go:149
+#: repo.go:150
 msgid "Repo \"%s\" already exists"
 msgstr ""
 
-#: repo.go:197
+#: repo.go:187
+msgid "Set the reference of the repository"
+msgstr ""
+
+#: repo.go:188
+msgid "<name> <ref>"
+msgstr ""
+
+#: repo.go:246
 msgid "Name of the new repo"
 msgstr ""
 
-#: repo.go:203
+#: repo.go:252
 msgid "URL of the new repo"
 msgstr ""
 
-#: repo.go:227
+#: repo.go:276
 msgid "Name of the repo to be deleted"
 msgstr ""
 

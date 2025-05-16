@@ -21,7 +21,6 @@ package e2etests_test
 import (
 	"testing"
 
-	"github.com/alecthomas/assert/v2"
 	"github.com/efficientgo/e2e"
 )
 
@@ -31,25 +30,11 @@ func TestE2EIssue32Interactive(t *testing.T) {
 		"issue-32-interactive",
 		COMMON_SYSTEMS,
 		func(t *testing.T, r e2e.Runnable) {
-			assert.NoError(t, r.Exec(e2e.NewCommand(
-				"sudo", "alr", "--interactive=false", "remove", "ca-certificates",
-			)))
-
-			assert.NoError(t, r.Exec(e2e.NewCommand(
-				"sudo", "alr", "--interactive=false", "remove", "openssl",
-			)))
-
-			assert.NoError(t, r.Exec(e2e.NewCommand(
-				"alr", "fix",
-			)))
-
-			assert.NoError(t, r.Exec(e2e.NewCommand(
-				"sudo", "apt-get", "update",
-			)))
-
-			assert.NoError(t, r.Exec(e2e.NewCommand(
-				"sudo", "alr", "--interactive=false", "install", "ca-certificates",
-			)))
+			execShouldNoError(t, r, "alr", "--interactive=false", "remove", "ca-certificates")
+			execShouldNoError(t, r, "sudo", "alr", "--interactive=false", "remove", "openssl")
+			execShouldNoError(t, r, "alr", "fix")
+			execShouldNoError(t, r, "sudo", "apt-get", "update")
+			execShouldNoError(t, r, "sudo", "alr", "--interactive=false", "install", "ca-certificates")
 		},
 	)
 }

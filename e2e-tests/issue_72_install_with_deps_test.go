@@ -21,7 +21,6 @@ package e2etests_test
 import (
 	"testing"
 
-	"github.com/alecthomas/assert/v2"
 	"github.com/efficientgo/e2e"
 )
 
@@ -31,21 +30,8 @@ func TestE2EIssue72InstallWithDeps(t *testing.T) {
 		"issue-72-install-with-deps",
 		COMMON_SYSTEMS,
 		func(t *testing.T, r e2e.Runnable) {
-			err := r.Exec(e2e.NewCommand(
-				"sudo",
-				"alr",
-				"addrepo",
-				"--name",
-				"alr-repo",
-				"--url",
-				"https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git",
-			))
-			assert.NoError(t, err)
-
-			err = r.Exec(e2e.NewCommand(
-				"sudo", "alr", "in", "test-app-with-lib",
-			))
-			assert.NoError(t, err)
+			defaultPrepare(t, r)
+			execShouldNoError(t, r, "sudo", "alr", "in", "test-app-with-lib")
 		},
 	)
 }

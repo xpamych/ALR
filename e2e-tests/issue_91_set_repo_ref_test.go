@@ -24,13 +24,17 @@ import (
 	"github.com/efficientgo/e2e"
 )
 
-func TestE2EBashCompletion(t *testing.T) {
+func TestE2EIssue91MultiplePackages(t *testing.T) {
 	dockerMultipleRun(
 		t,
-		"bash-completion",
+		"issue-91-set-repo-ref",
 		COMMON_SYSTEMS,
 		func(t *testing.T, r e2e.Runnable) {
-			execShouldNoError(t, r, "alr", "install", "--generate-bash-completion")
+			defaultPrepare(t, r)
+			execShouldError(t, r, "sudo", "alr", "repo", "set-ref")
+			execShouldError(t, r, "sudo", "alr", "repo", "set-ref", "alr-repo")
+			execShouldNoError(t, r, "sudo", "alr", "repo", "set-ref", "alr-repo", "bd26236cd7")
+			execShouldNoError(t, r, "sh", "-c", "test $(alr list | wc -l) -eq 2 || exit 1")
 		},
 	)
 }
