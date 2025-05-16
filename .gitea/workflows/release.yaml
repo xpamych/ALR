@@ -1,0 +1,70 @@
+# ALR - Any Linux Repository
+# Copyright (C) 2025 The ALR Authors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: https://github.com/actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Generate changelog
+        run: |
+          echo "Changes: " > changelog.txt
+          echo "```" >> changelog.txt
+          git log $(git describe --tags --abbrev=0)..HEAD --oneline >> changelog.txt
+          echo "```" >> changelog.txt
+
+      - name: Set version
+        run: |
+          version=$(echo "${GITHUB_REF##*/}" | sed 's/^v//')
+          echo "Version - $version"
+          echo "VERSION=$version" >> $GITHUB_ENV
+
+      - name: Build alr binary
+        run: |
+          CGO_ENABLED=0 go build -ldflags "-X gitea.plemya-x.ru/Plemya-x/ALR/internal/config.Version=${{ env.VERSION }}" -o alr
+
+      - name: Create tar.gz
+        run: |
+          mkdir -p ./out/completion
+          cp alr ./out
+          cp scripts/completion/bash ./out/completion/alr
+          cp scripts/completion/zsh ./out/completion/_alr
+
+          tar -czvf alr-${{ env.VERSION }}-linux-x86_64.tar.gz -С out .
+
+      - name: Release
+        uses: actions/gitea-release-action@v1
+        with:
+          body_path: changelog.txt
+          files: |-
+            alr-${{ env.VERSION }}-linux-x86_64.tar.gz
+            
