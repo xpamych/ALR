@@ -44,6 +44,10 @@ func TestE2EIssue32Interactive(t *testing.T) {
 			)))
 
 			assert.NoError(t, r.Exec(e2e.NewCommand(
+				"sudo", "apt-get", "update",
+			)))
+
+			assert.NoError(t, r.Exec(e2e.NewCommand(
 				"sudo", "alr", "--interactive=false", "install", "ca-certificates",
 			)))
 		},

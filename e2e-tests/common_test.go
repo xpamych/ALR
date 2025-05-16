@@ -25,7 +25,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"os/exec"
 	"testing"
 	"time"
 
@@ -121,29 +120,6 @@ var COMMON_SYSTEMS []string = []string{
 	"ubuntu-24.04",
 }
 
-func init() {
-	for _, id := range ALL_SYSTEMS {
-		buildAlrTestImage(id)
-	}
-}
-
-func buildAlrTestImage(id string) {
-	cmd := exec.Command(
-		"docker",
-		"build",
-		"-t", fmt.Sprintf("alr-testimage-%s", id),
-		"-f", fmt.Sprintf("images/Dockerfile.%s", id),
-		".",
-	)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-}
-
 func dockerMultipleRun(t *testing.T, name string, ids []string, f func(t *testing.T, runnable e2e.Runnable)) {
 	t.Run(name, func(t *testing.T) {
 		for _, id := range ids {
@@ -158,17 +134,25 @@ func dockerMultipleRun(t *testing.T, name string, ids []string, f func(t *testin
 				e, err := e2e.New(e2e.WithVerbose(), e2e.WithName(fmt.Sprintf("alr-%s", truncatedHash)))
 				assert.NoError(t, err)
 				t.Cleanup(e.Close)
-				imageId := fmt.Sprintf("alr-testimage-%s", id)
+				imageId := fmt.Sprintf("ghcr.io/maks1ms/alr-e2e-test-image-%s", id)
 				runnable := e.Runnable(dockerName).Init(
 					e2e.StartOptions{
-						Image:   imageId,
+						Image: imageId,
 						Volumes: []string{
-							// "./alr:/usr/bin/alr",
+							"./alr:/tmp/alr",
 						},
 						Privileged: true,
 					},
 				)
 				assert.NoError(t, e2e.StartAndWaitReady(runnable))
+				err = runnable.Exec(e2e.NewCommand("/bin/alr-test-setup", "alr-install"))
+				if err != nil {
+					panic(err)
+				}
+				err = runnable.Exec(e2e.NewCommand("/bin/alr-test-setup", "passwordless-sudo-setup"))
+				if err != nil {
+					panic(err)
+				}
 				f(t, runnable)
 			})
 		}

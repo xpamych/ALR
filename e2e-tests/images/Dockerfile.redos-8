@@ -1,4 +1,0 @@
-FROM registry.red-soft.ru/ubi8/ubi:latest
-RUN useradd -m -s /bin/bash alr-user
-USER alr-user
-ENTRYPOINT ["tail", "-f", "/dev/null"]
