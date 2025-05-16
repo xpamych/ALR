@@ -56,7 +56,7 @@ jobs:
           cp scripts/completion/bash ./out/completion/alr
           cp scripts/completion/zsh ./out/completion/_alr
 
-          ( cd out && tar -czvf alr-${{ env.VERSION }}-linux-x86_64.tar.gz * )
+          ( cd out && tar -czvf ../alr-${{ env.VERSION }}-linux-x86_64.tar.gz * )
 
       - name: Release
         uses: akkuman/gitea-release-action@v1
