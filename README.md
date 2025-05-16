@@ -54,7 +54,7 @@ ALR был создан потому, что упаковка программн
 
 Например, репозиторий с ALR [Plemya-x/alr-default](https://gitea.plemya-x.ru/Plemya-x/alr-default.git)
 ```
-alr addrepo --name alr-repo --url https://gitea.plemya-x.ru/Plemya-x/alr-default.git
+alr addrepo --name alr-default --url https://gitea.plemya-x.ru/Plemya-x/alr-default.git
 ```
 Репозиторий пакетов [Plemya-x/alr-repo](https://gitea.plemya-x.ru/Plemya-x/alr-repo.git) можно подключить так:
 ```
@@ -62,7 +62,7 @@ alr addrepo --name alr-repo --url https://gitea.plemya-x.ru/Plemya-x/alr-repo.gi
 ```
 Репозиторий Linux-Gaming [Plemya-x/alr-LG](https://gitea.plemya-x.ru/Plemya-x/alr-LG.git) можно подключить так:
 ```
-alr addrepo --name alr-repo --url https://gitea.plemya-x.ru/Plemya-x/alr-linux-gaming.git
+alr addrepo --name alr-LG --url https://gitea.plemya-x.ru/Plemya-x/alr-linux-gaming.git
 ```
 
 ---
