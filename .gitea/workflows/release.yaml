@@ -65,23 +65,23 @@ jobs:
           files: |-
             alr-${{ env.VERSION }}-linux-x86_64.tar.gz
             
-      - name: Checkout alr-default repository
-        uses: actions/checkout@v2
-        with:
-          repository: Plemya-x/alr-default
-          token: ${{ secrets.GITEAPUBLIC }}
-          path: alr-default
+      - name: Setup working directory
+        run: mkdir -p /tmp/alr-default
+
+      - name: Clone alr-default repository
+        run: |
+          git clone https://gitea:${{ secrets.GITEAPUBLIC  }}@gitea.plemya-x.ru/Plemya-x/alr-default.git alr-default
 
       - name: Update version in alr-bin
         run: |
           # Замените значения в файле с конфигурацией
-          sed -i "s/version='[0-9]\+\.[0-9]\+\.[0-9]\+'/version='${{ env.VERSION }}'/g" alr-default/alr-bin/alr.sh
-          sed -i "s/release='[0-9]\+'/release='1'/g" alr-default/alr-bin/alr.sh
+          sed -i "s/version='[0-9]\+\.[0-9]\+\.[0-9]\+'/version='${{ env.VERSION }}'/g" ./alr-bin/alr.sh
+          sed -i "s/release='[0-9]\+'/release='1'/g" ./alr-bin/alr.sh
 
       - name: Commit changes
         run: |
           cd alr-default
-          git config user.name "gitea-actions"
+          git config user.name "gitea"
           git config user.email "admin@plemya-x.ru"
           git add .
           git commit -m "Обновление версии до ${{ env.VERSION }}"
