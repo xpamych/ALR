@@ -64,13 +64,10 @@ jobs:
           body: ${{ steps.changes.outputs.changes }}
           files: |-
             alr-${{ env.VERSION }}-linux-x86_64.tar.gz
-            
-      - name: Setup working directory
-        run: mkdir -p /tmp
 
       - name: Clone alr-default repository
         run: |
-          git clone https://gitea:${{ secrets.GITEAPUBLIC  }}@gitea.plemya-x.ru/Plemya-x/alr-default.git alr-default
+          git clone https://gitea:${{ secrets.GITEAPUBLIC  }}@gitea.plemya-x.ru/Plemya-x/alr-default.git /tmp/alr-default
 
       - name: Update version in alr-bin
         run: |
