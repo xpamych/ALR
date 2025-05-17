@@ -65,3 +65,42 @@ jobs:
           files: |-
             alr-${{ env.VERSION }}-linux-x86_64.tar.gz
             
+      - name: Checkout alr-default repository
+        uses: actions/checkout@v2
+        with:
+          repository: Plemya-x/alr-default
+          token: ${{ secrets.GITEAPUBLIC }}
+          path: alr-default
+
+      - name: Update version in alr-bin
+        run: |
+          # Замените значения в файле с конфигурацией
+          sed -i "s/version='[0-9]\+\.[0-9]\+\.[0-9]\+'/version='${{ env.VERSION }}'/g" alr-default/alr-bin/alr.sh
+          sed -i "s/release='[0-9]\+'/release='1'/g" alr-default/alr-bin/alr.sh
+
+      - name: Commit changes
+        run: |
+          cd alr-default
+          git config user.name "gitea-actions"
+          git config user.email "admin@plemya-x.ru"
+          git add .
+          git commit -m "Обновление версии до ${{ env.VERSION }}"
+          git push origin master
+
+      - name: Build packages
+        run: |
+          SCRIPT_PATH=alr-default/alr-bin/alr.sh
+          ALR_DISTRO=altlinux ALR_PKG_FORMAT=rpm alr build -s "$SCRIPT_PATH"
+          ALR_PKG_FORMAT=rpm alr build -s "$SCRIPT_PATH"
+          ALR_PKG_FORMAT=deb alr build -s "$SCRIPT_PATH"
+          ALR_PKG_FORMAT=archlinux alr build -s "$SCRIPT_PATH"
+
+      - name: Upload assets
+        uses: akkuman/gitea-release-action@v1
+        with:
+          body: ${{ steps.changes.outputs.changes }}
+          files: |-
+            alr-bin+alr-default_${{ env.VERSION }}-1.red80_amd64.deb \
+            alr-bin+alr-default-${{ env.VERSION }}-1-x86_64.pkg.tar.zst \
+            alr-bin+alr-default-${{ env.VERSION }}-1.red80.x86_64.rpm \
+            alr-bin+alr-default-${{ env.VERSION }}-alt1.x86_64.rpm 
