@@ -66,7 +66,7 @@ jobs:
             alr-${{ env.VERSION }}-linux-x86_64.tar.gz
             
       - name: Setup working directory
-        run: mkdir -p /tmp/alr-default
+        run: mkdir -p /tmp
 
       - name: Clone alr-default repository
         run: |
@@ -75,8 +75,8 @@ jobs:
       - name: Update version in alr-bin
         run: |
           # Замените значения в файле с конфигурацией
-          sed -i "s/version='[0-9]\+\.[0-9]\+\.[0-9]\+'/version='${{ env.VERSION }}'/g" ./alr-bin/alr.sh
-          sed -i "s/release='[0-9]\+'/release='1'/g" ./alr-bin/alr.sh
+          sed -i "s/version='[0-9]\+\.[0-9]\+\.[0-9]\+'/version='${{ env.VERSION }}'/g" /tmp/alr-default/alr-bin/alr.sh
+          sed -i "s/release='[0-9]\+'/release='1'/g" /tmp/alr-default/alr-bin/alr.sh
 
       - name: Commit changes
         run: |
