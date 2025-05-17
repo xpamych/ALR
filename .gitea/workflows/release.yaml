@@ -80,6 +80,7 @@ jobs:
           cd /tmp/alr-default
           git config user.name "gitea"
           git config user.email "admin@plemya-x.ru"
+          git remote set-url origin https://gitea:${{ secrets.GITEAPUBLIC }}@gitea.plemya-x.ru/Plemya-x/alr-default.git
           git add .
           git commit -m "Обновление версии до ${{ env.VERSION }}"
           git push origin master
