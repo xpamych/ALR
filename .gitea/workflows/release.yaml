@@ -70,7 +70,7 @@ jobs:
 
       - name: Clone alr-default repository
         run: |
-          git clone git@gitea.plemya-x.ru:Plemya-x/alr-default.git alr-default
+          git clone https://gitea:${{ secrets.GITEAPUBLIC  }}@gitea.plemya-x.ru/Plemya-x/alr-default.git alr-default
 
       - name: Update version in alr-bin
         run: |
