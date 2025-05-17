@@ -77,7 +77,7 @@ jobs:
 
       - name: Commit changes
         run: |
-          cd alr-default
+          cd /tmp/alr-default
           git config user.name "gitea"
           git config user.email "admin@plemya-x.ru"
           git add .
@@ -86,7 +86,7 @@ jobs:
 
       - name: Build packages
         run: |
-          SCRIPT_PATH=alr-default/alr-bin/alr.sh
+          SCRIPT_PATH=/tmp/alr-default/alr-bin/alr.sh
           ALR_DISTRO=altlinux ALR_PKG_FORMAT=rpm alr build -s "$SCRIPT_PATH"
           ALR_PKG_FORMAT=rpm alr build -s "$SCRIPT_PATH"
           ALR_PKG_FORMAT=deb alr build -s "$SCRIPT_PATH"
