@@ -41,10 +41,10 @@ installPkg() {
   fi
 
   case $1 in
-  pacman) $rootCmd pacman --noconfirm -U ${@:2} ;;
-  apk) $rootCmd apk add --allow-untrusted ${@:2} ;;
-  zypper) $rootCmd zypper --no-gpg-checks install ${@:2} ;;
-  *) $rootCmd $1 install -y ${@:2} ;;
+  pacman) $rootCmd pacman --noconfirm -U "${@:2}" ;;
+  apk) $rootCmd apk add --allow-untrusted "${@:2}" ;;
+  zypper) $rootCmd zypper --no-gpg-checks install "${@:2}" ;;
+  *) $rootCmd "$1" install -y "${@:2}" ;;
   esac
 }
 
@@ -88,60 +88,51 @@ else
 fi
 
 if [ -z "$noPkgMgr" ]; then
-  info "Получение списка файлов с https://plemya-x.ru/"
-  pageContent=$(curl -s https://plemya-x.ru/?dir=alr)
+  info "Получение списка файлов с https://gitea.plemya-x.ru/Plemya-x/ALR/releases"
+
+  # Изменено URL и регулярное выражение для списка файлов
+  pageContent=$(curl -s https://gitea.plemya-x.ru/Plemya-x/ALR/releases)
 
   # Извлечение списка файлов из HTML
-  fileList=$(echo "$pageContent" | grep -oP '(?<=href=").*?(?=")' | grep -E 'alr-bin-.*.(pkg.tar.zst|rpm|deb)')
+  fileList=$(echo "$pageContent" | grep -oP '(?<=href=").*?(?=")' | grep -E 'alr-bin.*\.(pkg.tar.zst|rpm|deb)')
 
   echo "Полученный список файлов:"
   echo "$fileList"
-if [ "$pkgMgr" == "pacman" ]; then
-    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*\.pkg\.tar\.zst' | sort -V | tail -n 1)
-elif [ "$pkgMgr" == "apt" ]; then
-    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*\.amd64\.deb' | sort -V | tail -n 1)
-elif [[ "$pkgMgr" == "dnf" || "$pkgMgr" == "yum" || "$pkgMgr" == "zypper" ]]; then
-    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*\.x86_64\.rpm' | grep -v 'alt1' | sort -V | tail -n 1)
-elif [ "$pkgMgr" == "apt-get" ]; then
-    latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*-alt[0-9]+\.x86_64\.rpm' | sort -V | tail -n 1)
+
+  if [ "$pkgMgr" == "pacman" ]; then
+      latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*\.pkg\.tar\.zst' | sort -V | tail -n 1)
+  elif [ "$pkgMgr" == "apt" ]; then
+      latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*\.amd64\.deb' | sort -V | tail -n 1)
+  elif [[ "$pkgMgr" == "dnf" || "$pkgMgr" == "yum" || "$pkgMgr" == "zypper" ]]; then
+      latestFile=$(printf "%s\n" "${fileList[@]}" | grep -E 'alr-bin-.*\.x86_64\.rpm' | grep -v 'alt[0-9]*' | sort -V | tail -n 1)
+  elif [ "$pkgMgr" == "apt-get" ]; then
+      latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*-alt[0-9]+\.x86_64\.rpm' | sort -V | tail -n 1)
+  else
+      error "Не поддерживаемый менеджер пакетов для автоматической установки"
+  fi
+
+  if [ -z "$latestFile" ]; then
+      error "Не удалось найти соответствующий пакет для $pkgMgr"
+  fi
+
+  info "Найдена последняя версия ALR: $latestFile"
+
+  fname="$(mktemp -u -p /tmp "alr.XXXXXXXXXX").${pkgFormat}"
+
+  info "Загрузка пакета ALR"
+  curl -o $fname -L "$latestFile"
+
+  if [ ! -f "$fname" ]; then
+      error "Ошибка загрузки пакета ALR"
+  fi
+
+  info "Установка пакета ALR"
+  installPkg "$pkgMgr" "$fname"
+
+  info "Очистка"
+  rm "$fname"
+
+  info "Готово!"
 else
-error "Не поддерживаемый менеджер пакетов для автоматической установки"
-fi
-
-if [ -z "$latestFile" ]; then
-error "Не удалось найти соответствующий пакет для $pkgMgr"
-fi
-
-info "Найдена последняя версия ALR: $latestFile"
-
-url="https://plemya-x.ru/$latestFile"
-fname="$(mktemp -u -p /tmp "alr.XXXXXXXXXX").${pkgFormat}"
-
-info "Загрузка пакета ALR"
-curl -L $url -o $fname
-
-if [ ! -f "$fname" ]; then
-error "Ошибка загрузки пакета ALR"
-fi
-
-info "Установка пакета ALR"
-installPkg $pkgMgr $fname
-
-info "Очистка"
-rm $fname
-
-info "Готово!"
-
-else
-info "Клонирование репозитория ALR"
-git clone https://gitea.plemya-x.ru/xpamych/ALR.git /tmp/alr
-
-info "Установка ALR"
-cd /tmp/alr
-sudo make install
-
-info "Очистка репозитория ALR"
-rm -rf /tmp/alr
-
-info "Все задачи выполнены!"
+  echo "Не найден поддерживаемый менеджер пакетов. О_о"
 fi
