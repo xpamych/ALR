@@ -28,6 +28,7 @@ jobs:
 
     container:
       image: altlinux.space/maks1ms/actions-container-runner:latest
+      privileged: true
 
     steps:
       - name: Checkout
@@ -39,14 +40,15 @@ jobs:
         uses: https://github.com/actions/setup-go@v5
         with:
           go-version: '1.24'
+          cache: false
 
-      - name: Cache Podman images
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.local/share/containers/storage
-            /var/lib/containers/storage
-          key: ${{ runner.os }}-primes            
+      # - name: Cache Podman images
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ~/.local/share/containers/storage
+      #       /var/lib/containers/storage
+      #     key: ${{ runner.os }}-primes            
 
       - name: Run E2E tests
         env:

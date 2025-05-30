@@ -41,7 +41,7 @@ func TestFindPkgs(t *testing.T) {
 	err := rs.Pull(e.Ctx, []types.Repo{
 		{
 			Name: "default",
-			URL:  "https://gitea.plemya-x.ru/xpamych/xpamych-alr-repo.git",
+			URL:  "https://gitea.plemya-x.ru/Plemya-x/alr-default.git",
 		},
 	})
 	if err != nil {
