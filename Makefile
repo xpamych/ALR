@@ -39,6 +39,9 @@ install: \
 $(INSTALED_BIN): $(BIN)
 	install -Dm755 $< $@
 	setcap cap_setuid,cap_setgid+ep $(INSTALED_BIN)
+	id -u alr &>/dev/null || useradd -r -s /usr/sbin/nologin alr
+	mkdir -p /var/cache/alr /etc/alr
+	chown alr:alr /var/cache/alr /etc/alr
 
 $(INSTALLED_BASH_COMPLETION): $(BASH_COMPLETION)
 	install -Dm755 $< $@
