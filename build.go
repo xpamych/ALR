@@ -64,25 +64,20 @@ func BuildCmd() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			var err error
-			var wd string
-			if utils.IsNotRoot() {
-				if err := utils.EnuseIsPrivilegedGroupMember(); err != nil {
-					return err
-				}
-
-				wd, err = os.Getwd()
-				if err != nil {
-					return cliutils.FormatCliExit(gotext.Get("Error getting working directory"), err)
-				}
-
-				var wdCleanup func()
-				wd, wdCleanup, err = Mount(wd)
-				if err != nil {
-					return err
-				}
-				defer wdCleanup()
+			if err := utils.EnuseIsPrivilegedGroupMember(); err != nil {
+				return err
 			}
+
+			wd, err := os.Getwd()
+			if err != nil {
+				return cliutils.FormatCliExit(gotext.Get("Error getting working directory"), err)
+			}
+
+			wd, wdCleanup, err := Mount(wd)
+			if err != nil {
+				return err
+			}
+			defer wdCleanup()
 
 			ctx := c.Context
 
@@ -172,16 +167,12 @@ func BuildCmd() *cli.Command {
 
 			if scriptArgs != nil {
 				scriptFile := filepath.Base(scriptArgs.Script)
-				scriptDir := filepath.Dir(scriptArgs.Script)
-				if utils.IsNotRoot() {
-					var scriptDirCleanup func()
-					scriptDir, scriptDirCleanup, err = Mount(scriptDir)
-					if err != nil {
-						return err
-					}
-					defer scriptDirCleanup()
+				newScriptDir, scriptDirCleanup, err := Mount(filepath.Dir(scriptArgs.Script))
+				if err != nil {
+					return err
 				}
-				scriptArgs.Script = filepath.Join(scriptDir, scriptFile)
+				defer scriptDirCleanup()
+				scriptArgs.Script = filepath.Join(newScriptDir, scriptFile)
 			}
 
 			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
