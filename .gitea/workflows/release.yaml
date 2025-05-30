@@ -24,9 +24,6 @@ on:
 jobs:
   changelog:
     runs-on: ubuntu-latest
-    container:
-      image: gitea/runner-images:ubuntu-latest
-      privileged: true
     steps:
       - name: Checkout this repository
         uses: actions/checkout@v4
