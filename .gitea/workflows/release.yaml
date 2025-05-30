@@ -89,8 +89,10 @@ jobs:
       - name: Install alr
         run: |
           make install
+
           # temporary fix
           groupadd wheel
+          usermod -aG wheel root
 
       - name: Build packages
         run: |
