@@ -52,6 +52,8 @@ jobs:
           apt-get update && apt-get install -y libcap2-bin
 
       - name: Build alr
+        env:
+          IGNORE_ROOT_CHECK: 1
         run: |
           make build
 
@@ -84,18 +86,11 @@ jobs:
           sed -i "s/version='[0-9]\+\.[0-9]\+\.[0-9]\+'/version='${{ env.VERSION }}'/g" alr-default/alr-bin/alr.sh
           sed -i "s/release='[0-9]\+'/release='1'/g" alr-default/alr-bin/alr.sh
 
-      - name: Commit changes
-        run: |
-          cd alr-default
-          git config user.name "gitea"
-          git config user.email "admin@plemya-x.ru"
-          git add .
-          git commit -m "Обновление версии до ${{ env.VERSION }}"
-          git push
-
       - name: Install alr
         run: |
           make install
+          # temporary fix
+          groupadd wheel
 
       - name: Build packages
         run: |
@@ -113,4 +108,13 @@ jobs:
             alr-bin+alr-default_${{ env.VERSION }}-1.red80_amd64.deb \
             alr-bin+alr-default-${{ env.VERSION }}-1-x86_64.pkg.tar.zst \
             alr-bin+alr-default-${{ env.VERSION }}-1.red80.x86_64.rpm \
-            alr-bin+alr-default-${{ env.VERSION }}-alt1.x86_64.rpm 
+            alr-bin+alr-default-${{ env.VERSION }}-alt1.x86_64.rpm
+
+      - name: Commit changes
+        run: |
+          cd alr-default
+          git config user.name "gitea"
+          git config user.email "admin@plemya-x.ru"
+          git add .
+          git commit -m "Обновление версии до ${{ env.VERSION }}"
+          git push

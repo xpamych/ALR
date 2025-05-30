@@ -24,7 +24,7 @@ $(BIN):
 	go build -ldflags="-X 'gitea.plemya-x.ru/Plemya-x/ALR/internal/config.Version=$(GIT_VERSION)'" -o $@
 
 check-no-root:
-	@if [[ "$(IGNORE_ROOT_CHECK)" != "1" ]] && [[ "$$(whoami)" == 'root' ]]; then \
+	@if [ "$$IGNORE_ROOT_CHECK" != "1" ] && [ "`whoami`" = "root" ]; then \
 		echo "This target shouldn't run as root" 1>&2; \
 		echo "Set IGNORE_ROOT_CHECK=1 to override" 1>&2; \
 		exit 1; \
@@ -39,9 +39,12 @@ install: \
 $(INSTALED_BIN): $(BIN)
 	install -Dm755 $< $@
 	setcap cap_setuid,cap_setgid+ep $(INSTALED_BIN)
-	id -u alr &>/dev/null || useradd -r -s /usr/sbin/nologin alr
-	mkdir -p /var/cache/alr /etc/alr
-	chown alr:alr /var/cache/alr /etc/alr
+	@if id alr >/dev/null 2>&1; then \
+		echo "User 'alr' already exists. Skipping."; \
+	else \
+		useradd -r -s /usr/sbin/nologin alr; \
+	fi
+	install -d -o alr -g alr -m 755 /var/cache/alr /etc/alr
 
 $(INSTALLED_BASH_COMPLETION): $(BASH_COMPLETION)
 	install -Dm755 $< $@
