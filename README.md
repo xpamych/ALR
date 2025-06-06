@@ -62,7 +62,7 @@ alr repo add  alr-repo https://gitea.plemya-x.ru/Plemya-x/alr-repo.git
 ```
 Репозиторий Linux-Gaming [Plemya-x/alr-LG](https://gitea.plemya-x.ru/Plemya-x/alr-LG.git) можно подключить так:
 ```
-alr repo add alr-LG https://gitea.plemya-x.ru/Plemya-x/alr-linux-gaming.git
+alr repo add alr-LG https://gitea.plemya-x.ru/Plemya-x/alr-LG.git
 ```
 
 ---
