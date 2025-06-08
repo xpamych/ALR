@@ -152,11 +152,6 @@ func (e *LocalScriptExecutor) ExecuteFirstPass(ctx context.Context, input *Build
 	return pkgs.BasePkgName, varsOfPackages, nil
 }
 
-type SecondPassResult struct {
-	BuiltPaths []string
-	BuiltNames []string
-}
-
 func (e *LocalScriptExecutor) PrepareDirs(
 	ctx context.Context,
 	input *BuildInput,
@@ -185,9 +180,9 @@ func (e *LocalScriptExecutor) ExecuteSecondPass(
 	sf *ScriptFile,
 	varsOfPackages []*types.BuildVars,
 	repoDeps []string,
-	builtNames []string,
+	builtDeps []*BuiltDep,
 	basePkg string,
-) (*SecondPassResult, error) {
+) ([]*BuiltDep, error) {
 	dirs, err := getDirs(e.cfg, sf.Path, basePkg)
 	if err != nil {
 		return nil, err
@@ -213,7 +208,7 @@ func (e *LocalScriptExecutor) ExecuteSecondPass(
 
 	dec := decoder.New(input.info, runner)
 
-	var builtPaths []string
+	// var builtPaths []string
 
 	err = e.ExecuteFunctions(ctx, dirs, dec)
 	if err != nil {
@@ -247,7 +242,7 @@ func (e *LocalScriptExecutor) ExecuteSecondPass(
 			dirs,
 			append(
 				repoDeps,
-				builtNames...,
+				GetBuiltName(builtDeps)...,
 			),
 			funcOut.Contents,
 		)
@@ -273,14 +268,13 @@ func (e *LocalScriptExecutor) ExecuteSecondPass(
 			return nil, err
 		}
 
-		builtPaths = append(builtPaths, pkgPath)
-		builtNames = append(builtNames, vars.Name)
+		builtDeps = append(builtDeps, &BuiltDep{
+			Name: vars.Name,
+			Path: pkgPath,
+		})
 	}
 
-	return &SecondPassResult{
-		BuiltPaths: builtPaths,
-		BuiltNames: builtNames,
-	}, nil
+	return builtDeps, nil
 }
 
 func buildPkgMetadata(

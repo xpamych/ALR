@@ -12,8 +12,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 48.0\n"
 
 #: build.go:42
@@ -290,8 +290,8 @@ msgid ""
 "This command is deprecated and would be removed in the future, use \"%s\" "
 "instead!"
 msgstr ""
-"Эта команда устарела и будет удалена в будущем, используйте вместо нее "
-"\"%s\"!"
+"Эта команда устарела и будет удалена в будущем, используйте вместо нее \"%s"
+"\"!"
 
 #: internal/db/db.go:137
 msgid "Database version mismatch; resetting"
@@ -387,19 +387,19 @@ msgstr "Показать справку"
 msgid "Error while running app"
 msgstr "Ошибка при запуске приложения"
 
-#: pkg/build/build.go:395
+#: pkg/build/build.go:417
 msgid "Building package"
 msgstr "Сборка пакета"
 
-#: pkg/build/build.go:424
+#: pkg/build/build.go:446
 msgid "The checksums array must be the same length as sources"
 msgstr "Массив контрольных сумм должен быть той же длины, что и источники"
 
-#: pkg/build/build.go:455
+#: pkg/build/build.go:488
 msgid "Downloading sources"
 msgstr "Скачивание источников"
 
-#: pkg/build/build.go:549
+#: pkg/build/build.go:580
 msgid "Installing dependencies"
 msgstr "Установка зависимостей"
 
@@ -437,19 +437,19 @@ msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 "AutoReq не реализовано для этого формата пакета, поэтому будет пропущено"
 
-#: pkg/build/script_executor.go:241
+#: pkg/build/script_executor.go:236
 msgid "Building package metadata"
 msgstr "Сборка метаданных пакета"
 
-#: pkg/build/script_executor.go:372
+#: pkg/build/script_executor.go:366
 msgid "Executing prepare()"
 msgstr "Выполнение prepare()"
 
-#: pkg/build/script_executor.go:381
+#: pkg/build/script_executor.go:375
 msgid "Executing build()"
 msgstr "Выполнение build()"
 
-#: pkg/build/script_executor.go:410 pkg/build/script_executor.go:430
+#: pkg/build/script_executor.go:404 pkg/build/script_executor.go:424
 msgid "Executing %s()"
 msgstr "Выполнение %s()"
 

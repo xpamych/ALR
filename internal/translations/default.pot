@@ -377,19 +377,19 @@ msgstr ""
 msgid "Error while running app"
 msgstr ""
 
-#: pkg/build/build.go:395
+#: pkg/build/build.go:417
 msgid "Building package"
 msgstr ""
 
-#: pkg/build/build.go:424
+#: pkg/build/build.go:446
 msgid "The checksums array must be the same length as sources"
 msgstr ""
 
-#: pkg/build/build.go:455
+#: pkg/build/build.go:488
 msgid "Downloading sources"
 msgstr ""
 
-#: pkg/build/build.go:549
+#: pkg/build/build.go:580
 msgid "Installing dependencies"
 msgstr ""
 
@@ -423,19 +423,19 @@ msgstr ""
 msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 
-#: pkg/build/script_executor.go:241
+#: pkg/build/script_executor.go:236
 msgid "Building package metadata"
 msgstr ""
 
-#: pkg/build/script_executor.go:372
+#: pkg/build/script_executor.go:366
 msgid "Executing prepare()"
 msgstr ""
 
-#: pkg/build/script_executor.go:381
+#: pkg/build/script_executor.go:375
 msgid "Executing build()"
 msgstr ""
 
-#: pkg/build/script_executor.go:410 pkg/build/script_executor.go:430
+#: pkg/build/script_executor.go:404 pkg/build/script_executor.go:424
 msgid "Executing %s()"
 msgstr ""
 

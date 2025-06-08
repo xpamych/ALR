@@ -151,7 +151,7 @@ type ExecuteSecondPassArgs struct {
 	Sf             *ScriptFile
 	VarsOfPackages []*types.BuildVars
 	RepoDeps       []string
-	BuiltNames     []string
+	BuiltDeps      []*BuiltDep
 	BasePkg        string
 }
 
@@ -161,16 +161,16 @@ func (s *ScriptExecutorRPC) ExecuteSecondPass(
 	sf *ScriptFile,
 	varsOfPackages []*types.BuildVars,
 	repoDeps []string,
-	builtNames []string,
+	builtDeps []*BuiltDep,
 	basePkg string,
-) (*SecondPassResult, error) {
-	var resp *SecondPassResult
+) ([]*BuiltDep, error) {
+	var resp []*BuiltDep
 	err := s.client.Call("Plugin.ExecuteSecondPass", &ExecuteSecondPassArgs{
 		Input:          input,
 		Sf:             sf,
 		VarsOfPackages: varsOfPackages,
 		RepoDeps:       repoDeps,
-		BuiltNames:     builtNames,
+		BuiltDeps:      builtDeps,
 		BasePkg:        basePkg,
 	}, &resp)
 	if err != nil {
@@ -179,20 +179,20 @@ func (s *ScriptExecutorRPC) ExecuteSecondPass(
 	return resp, nil
 }
 
-func (s *ScriptExecutorRPCServer) ExecuteSecondPass(args *ExecuteSecondPassArgs, resp *SecondPassResult) error {
+func (s *ScriptExecutorRPCServer) ExecuteSecondPass(args *ExecuteSecondPassArgs, resp *[]*BuiltDep) error {
 	res, err := s.Impl.ExecuteSecondPass(
 		context.Background(),
 		args.Input,
 		args.Sf,
 		args.VarsOfPackages,
 		args.RepoDeps,
-		args.BuiltNames,
+		args.BuiltDeps,
 		args.BasePkg,
 	)
 	if err != nil {
 		return err
 	}
-	*resp = *res
+	*resp = res
 	return err
 }
 

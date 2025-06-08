@@ -97,7 +97,7 @@ func BuildCmd() *cli.Command {
 			var script string
 			var packages []string
 
-			var res *build.BuildResult
+			var res []*build.BuiltDep
 
 			var scriptArgs *build.BuildPackageFromScriptArgs
 			var dbArgs *build.BuildPackageFromDbArgs
@@ -222,9 +222,9 @@ func BuildCmd() *cli.Command {
 				return cliutils.FormatCliExit(gotext.Get("Error building package"), err)
 			}
 
-			for _, pkgPath := range res.PackagePaths {
-				name := filepath.Base(pkgPath)
-				err = osutils.Move(pkgPath, filepath.Join(wd, name))
+			for _, pkg := range res {
+				name := filepath.Base(pkg.Path)
+				err = osutils.Move(pkg.Path, filepath.Join(wd, name))
 				if err != nil {
 					return cliutils.FormatCliExit(gotext.Get("Error moving the package"), err)
 				}

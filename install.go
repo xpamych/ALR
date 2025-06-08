@@ -98,7 +98,7 @@ func InstallCmd() *cli.Command {
 				return err
 			}
 
-			err = builder.InstallPkgs(
+			_, err = builder.InstallPkgs(
 				ctx,
 				&build.BuildArgs{
 					Opts: &types.BuildOpts{

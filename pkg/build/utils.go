@@ -288,14 +288,14 @@ func packageNames(pkgs []db.Package) []string {
 */
 
 // Функция removeDuplicates убирает любые дубликаты из предоставленного среза.
-func removeDuplicates(slice []string) []string {
-	seen := map[string]struct{}{}
-	result := []string{}
+func removeDuplicates[T comparable](slice []T) []T {
+	seen := map[T]struct{}{}
+	result := []T{}
 
-	for _, s := range slice {
-		if _, ok := seen[s]; !ok {
-			seen[s] = struct{}{}
-			result = append(result, s)
+	for _, item := range slice {
+		if _, ok := seen[item]; !ok {
+			seen[item] = struct{}{}
+			result = append(result, item)
 		}
 	}
 

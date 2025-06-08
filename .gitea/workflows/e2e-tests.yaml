@@ -28,7 +28,6 @@ jobs:
 
     container:
       image: altlinux.space/maks1ms/actions-container-runner:latest
-      privileged: true
 
     steps:
       - name: Checkout
@@ -52,8 +51,6 @@ jobs:
 
       - name: Run E2E tests
         env:
-          DOCKER_HOST: unix:///tmp/podman.sock
           IGNORE_ROOT_CHECK: 1
         run: |
-          podman system service -t 0 unix:///tmp/podman.sock &
           make e2e-test

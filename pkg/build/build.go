@@ -174,9 +174,29 @@ func (s *ScriptFile) GobDecode(data []byte) error {
 	return nil
 }
 
-type BuildResult struct {
-	PackagePaths []string
-	PackageNames []string
+type BuiltDep struct {
+	Name string
+	Path string
+}
+
+func Map[T, R any](items []T, f func(T) R) []R {
+	res := make([]R, len(items))
+	for i, item := range items {
+		res[i] = f(item)
+	}
+	return res
+}
+
+func GetBuiltPaths(deps []*BuiltDep) []string {
+	return Map(deps, func(dep *BuiltDep) string {
+		return dep.Path
+	})
+}
+
+func GetBuiltName(deps []*BuiltDep) []string {
+	return Map(deps, func(dep *BuiltDep) string {
+		return dep.Name
+	})
 }
 
 type PackageFinder interface {
@@ -212,9 +232,9 @@ type ScriptExecutor interface {
 		sf *ScriptFile,
 		varsOfPackages []*types.BuildVars,
 		repoDeps []string,
-		builtNames []string,
+		builtDeps []*BuiltDep,
 		basePkg string,
-	) (*SecondPassResult, error)
+	) ([]*BuiltDep, error)
 }
 
 type CacheExecutor interface {
@@ -320,7 +340,7 @@ type BuildPackageFromScriptArgs struct {
 func (b *Builder) BuildPackageFromDb(
 	ctx context.Context,
 	args *BuildPackageFromDbArgs,
-) (*BuildResult, error) {
+) ([]*BuiltDep, error) {
 	scriptInfo := b.scriptResolver.ResolveScript(ctx, args.Package)
 
 	return b.BuildPackage(ctx, &BuildInput{
@@ -336,7 +356,7 @@ func (b *Builder) BuildPackageFromDb(
 func (b *Builder) BuildPackageFromScript(
 	ctx context.Context,
 	args *BuildPackageFromScriptArgs,
-) (*BuildResult, error) {
+) ([]*BuiltDep, error) {
 	return b.BuildPackage(ctx, &BuildInput{
 		script:     args.Script,
 		repository: "default",
@@ -350,7 +370,7 @@ func (b *Builder) BuildPackageFromScript(
 func (b *Builder) BuildPackage(
 	ctx context.Context,
 	input *BuildInput,
-) (*BuildResult, error) {
+) ([]*BuiltDep, error) {
 	scriptPath := input.script
 
 	slog.Debug("ReadScript")
@@ -365,7 +385,7 @@ func (b *Builder) BuildPackage(
 		return nil, err
 	}
 
-	builtPaths := make([]string, 0)
+	var builtDeps []*BuiltDep
 
 	if !input.opts.Clean {
 		var remainingVars []*types.BuildVars
@@ -375,14 +395,16 @@ func (b *Builder) BuildPackage(
 				return nil, err
 			}
 			if ok {
-				builtPaths = append(builtPaths, builtPkgPath)
+				builtDeps = append(builtDeps, &BuiltDep{
+					Path: builtPkgPath,
+				})
 			} else {
 				remainingVars = append(remainingVars, vars)
 			}
 		}
 
 		if len(remainingVars) == 0 {
-			return &BuildResult{builtPaths, nil}, nil
+			return builtDeps, nil
 		}
 	}
 
@@ -427,19 +449,32 @@ func (b *Builder) BuildPackage(
 	sources, checksums = removeDuplicatesSources(sources, checksums)
 
 	slog.Debug("installBuildDeps")
-	err = b.installBuildDeps(ctx, input, buildDepends)
+	alrBuildDeps, err := b.installBuildDeps(ctx, input, buildDepends)
 	if err != nil {
 		return nil, err
 	}
 
 	slog.Debug("installOptDeps")
-	err = b.installOptDeps(ctx, input, optDepends)
+	_, err = b.installOptDeps(ctx, input, optDepends)
 	if err != nil {
 		return nil, err
 	}
 
+	depNames := make(map[string]struct{})
+	for _, dep := range alrBuildDeps {
+		depNames[dep.Name] = struct{}{}
+	}
+
+	// We filter so as not to re-build what has already been built at the `installBuildDeps` stage.
+	var filteredDepends []string
+	for _, d := range depends {
+		if _, found := depNames[d]; !found {
+			filteredDepends = append(filteredDepends, d)
+		}
+	}
+
 	slog.Debug("BuildALRDeps")
-	builtPaths, builtNames, repoDeps, err := b.BuildALRDeps(ctx, input, depends)
+	newBuiltDeps, repoDeps, err := b.BuildALRDeps(ctx, input, filteredDepends)
 	if err != nil {
 		return nil, err
 	}
@@ -449,8 +484,6 @@ func (b *Builder) BuildPackage(
 	if err != nil {
 		return nil, err
 	}
-
-	// builtPaths = append(builtPaths, newBuildPaths...)
 
 	slog.Info(gotext.Get("Downloading sources"))
 	slog.Debug("DownloadSources")
@@ -467,6 +500,8 @@ func (b *Builder) BuildPackage(
 		return nil, err
 	}
 
+	builtDeps = removeDuplicates(append(builtDeps, newBuiltDeps...))
+
 	slog.Debug("ExecuteSecondPass")
 	res, err := b.scriptExecutor.ExecuteSecondPass(
 		ctx,
@@ -474,20 +509,16 @@ func (b *Builder) BuildPackage(
 		sf,
 		varsOfPackages,
 		repoDeps,
-		builtNames,
+		builtDeps,
 		basePkg,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	pkgPaths := removeDuplicates(append(builtPaths, res.BuiltPaths...))
-	pkgNames := removeDuplicates(append(builtNames, res.BuiltNames...))
+	builtDeps = removeDuplicates(append(builtDeps, res...))
 
-	return &BuildResult{
-		PackagePaths: pkgPaths,
-		PackageNames: pkgNames,
-	}, nil
+	return builtDeps, nil
 }
 
 type InstallPkgsArgs struct {
@@ -523,7 +554,7 @@ func (b *Builder) InstallALRPackages(
 		}
 
 		err = b.installerExecutor.InstallLocal(
-			res.PackagePaths,
+			GetBuiltPaths(res),
 			&manager.Opts{
 				NoConfirm: !input.BuildOpts().Interactive,
 			},
@@ -544,13 +575,13 @@ func (b *Builder) BuildALRDeps(
 		PkgFormatProvider
 	},
 	depends []string,
-) (builtPaths, builtNames, repoDeps []string, err error) {
+) (buildDeps []*BuiltDep, repoDeps []string, err error) {
 	if len(depends) > 0 {
 		slog.Info(gotext.Get("Installing dependencies"))
 
 		found, notFound, err := b.repos.FindPkgs(ctx, depends) // Поиск зависимостей
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, err
 		}
 		repoDeps = notFound
 
@@ -597,20 +628,17 @@ func (b *Builder) BuildALRDeps(
 				},
 			)
 			if err != nil {
-				return nil, nil, nil, err
+				return nil, nil, err
 			}
 
-			builtPaths = append(builtPaths, res.PackagePaths...)
-			builtNames = append(builtNames, res.PackageNames...)
+			buildDeps = append(buildDeps, res...)
 		}
 	}
 
-	// Удаляем возможные дубликаты, которые могут быть введены, если
-	// несколько зависимостей зависят от одних и тех же пакетов.
 	repoDeps = removeDuplicates(repoDeps)
-	builtPaths = removeDuplicates(builtPaths)
-	builtNames = removeDuplicates(builtNames)
-	return builtPaths, builtNames, repoDeps, nil
+	buildDeps = removeDuplicates(buildDeps)
+
+	return buildDeps, repoDeps, nil
 }
 
 func (i *Builder) installBuildDeps(
@@ -621,19 +649,20 @@ func (i *Builder) installBuildDeps(
 		PkgFormatProvider
 	},
 	pkgs []string,
-) error {
+) ([]*BuiltDep, error) {
+	var builtDeps []*BuiltDep
 	if len(pkgs) > 0 {
 		deps, err := i.installerExecutor.RemoveAlreadyInstalled(pkgs)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		err = i.InstallPkgs(ctx, input, deps) // Устанавливаем выбранные пакеты
+		builtDeps, err = i.InstallPkgs(ctx, input, deps) // Устанавливаем выбранные пакеты
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return builtDeps, nil
 }
 
 func (i *Builder) installOptDeps(
@@ -644,10 +673,11 @@ func (i *Builder) installOptDeps(
 		PkgFormatProvider
 	},
 	pkgs []string,
-) error {
+) ([]*BuiltDep, error) {
+	var builtDeps []*BuiltDep
 	optDeps, err := i.installerExecutor.RemoveAlreadyInstalled(pkgs)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if len(optDeps) > 0 {
 		optDeps, err := cliutils.ChooseOptDepends(
@@ -657,19 +687,19 @@ func (i *Builder) installOptDeps(
 			input.BuildOpts().Interactive,
 		) // Пользователя просят выбрать опциональные зависимости
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		if len(optDeps) == 0 {
-			return nil
+			return builtDeps, nil
 		}
 
-		err = i.InstallPkgs(ctx, input, optDeps) // Устанавливаем выбранные пакеты
+		builtDeps, err = i.InstallPkgs(ctx, input, optDeps) // Устанавливаем выбранные пакеты
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return builtDeps, nil
 }
 
 func (i *Builder) InstallPkgs(
@@ -680,18 +710,18 @@ func (i *Builder) InstallPkgs(
 		PkgFormatProvider
 	},
 	pkgs []string,
-) error {
-	builtPaths, _, repoDeps, err := i.BuildALRDeps(ctx, input, pkgs)
+) ([]*BuiltDep, error) {
+	builtDeps, repoDeps, err := i.BuildALRDeps(ctx, input, pkgs)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if len(builtPaths) > 0 {
-		err = i.installerExecutor.InstallLocal(builtPaths, &manager.Opts{
+	if len(builtDeps) > 0 {
+		err = i.installerExecutor.InstallLocal(GetBuiltPaths(builtDeps), &manager.Opts{
 			NoConfirm: !input.BuildOpts().Interactive,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -700,9 +730,9 @@ func (i *Builder) InstallPkgs(
 			NoConfirm: !input.BuildOpts().Interactive,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return nil
+	return builtDeps, nil
 }
