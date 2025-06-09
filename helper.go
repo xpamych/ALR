@@ -32,8 +32,8 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/helpers"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
 
 func HelperCmd() *cli.Command {

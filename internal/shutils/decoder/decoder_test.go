@@ -31,8 +31,8 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
 
 type BuildVars struct {

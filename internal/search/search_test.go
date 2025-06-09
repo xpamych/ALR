@@ -21,7 +21,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/search"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/search"
 )
 
 func TestSearhOptionsBuilder(t *testing.T) {

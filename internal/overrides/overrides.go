@@ -30,7 +30,7 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/distro"
 )
 
 type Opts struct {

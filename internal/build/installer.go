@@ -17,7 +17,7 @@
 package build
 
 import (
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 )
 
 func NewInstaller(mgr manager.Manager) *Installer {

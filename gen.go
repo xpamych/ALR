@@ -25,7 +25,7 @@ import (
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/gen"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/gen"
 )
 
 func GenCmd() *cli.Command {

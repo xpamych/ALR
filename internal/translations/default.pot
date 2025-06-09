@@ -178,6 +178,68 @@ msgstr ""
 msgid "Error removing packages"
 msgstr ""
 
+#: internal/build/build.go:417
+msgid "Building package"
+msgstr ""
+
+#: internal/build/build.go:446
+msgid "The checksums array must be the same length as sources"
+msgstr ""
+
+#: internal/build/build.go:488
+msgid "Downloading sources"
+msgstr ""
+
+#: internal/build/build.go:580
+msgid "Installing dependencies"
+msgstr ""
+
+#: internal/build/checker.go:43
+msgid ""
+"Your system's CPU architecture doesn't match this package. Do you want to "
+"build anyway?"
+msgstr ""
+
+#: internal/build/checker.go:67
+msgid "This package is already installed"
+msgstr ""
+
+#: internal/build/find_deps/alt_linux.go:35
+msgid "Command not found on the system"
+msgstr ""
+
+#: internal/build/find_deps/alt_linux.go:86
+msgid "Provided dependency found"
+msgstr ""
+
+#: internal/build/find_deps/alt_linux.go:93
+msgid "Required dependency found"
+msgstr ""
+
+#: internal/build/find_deps/empty.go:32
+msgid "AutoProv is not implemented for this package format, so it's skipped"
+msgstr ""
+
+#: internal/build/find_deps/empty.go:37
+msgid "AutoReq is not implemented for this package format, so it's skipped"
+msgstr ""
+
+#: internal/build/script_executor.go:236
+msgid "Building package metadata"
+msgstr ""
+
+#: internal/build/script_executor.go:366
+msgid "Executing prepare()"
+msgstr ""
+
+#: internal/build/script_executor.go:375
+msgid "Executing build()"
+msgstr ""
+
+#: internal/build/script_executor.go:404 internal/build/script_executor.go:424
+msgid "Executing %s()"
+msgstr ""
+
 #: internal/cliutils/app_builder/builder.go:75
 msgid "Error loading config"
 msgstr ""
@@ -321,6 +383,24 @@ msgstr ""
 msgid "ERROR"
 msgstr ""
 
+#: internal/repos/pull.go:77
+msgid "Pulling repository"
+msgstr ""
+
+#: internal/repos/pull.go:113
+msgid "Repository up to date"
+msgstr ""
+
+#: internal/repos/pull.go:204
+msgid "Git repository does not appear to be a valid ALR repo"
+msgstr ""
+
+#: internal/repos/pull.go:220
+msgid ""
+"ALR repo's minimum ALR version is greater than the current version. Try "
+"updating ALR if something doesn't work."
+msgstr ""
+
 #: internal/utils/cmd.go:97
 msgid "Error on dropping capabilities"
 msgstr ""
@@ -375,86 +455,6 @@ msgstr ""
 
 #: main.go:150
 msgid "Error while running app"
-msgstr ""
-
-#: pkg/build/build.go:417
-msgid "Building package"
-msgstr ""
-
-#: pkg/build/build.go:446
-msgid "The checksums array must be the same length as sources"
-msgstr ""
-
-#: pkg/build/build.go:488
-msgid "Downloading sources"
-msgstr ""
-
-#: pkg/build/build.go:580
-msgid "Installing dependencies"
-msgstr ""
-
-#: pkg/build/checker.go:43
-msgid ""
-"Your system's CPU architecture doesn't match this package. Do you want to "
-"build anyway?"
-msgstr ""
-
-#: pkg/build/checker.go:67
-msgid "This package is already installed"
-msgstr ""
-
-#: pkg/build/find_deps/alt_linux.go:35
-msgid "Command not found on the system"
-msgstr ""
-
-#: pkg/build/find_deps/alt_linux.go:86
-msgid "Provided dependency found"
-msgstr ""
-
-#: pkg/build/find_deps/alt_linux.go:93
-msgid "Required dependency found"
-msgstr ""
-
-#: pkg/build/find_deps/empty.go:32
-msgid "AutoProv is not implemented for this package format, so it's skipped"
-msgstr ""
-
-#: pkg/build/find_deps/empty.go:37
-msgid "AutoReq is not implemented for this package format, so it's skipped"
-msgstr ""
-
-#: pkg/build/script_executor.go:236
-msgid "Building package metadata"
-msgstr ""
-
-#: pkg/build/script_executor.go:366
-msgid "Executing prepare()"
-msgstr ""
-
-#: pkg/build/script_executor.go:375
-msgid "Executing build()"
-msgstr ""
-
-#: pkg/build/script_executor.go:404 pkg/build/script_executor.go:424
-msgid "Executing %s()"
-msgstr ""
-
-#: pkg/repos/pull.go:77
-msgid "Pulling repository"
-msgstr ""
-
-#: pkg/repos/pull.go:113
-msgid "Repository up to date"
-msgstr ""
-
-#: pkg/repos/pull.go:204
-msgid "Git repository does not appear to be a valid ALR repo"
-msgstr ""
-
-#: pkg/repos/pull.go:220
-msgid ""
-"ALR repo's minimum ALR version is greater than the current version. Try "
-"updating ALR if something doesn't work."
 msgstr ""
 
 #: refresh.go:30

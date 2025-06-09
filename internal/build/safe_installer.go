@@ -28,7 +28,7 @@ import (
 	"github.com/hashicorp/go-plugin"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/logger"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 )
 
 type InstallerPlugin struct {

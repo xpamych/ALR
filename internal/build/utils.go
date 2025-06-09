@@ -39,10 +39,10 @@ import (
 	"github.com/goreleaser/nfpm/v2/files"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/distro"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/manager"
 )
 
 // Функция readScript анализирует скрипт сборки с использованием встроенной реализации bash

@@ -35,10 +35,10 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/distro"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/parser"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/parser"
 )
 
 // isValid makes sure the path of the file being updated is valid.

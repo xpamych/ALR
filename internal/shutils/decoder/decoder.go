@@ -31,8 +31,8 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
 
 var ErrNotPointerToStruct = errors.New("val must be a pointer to a struct")

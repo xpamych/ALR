@@ -28,12 +28,12 @@ import (
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/build"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/osutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/build"
 )
 
 func BuildCmd() *cli.Command {
