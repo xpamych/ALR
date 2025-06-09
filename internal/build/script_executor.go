@@ -19,7 +19,6 @@ package build
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -37,10 +36,10 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 
 	finddeps "gitea.plemya-x.ru/Plemya-x/ALR/internal/build/find_deps"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/helpers"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
 
@@ -54,102 +53,12 @@ func NewLocalScriptExecutor(cfg Config) *LocalScriptExecutor {
 	}
 }
 
-func (e *LocalScriptExecutor) ReadScript(ctx context.Context, scriptPath string) (*ScriptFile, error) {
-	fl, err := readScript(scriptPath)
-	if err != nil {
-		return nil, err
-	}
-	return &ScriptFile{
-		Path: scriptPath,
-		File: fl,
-	}, nil
+func (e *LocalScriptExecutor) ReadScript(ctx context.Context, scriptPath string) (*alrsh.ALRSh, error) {
+	return alrsh.ReadFromLocal(scriptPath)
 }
 
-func (e *LocalScriptExecutor) ExecuteFirstPass(ctx context.Context, input *BuildInput, sf *ScriptFile) (string, []*types.BuildVars, error) {
-	varsOfPackages := []*types.BuildVars{}
-
-	scriptDir := filepath.Dir(sf.Path)
-	env := createBuildEnvVars(input.info, types.Directories{ScriptDir: scriptDir})
-
-	runner, err := interp.New(
-		interp.Env(expand.ListEnviron(env...)),                               // Устанавливаем окружение
-		interp.StdIO(os.Stdin, os.Stderr, os.Stderr),                         // Устанавливаем стандартный ввод-вывод
-		interp.ExecHandler(helpers.Restricted.ExecHandler(handlers.NopExec)), // Ограничиваем выполнение
-		interp.ReadDirHandler2(handlers.RestrictedReadDir(scriptDir)),        // Ограничиваем чтение директорий
-		interp.StatHandler(handlers.RestrictedStat(scriptDir)),               // Ограничиваем доступ к статистике файлов
-		interp.OpenHandler(handlers.RestrictedOpen(scriptDir)),               // Ограничиваем открытие файлов
-		interp.Dir(scriptDir),
-	)
-	if err != nil {
-		return "", nil, err
-	}
-
-	err = runner.Run(ctx, sf.File) // Запускаем скрипт
-	if err != nil {
-		return "", nil, err
-	}
-
-	dec := decoder.New(input.info, runner) // Создаём новый декодер
-
-	type packages struct {
-		BasePkgName string   `sh:"basepkg_name"`
-		Names       []string `sh:"name"`
-	}
-
-	var pkgs packages
-	err = dec.DecodeVars(&pkgs)
-	if err != nil {
-		return "", nil, err
-	}
-
-	if len(pkgs.Names) == 0 {
-		return "", nil, errors.New("package name is missing")
-	}
-
-	var vars types.BuildVars
-
-	if len(pkgs.Names) == 1 {
-		err = dec.DecodeVars(&vars) // Декодируем переменные
-		if err != nil {
-			return "", nil, err
-		}
-		varsOfPackages = append(varsOfPackages, &vars)
-
-		return vars.Name, varsOfPackages, nil
-	}
-
-	var pkgNames []string
-
-	if len(input.packages) != 0 {
-		pkgNames = input.packages
-	} else {
-		pkgNames = pkgs.Names
-	}
-
-	for _, pkgName := range pkgNames {
-		var preVars types.BuildVarsPre
-		funcName := fmt.Sprintf("meta_%s", pkgName)
-		meta, ok := dec.GetFuncWithSubshell(funcName)
-		if !ok {
-			return "", nil, fmt.Errorf("func %s is missing", funcName)
-		}
-		r, err := meta(ctx)
-		if err != nil {
-			return "", nil, err
-		}
-		d := decoder.New(&distro.OSRelease{}, r)
-		err = d.DecodeVars(&preVars)
-		if err != nil {
-			return "", nil, err
-		}
-		vars := preVars.ToBuildVars()
-		vars.Name = pkgName
-		vars.Base = pkgs.BasePkgName
-
-		varsOfPackages = append(varsOfPackages, &vars)
-	}
-
-	return pkgs.BasePkgName, varsOfPackages, nil
+func (e *LocalScriptExecutor) ExecuteFirstPass(ctx context.Context, input *BuildInput, sf *alrsh.ALRSh) (string, []*types.BuildVars, error) {
+	return sf.ParseBuildVars(ctx, input.info, input.packages)
 }
 
 func (e *LocalScriptExecutor) PrepareDirs(
@@ -177,13 +86,13 @@ func (e *LocalScriptExecutor) PrepareDirs(
 func (e *LocalScriptExecutor) ExecuteSecondPass(
 	ctx context.Context,
 	input *BuildInput,
-	sf *ScriptFile,
+	sf *alrsh.ALRSh,
 	varsOfPackages []*types.BuildVars,
 	repoDeps []string,
 	builtDeps []*BuiltDep,
 	basePkg string,
 ) ([]*BuiltDep, error) {
-	dirs, err := getDirs(e.cfg, sf.Path, basePkg)
+	dirs, err := getDirs(e.cfg, sf.Path(), basePkg)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +110,7 @@ func (e *LocalScriptExecutor) ExecuteSecondPass(
 		return nil, err
 	}
 
-	err = runner.Run(ctx, sf.File)
+	err = runner.Run(ctx, sf.File())
 	if err != nil {
 		return nil, err
 	}

@@ -27,14 +27,13 @@ import (
 	"log/slog"
 
 	"github.com/leonelquinteros/gotext"
-	"mvdan.cc/sh/v3/syntax"
-	"mvdan.cc/sh/v3/syntax/typedjson"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
 
@@ -133,47 +132,6 @@ type RepositoryProvider interface {
 
 // ================================================
 
-type ScriptFile struct {
-	File *syntax.File
-	Path string
-}
-
-func (s *ScriptFile) GobEncode() ([]byte, error) {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	if err := enc.Encode(s.Path); err != nil {
-		return nil, err
-	}
-	var fileBuf bytes.Buffer
-	if err := typedjson.Encode(&fileBuf, s.File); err != nil {
-		return nil, err
-	}
-	fileData := fileBuf.Bytes()
-	if err := enc.Encode(fileData); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
-func (s *ScriptFile) GobDecode(data []byte) error {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-	if err := dec.Decode(&s.Path); err != nil {
-		return err
-	}
-	var fileData []byte
-	if err := dec.Decode(&fileData); err != nil {
-		return err
-	}
-	fileReader := bytes.NewReader(fileData)
-	file, err := typedjson.Decode(fileReader)
-	if err != nil {
-		return err
-	}
-	s.File = file.(*syntax.File)
-	return nil
-}
-
 type BuiltDep struct {
 	Name string
 	Path string
@@ -219,8 +177,8 @@ type ScriptResolverExecutor interface {
 }
 
 type ScriptExecutor interface {
-	ReadScript(ctx context.Context, scriptPath string) (*ScriptFile, error)
-	ExecuteFirstPass(ctx context.Context, input *BuildInput, sf *ScriptFile) (string, []*types.BuildVars, error)
+	ReadScript(ctx context.Context, scriptPath string) (*alrsh.ALRSh, error)
+	ExecuteFirstPass(ctx context.Context, input *BuildInput, sf *alrsh.ALRSh) (string, []*types.BuildVars, error)
 	PrepareDirs(
 		ctx context.Context,
 		input *BuildInput,
@@ -229,7 +187,7 @@ type ScriptExecutor interface {
 	ExecuteSecondPass(
 		ctx context.Context,
 		input *BuildInput,
-		sf *ScriptFile,
+		sf *alrsh.ALRSh,
 		varsOfPackages []*types.BuildVars,
 		repoDeps []string,
 		builtDeps []*BuiltDep,
@@ -242,7 +200,7 @@ type CacheExecutor interface {
 }
 
 type ScriptViewerExecutor interface {
-	ViewScript(ctx context.Context, input *BuildInput, sf *ScriptFile, basePkg string) error
+	ViewScript(ctx context.Context, input *BuildInput, sf *alrsh.ALRSh, basePkg string) error
 }
 
 type CheckerExecutor interface {

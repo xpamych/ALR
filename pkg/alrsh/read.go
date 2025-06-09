@@ -14,34 +14,39 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-package build
+package alrsh
 
 import (
-	"context"
+	"fmt"
+	"io/fs"
+	"os"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
+	"mvdan.cc/sh/v3/syntax"
 )
 
-type ScriptViewerConfig interface {
-	PagerStyle() string
+type localFs struct{}
+
+func (fs *localFs) Open(name string) (fs.File, error) {
+	return os.Open(name)
 }
 
-type ScriptViewer struct {
-	config ScriptViewerConfig
+func ReadFromFS(fsys fs.FS, script string) (*ALRSh, error) {
+	fl, err := fsys.Open(script)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open alr.sh: %w", err)
+	}
+	defer fl.Close()
+
+	file, err := syntax.NewParser().Parse(fl, "alr.sh")
+	if err != nil {
+		return nil, err
+	}
+	return &ALRSh{
+		file: file,
+		path: script,
+	}, nil
 }
 
-func (s *ScriptViewer) ViewScript(
-	ctx context.Context,
-	input *BuildInput,
-	a *alrsh.ALRSh,
-	basePkg string,
-) error {
-	return cliutils.PromptViewScript(
-		ctx,
-		a.Path(),
-		basePkg,
-		s.config.PagerStyle(),
-		input.opts.Interactive,
-	)
+func ReadFromLocal(script string) (*ALRSh, error) {
+	return ReadFromFS(&localFs{}, script)
 }

@@ -185,19 +185,19 @@ msgstr "Для команды remove ожидался хотя бы 1 аргум
 msgid "Error removing packages"
 msgstr "Ошибка при удалении пакетов"
 
-#: internal/build/build.go:417
+#: internal/build/build.go:375
 msgid "Building package"
 msgstr "Сборка пакета"
 
-#: internal/build/build.go:446
+#: internal/build/build.go:404
 msgid "The checksums array must be the same length as sources"
 msgstr "Массив контрольных сумм должен быть той же длины, что и источники"
 
-#: internal/build/build.go:488
+#: internal/build/build.go:446
 msgid "Downloading sources"
 msgstr "Скачивание источников"
 
-#: internal/build/build.go:580
+#: internal/build/build.go:538
 msgid "Installing dependencies"
 msgstr "Установка зависимостей"
 
@@ -235,19 +235,19 @@ msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 "AutoReq не реализовано для этого формата пакета, поэтому будет пропущено"
 
-#: internal/build/script_executor.go:236
+#: internal/build/script_executor.go:145
 msgid "Building package metadata"
 msgstr "Сборка метаданных пакета"
 
-#: internal/build/script_executor.go:366
+#: internal/build/script_executor.go:275
 msgid "Executing prepare()"
 msgstr "Выполнение prepare()"
 
-#: internal/build/script_executor.go:375
+#: internal/build/script_executor.go:284
 msgid "Executing build()"
 msgstr "Выполнение build()"
 
-#: internal/build/script_executor.go:404 internal/build/script_executor.go:424
+#: internal/build/script_executor.go:313 internal/build/script_executor.go:333
 msgid "Executing %s()"
 msgstr "Выполнение %s()"
 

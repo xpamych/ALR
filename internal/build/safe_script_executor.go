@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/go-plugin"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/logger"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
 
@@ -50,13 +51,13 @@ type ScriptExecutorRPCServer struct {
 // ReadScript
 //
 
-func (s *ScriptExecutorRPC) ReadScript(ctx context.Context, scriptPath string) (*ScriptFile, error) {
-	var resp *ScriptFile
+func (s *ScriptExecutorRPC) ReadScript(ctx context.Context, scriptPath string) (*alrsh.ALRSh, error) {
+	var resp *alrsh.ALRSh
 	err := s.client.Call("Plugin.ReadScript", scriptPath, &resp)
 	return resp, err
 }
 
-func (s *ScriptExecutorRPCServer) ReadScript(scriptPath string, resp *ScriptFile) error {
+func (s *ScriptExecutorRPCServer) ReadScript(scriptPath string, resp *alrsh.ALRSh) error {
 	file, err := s.Impl.ReadScript(context.Background(), scriptPath)
 	if err != nil {
 		return err
@@ -72,7 +73,7 @@ func (s *ScriptExecutorRPCServer) ReadScript(scriptPath string, resp *ScriptFile
 
 type ExecuteFirstPassArgs struct {
 	Input *BuildInput
-	Sf    *ScriptFile
+	Sf    *alrsh.ALRSh
 }
 
 type ExecuteFirstPassResp struct {
@@ -80,7 +81,7 @@ type ExecuteFirstPassResp struct {
 	VarsOfPackages []*types.BuildVars
 }
 
-func (s *ScriptExecutorRPC) ExecuteFirstPass(ctx context.Context, input *BuildInput, sf *ScriptFile) (string, []*types.BuildVars, error) {
+func (s *ScriptExecutorRPC) ExecuteFirstPass(ctx context.Context, input *BuildInput, sf *alrsh.ALRSh) (string, []*types.BuildVars, error) {
 	var resp *ExecuteFirstPassResp
 	err := s.client.Call("Plugin.ExecuteFirstPass", &ExecuteFirstPassArgs{
 		Input: input,
@@ -148,7 +149,7 @@ func (s *ScriptExecutorRPCServer) PrepareDirs(args *PrepareDirsArgs, reply *stru
 
 type ExecuteSecondPassArgs struct {
 	Input          *BuildInput
-	Sf             *ScriptFile
+	Sf             *alrsh.ALRSh
 	VarsOfPackages []*types.BuildVars
 	RepoDeps       []string
 	BuiltDeps      []*BuiltDep
@@ -158,7 +159,7 @@ type ExecuteSecondPassArgs struct {
 func (s *ScriptExecutorRPC) ExecuteSecondPass(
 	ctx context.Context,
 	input *BuildInput,
-	sf *ScriptFile,
+	sf *alrsh.ALRSh,
 	varsOfPackages []*types.BuildVars,
 	repoDeps []string,
 	builtDeps []*BuiltDep,

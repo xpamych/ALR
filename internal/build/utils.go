@@ -33,7 +33,6 @@ import (
 	_ "github.com/goreleaser/nfpm/v2/arch"
 	_ "github.com/goreleaser/nfpm/v2/deb"
 	_ "github.com/goreleaser/nfpm/v2/rpm"
-	"mvdan.cc/sh/v3/syntax"
 
 	"github.com/goreleaser/nfpm/v2"
 	"github.com/goreleaser/nfpm/v2/files"
@@ -44,22 +43,6 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
-
-// Функция readScript анализирует скрипт сборки с использованием встроенной реализации bash
-func readScript(script string) (*syntax.File, error) {
-	fl, err := os.Open(script) // Открываем файл скрипта
-	if err != nil {
-		return nil, err
-	}
-	defer fl.Close() // Закрываем файл после выполнения
-
-	file, err := syntax.NewParser().Parse(fl, "alr.sh") // Парсим скрипт с помощью синтаксического анализатора
-	if err != nil {
-		return nil, err
-	}
-
-	return file, nil // Возвращаем синтаксическое дерево
-}
 
 // Функция prepareDirs подготавливает директории для сборки.
 func prepareDirs(dirs types.Directories) error {
