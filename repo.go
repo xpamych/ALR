@@ -29,8 +29,8 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
 
 func RepoCmd() *cli.Command {

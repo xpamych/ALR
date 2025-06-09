@@ -29,7 +29,7 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/repos"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
 
 type TestEnv struct {

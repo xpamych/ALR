@@ -19,7 +19,7 @@ package build
 import (
 	"path/filepath"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
 
 type BaseDirProvider interface {

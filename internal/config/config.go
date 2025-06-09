@@ -29,7 +29,7 @@ import (
 	"github.com/pelletier/go-toml/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/constants"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
 
 type ALRConfig struct {

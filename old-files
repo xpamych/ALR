@@ -52,9 +52,9 @@
 ./internal/translations/files/lure.en.toml
 ./internal/translations/files/lure.ru.toml
 ./internal/translations/translations.go
-./internal/types/build.go
-./internal/types/config.go
-./internal/types/repo.go
+./pkg/types/build.go
+./pkg/types/config.go
+./pkg/types/repo.go
 ./list.go
 ./main.go
 ./pkg/build/build.go
