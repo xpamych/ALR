@@ -130,7 +130,7 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 			// If the DB was not present at startup, that means it's
 			// empty. In this case, we need to update the DB fully
 			// rather than just incrementally.
-			if rs.db.IsEmpty(ctx) {
+			if rs.db.IsEmpty() {
 				err = rs.processRepoFull(ctx, repo, repoDir)
 				if err != nil {
 					return err

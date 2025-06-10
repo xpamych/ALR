@@ -30,7 +30,6 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
-	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
@@ -67,15 +66,8 @@ func InfoCmd() *cli.Command {
 			if err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error getting packages"), err)
 			}
-			defer result.Close()
 
-			for result.Next() {
-				var pkg database.Package
-				err = result.StructScan(&pkg)
-				if err != nil {
-					return cliutils.FormatCliExit(gotext.Get("Error iterating over packages"), err)
-				}
-
+			for _, pkg := range result {
 				fmt.Println(pkg.Name)
 			}
 			return nil

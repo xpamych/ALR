@@ -94,11 +94,11 @@ func TestFindPkgsEmpty(t *testing.T) {
 		Repository: "default",
 		Version:    "0.0.1",
 		Release:    1,
-		Description: db.NewJSON(map[string]string{
+		Description: map[string]string{
 			"en": "Test package 1",
 			"ru": "Проверочный пакет 1",
-		}),
-		Provides: db.NewJSON([]string{""}),
+		},
+		Provides: []string{""},
 	})
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
@@ -109,11 +109,11 @@ func TestFindPkgsEmpty(t *testing.T) {
 		Repository: "default",
 		Version:    "0.0.1",
 		Release:    1,
-		Description: db.NewJSON(map[string]string{
+		Description: map[string]string{
 			"en": "Test package 2",
 			"ru": "Проверочный пакет 2",
-		}),
-		Provides: db.NewJSON([]string{"test"}),
+		},
+		Provides: []string{"test"},
 	})
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)

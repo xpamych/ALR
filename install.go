@@ -28,7 +28,6 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/build"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
-	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
@@ -136,15 +135,8 @@ func InstallCmd() *cli.Command {
 			if err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error getting packages"), err)
 			}
-			defer result.Close()
 
-			for result.Next() {
-				var pkg database.Package
-				err = result.StructScan(&pkg)
-				if err != nil {
-					return cliutils.FormatCliExit(gotext.Get("Error iterating over packages"), err)
-				}
-
+			for _, pkg := range result {
 				fmt.Println(pkg.Name)
 			}
 
@@ -190,20 +182,12 @@ func RemoveCmd() *cli.Command {
 			if err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error getting packages"), err)
 			}
-			defer result.Close()
 
-			for result.Next() {
-				var pkg database.Package
-				err = result.StructScan(&pkg)
-				if err != nil {
-					return cliutils.FormatCliExit(gotext.Get("Error iterating over packages"), err)
-				}
-
+			for _, pkg := range result {
 				_, ok := installedAlrPackages[fmt.Sprintf("%s/%s", pkg.Repository, pkg.Name)]
 				if !ok {
 					continue
 				}
-
 				fmt.Println(pkg.Name)
 			}
 

@@ -22,13 +22,12 @@ package search
 import (
 	"context"
 
-	"github.com/jmoiron/sqlx"
-
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 )
 
 type PackagesProvider interface {
-	GetPkgs(ctx context.Context, where string, args ...any) (*sqlx.Rows, error)
+	GetPkgs(ctx context.Context, where string, args ...any) ([]db.Package, error)
 }
 
 type Searcher struct {
@@ -45,22 +44,7 @@ func (s *Searcher) Search(
 	ctx context.Context,
 	opts *SearchOptions,
 ) ([]database.Package, error) {
-	var packages []database.Package
-
 	where, args := opts.WhereClause()
-	result, err := s.pp.GetPkgs(ctx, where, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	for result.Next() {
-		var dbPkg database.Package
-		err = result.StructScan(&dbPkg)
-		if err != nil {
-			return nil, err
-		}
-		packages = append(packages, dbPkg)
-	}
-
-	return packages, nil
+	packages, err := s.pp.GetPkgs(ctx, where, args...)
+	return packages, err
 }

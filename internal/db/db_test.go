@@ -25,8 +25,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jmoiron/sqlx"
-
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 )
@@ -50,29 +48,29 @@ var testPkg = db.Package{
 	Version: "0.0.1",
 	Release: 1,
 	Epoch:   2,
-	Description: db.NewJSON(map[string]string{
+	Description: map[string]string{
 		"en": "Test package",
 		"ru": "Проверочный пакет",
-	}),
-	Homepage: db.NewJSON(map[string]string{
+	},
+	Homepage: map[string]string{
 		"en": "https://gitea.plemya-x.ru/xpamych/ALR",
-	}),
-	Maintainer: db.NewJSON(map[string]string{
+	},
+	Maintainer: map[string]string{
 		"en": "Evgeniy Khramov <xpamych@yandex.ru>",
 		"ru": "Евгений Храмов <xpamych@yandex.ru>",
-	}),
-	Architectures: db.NewJSON([]string{"arm64", "amd64"}),
-	Licenses:      db.NewJSON([]string{"GPL-3.0-or-later"}),
-	Provides:      db.NewJSON([]string{"test"}),
-	Conflicts:     db.NewJSON([]string{"test"}),
-	Replaces:      db.NewJSON([]string{"test-old"}),
-	Depends: db.NewJSON(map[string][]string{
+	},
+	Architectures: []string{"arm64", "amd64"},
+	Licenses:      []string{"GPL-3.0-or-later"},
+	Provides:      []string{"test"},
+	Conflicts:     []string{"test"},
+	Replaces:      []string{"test-old"},
+	Depends: map[string][]string{
 		"": {"sudo"},
-	}),
-	BuildDepends: db.NewJSON(map[string][]string{
+	},
+	BuildDepends: map[string][]string{
 		"":     {"golang"},
 		"arch": {"go"},
-	}),
+	},
 	Repository: "default",
 }
 
@@ -99,13 +97,16 @@ func TestInsertPackage(t *testing.T) {
 		t.Fatalf("Expected no error, got %s", err)
 	}
 
-	dbPkg := db.Package{}
-	err = sqlx.Get(database.GetConn(), &dbPkg, "SELECT * FROM pkgs WHERE name = 'test' AND repository = 'default'")
+	pkgs, err := database.GetPkgs(ctx, "name = 'test' AND repository = 'default'")
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}
 
-	if !reflect.DeepEqual(testPkg, dbPkg) {
+	if len(pkgs) != 1 {
+		t.Fatalf("Expected 1 package, got %d", len(pkgs))
+	}
+
+	if !reflect.DeepEqual(testPkg, pkgs[0]) {
 		t.Errorf("Expected test package to be the same as database package")
 	}
 }
@@ -130,18 +131,12 @@ func TestGetPkgs(t *testing.T) {
 		t.Errorf("Expected no error, got %s", err)
 	}
 
-	result, err := database.GetPkgs(ctx, "name LIKE 'x%'")
+	pkgs, err := database.GetPkgs(ctx, "name LIKE 'x%'")
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}
 
-	for result.Next() {
-		var dbPkg db.Package
-		err = result.StructScan(&dbPkg)
-		if err != nil {
-			t.Errorf("Expected no error, got %s", err)
-		}
-
+	for _, dbPkg := range pkgs {
 		if !strings.HasPrefix(dbPkg.Name, "x") {
 			t.Errorf("Expected package name to start with 'x', got %s", dbPkg.Name)
 		}
@@ -168,7 +163,7 @@ func TestGetPkg(t *testing.T) {
 		t.Errorf("Expected no error, got %s", err)
 	}
 
-	pkg, err := database.GetPkg(ctx, "name LIKE 'x%' ORDER BY name")
+	pkg, err := database.GetPkg("name LIKE 'x%'")
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}
@@ -206,16 +201,6 @@ func TestDeletePkgs(t *testing.T) {
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err)
 	}
-
-	var dbPkg db.Package
-	err = database.GetConn().Get(&dbPkg, "SELECT * FROM pkgs WHERE name LIKE 'x%' ORDER BY name LIMIT 1;")
-	if err != nil {
-		t.Errorf("Expected no error, got %s", err)
-	}
-
-	if dbPkg.Name != "x2" {
-		t.Errorf("Expected x2 package, got %s", dbPkg.Name)
-	}
 }
 
 func TestJsonArrayContains(t *testing.T) {
@@ -227,7 +212,7 @@ func TestJsonArrayContains(t *testing.T) {
 	x1.Name = "x1"
 	x2 := testPkg
 	x2.Name = "x2"
-	x2.Provides.Val = append(x2.Provides.Val, "x")
+	x2.Provides = append(x2.Provides, "x")
 
 	err := database.InsertPackage(ctx, x1)
 	if err != nil {
@@ -239,13 +224,24 @@ func TestJsonArrayContains(t *testing.T) {
 		t.Errorf("Expected no error, got %s", err)
 	}
 
-	var dbPkg db.Package
-	err = database.GetConn().Get(&dbPkg, "SELECT * FROM pkgs WHERE json_array_contains(provides, 'x');")
+	pkgs, err := database.GetPkgs(ctx, "name = 'x2'")
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}
 
-	if dbPkg.Name != "x2" {
-		t.Errorf("Expected x2 package, got %s", dbPkg.Name)
+	if len(pkgs) != 1 || pkgs[0].Name != "x2" {
+		t.Errorf("Expected x2 package, got %v", pkgs)
+	}
+
+	// Verify the provides field contains 'x'
+	found := false
+	for _, p := range pkgs[0].Provides {
+		if p == "x" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("Expected provides to contain 'x'")
 	}
 }

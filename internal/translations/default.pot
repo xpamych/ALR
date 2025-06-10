@@ -114,67 +114,63 @@ msgstr ""
 msgid "Error parsing os-release file"
 msgstr ""
 
-#: info.go:42
+#: info.go:41
 msgid "Print information about a package"
 msgstr ""
 
-#: info.go:47
+#: info.go:46
 msgid "Show all information, not just for the current distro"
 msgstr ""
 
-#: info.go:68
+#: info.go:67
 msgid "Error getting packages"
 msgstr ""
 
-#: info.go:76
-msgid "Error iterating over packages"
-msgstr ""
-
-#: info.go:90
+#: info.go:82
 msgid "Command info expected at least 1 argument, got %d"
 msgstr ""
 
-#: info.go:110
+#: info.go:102
 msgid "Error finding packages"
 msgstr ""
 
-#: info.go:124
+#: info.go:116
 msgid "Can't detect system language"
 msgstr ""
 
-#: info.go:141
+#: info.go:133
 msgid "Error resolving overrides"
 msgstr ""
 
-#: info.go:149 info.go:154
+#: info.go:141 info.go:146
 msgid "Error encoding script variables"
 msgstr ""
 
-#: install.go:40
+#: install.go:39
 msgid "Install a new package"
 msgstr ""
 
-#: install.go:52
+#: install.go:51
 msgid "Command install expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:114
+#: install.go:113
 msgid "Error when installing the package"
 msgstr ""
 
-#: install.go:159
+#: install.go:151
 msgid "Remove an installed package"
 msgstr ""
 
-#: install.go:178
+#: install.go:170
 msgid "Error listing installed packages"
 msgstr ""
 
-#: install.go:215
+#: install.go:199
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:230
+#: install.go:214
 msgid "Error removing packages"
 msgstr ""
 
@@ -346,11 +342,11 @@ msgid ""
 "instead!"
 msgstr ""
 
-#: internal/db/db.go:137
+#: internal/db/db.go:95
 msgid "Database version mismatch; resetting"
 msgstr ""
 
-#: internal/db/db.go:144
+#: internal/db/db.go:101
 msgid ""
 "Database version does not exist. Run alr fix if something isn't working."
 msgstr ""
@@ -429,11 +425,11 @@ msgstr ""
 msgid "No packages for upgrade"
 msgstr ""
 
-#: list.go:102 list.go:187
+#: list.go:102 list.go:184
 msgid "Error parsing format template"
 msgstr ""
 
-#: list.go:108 list.go:191
+#: list.go:108 list.go:188
 msgid "Error executing template"
 msgstr ""
 

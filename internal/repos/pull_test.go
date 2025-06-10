@@ -129,15 +129,7 @@ func TestPull(t *testing.T) {
 		t.Fatalf("Expected no error, got %s", err)
 	}
 
-	var pkgAmt int
-	for result.Next() {
-		var dbPkg db.Package
-		err = result.StructScan(&dbPkg)
-		if err != nil {
-			t.Errorf("Expected no error, got %s", err)
-		}
-		pkgAmt++
-	}
+	pkgAmt := len(result)
 
 	if pkgAmt == 0 {
 		t.Errorf("Expected at least 1 matching package, but got %d", pkgAmt)

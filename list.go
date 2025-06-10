@@ -125,7 +125,6 @@ func ListCmd() *cli.Command {
 			if err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error getting packages"), err)
 			}
-			defer result.Close()
 
 			installedAlrPackages := map[string]string{}
 			if c.Bool("installed") {
@@ -150,9 +149,7 @@ func ListCmd() *cli.Command {
 				}
 			}
 
-			for result.Next() {
-				var pkg database.Package
-				err := result.StructScan(&pkg)
+			for _, pkg := range result {
 				if err != nil {
 					return cli.Exit(err, 1)
 				}

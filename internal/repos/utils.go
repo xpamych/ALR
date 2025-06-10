@@ -139,14 +139,14 @@ func parseScript(
 }
 
 type PackageInfo struct {
-	Version       string            `sh:"version,required"`
-	Release       int               `sh:"release,required"`
-	Epoch         uint              `sh:"epoch"`
-	Architectures db.JSON[[]string] `sh:"architectures"`
-	Licenses      db.JSON[[]string] `sh:"license"`
-	Provides      db.JSON[[]string] `sh:"provides"`
-	Conflicts     db.JSON[[]string] `sh:"conflicts"`
-	Replaces      db.JSON[[]string] `sh:"replaces"`
+	Version       string   `sh:"version,required"`
+	Release       int      `sh:"release,required"`
+	Epoch         uint     `sh:"epoch"`
+	Architectures []string `sh:"architectures"`
+	Licenses      []string `sh:"license"`
+	Provides      []string `sh:"provides"`
+	Conflicts     []string `sh:"conflicts"`
+	Replaces      []string `sh:"replaces"`
 }
 
 func (inf *PackageInfo) ToPackage(repoName string) *db.Package {
@@ -164,13 +164,13 @@ func (inf *PackageInfo) ToPackage(repoName string) *db.Package {
 
 func EmptyPackage(repoName string) *db.Package {
 	return &db.Package{
-		Group:        db.NewJSON(map[string]string{}),
-		Summary:      db.NewJSON(map[string]string{}),
-		Description:  db.NewJSON(map[string]string{}),
-		Homepage:     db.NewJSON(map[string]string{}),
-		Maintainer:   db.NewJSON(map[string]string{}),
-		Depends:      db.NewJSON(map[string][]string{}),
-		BuildDepends: db.NewJSON(map[string][]string{}),
+		Group:        map[string]string{},
+		Summary:      map[string]string{},
+		Description:  map[string]string{},
+		Homepage:     map[string]string{},
+		Maintainer:   map[string]string{},
+		Depends:      map[string][]string{},
+		BuildDepends: map[string][]string{},
 		Repository:   repoName,
 	}
 }
@@ -193,8 +193,7 @@ func resolveOverrides(runner *interp.Runner, pkg *db.Package) {
 				override := strings.TrimPrefix(name, prefix)
 				override = strings.TrimPrefix(override, "_")
 
-				field := pkgVal.FieldByName(field)
-				varVal := field.FieldByName("Val")
+				varVal := pkgVal.FieldByName(field)
 				varType := varVal.Type()
 
 				switch varType.Elem().String() {

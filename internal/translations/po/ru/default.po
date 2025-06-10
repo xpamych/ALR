@@ -121,67 +121,63 @@ msgstr "Такой вспомогательной команды нет"
 msgid "Error parsing os-release file"
 msgstr "Ошибка при разборе файла выпуска операционной системы"
 
-#: info.go:42
+#: info.go:41
 msgid "Print information about a package"
 msgstr "Отобразить информацию о пакете"
 
-#: info.go:47
+#: info.go:46
 msgid "Show all information, not just for the current distro"
 msgstr "Показывать всю информацию, не только для текущего дистрибутива"
 
-#: info.go:68
+#: info.go:67
 msgid "Error getting packages"
 msgstr "Ошибка при получении пакетов"
 
-#: info.go:76
-msgid "Error iterating over packages"
-msgstr "Ошибка при переборе пакетов"
-
-#: info.go:90
+#: info.go:82
 msgid "Command info expected at least 1 argument, got %d"
 msgstr "Для команды info ожидался хотя бы 1 аргумент, получено %d"
 
-#: info.go:110
+#: info.go:102
 msgid "Error finding packages"
 msgstr "Ошибка при поиске пакетов"
 
-#: info.go:124
+#: info.go:116
 msgid "Can't detect system language"
 msgstr "Ошибка при определении языка системы"
 
-#: info.go:141
+#: info.go:133
 msgid "Error resolving overrides"
 msgstr "Ошибка устранения переорпеделений"
 
-#: info.go:149 info.go:154
+#: info.go:141 info.go:146
 msgid "Error encoding script variables"
 msgstr "Ошибка кодирования переменных скрита"
 
-#: install.go:40
+#: install.go:39
 msgid "Install a new package"
 msgstr "Установить новый пакет"
 
-#: install.go:52
+#: install.go:51
 msgid "Command install expected at least 1 argument, got %d"
 msgstr "Для команды install ожидался хотя бы 1 аргумент, получено %d"
 
-#: install.go:114
+#: install.go:113
 msgid "Error when installing the package"
 msgstr "Ошибка при установке пакета"
 
-#: install.go:159
+#: install.go:151
 msgid "Remove an installed package"
 msgstr "Удалить установленный пакет"
 
-#: install.go:178
+#: install.go:170
 msgid "Error listing installed packages"
 msgstr "Ошибка при составлении списка установленных пакетов"
 
-#: install.go:215
+#: install.go:199
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr "Для команды remove ожидался хотя бы 1 аргумент, получено %d"
 
-#: install.go:230
+#: install.go:214
 msgid "Error removing packages"
 msgstr "Ошибка при удалении пакетов"
 
@@ -359,11 +355,11 @@ msgstr ""
 "Эта команда устарела и будет удалена в будущем, используйте вместо нее \"%s"
 "\"!"
 
-#: internal/db/db.go:137
+#: internal/db/db.go:95
 msgid "Database version mismatch; resetting"
 msgstr "Несоответствие версий базы данных; сброс настроек"
 
-#: internal/db/db.go:144
+#: internal/db/db.go:101
 msgid ""
 "Database version does not exist. Run alr fix if something isn't working."
 msgstr ""
@@ -445,11 +441,11 @@ msgstr "Ошибка при получении пакетов для обнов�
 msgid "No packages for upgrade"
 msgstr "Нет пакетов к обновлению"
 
-#: list.go:102 list.go:187
+#: list.go:102 list.go:184
 msgid "Error parsing format template"
 msgstr "Ошибка при разборе шаблона"
 
-#: list.go:108 list.go:191
+#: list.go:108 list.go:188
 msgid "Error executing template"
 msgstr "Ошибка при выполнении шаблона"
 
@@ -572,6 +568,9 @@ msgstr "Ошибка при проверке обновлений"
 #: upgrade.go:125
 msgid "There is nothing to do."
 msgstr "Здесь нечего делать."
+
+#~ msgid "Error iterating over packages"
+#~ msgstr "Ошибка при переборе пакетов"
 
 #~ msgid "Error pulling repos"
 #~ msgstr "Ошибка при извлечении репозиториев"

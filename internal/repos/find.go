@@ -40,17 +40,10 @@ func (rs *Repos) FindPkgs(ctx context.Context, pkgs []string) (map[string][]db.P
 		}
 
 		added := 0
-		for result.Next() {
-			var pkg db.Package
-			err = result.StructScan(&pkg)
-			if err != nil {
-				return nil, nil, err
-			}
-
+		for _, pkg := range result {
 			added++
 			found[pkgName] = append(found[pkgName], pkg)
 		}
-		result.Close()
 
 		if added == 0 {
 			result, err := rs.db.GetPkgs(ctx, "name LIKE ?", pkgName)
@@ -58,18 +51,10 @@ func (rs *Repos) FindPkgs(ctx context.Context, pkgs []string) (map[string][]db.P
 				return nil, nil, err
 			}
 
-			for result.Next() {
-				var pkg db.Package
-				err = result.StructScan(&pkg)
-				if err != nil {
-					return nil, nil, err
-				}
-
+			for _, pkg := range result {
 				added++
 				found[pkgName] = append(found[pkgName], pkg)
 			}
-
-			result.Close()
 		}
 
 		if added == 0 {

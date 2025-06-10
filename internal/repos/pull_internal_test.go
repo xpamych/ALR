@@ -84,16 +84,10 @@ build_deps=('golang')
 				result, err := database.GetPkgs(ctx, "1 = 1")
 				assert.NoError(t, err)
 				pkgCount := 0
-				for result.Next() {
-					var dbPkg db.Package
-					err = result.StructScan(&dbPkg)
-					if err != nil {
-						t.Errorf("Expected no error, got %s", err)
-					}
-
+				for _, dbPkg := range result {
 					assert.Equal(t, "foo", dbPkg.Name)
-					assert.Equal(t, db.NewJSON(map[string]string{"": "main desc"}), dbPkg.Description)
-					assert.Equal(t, db.NewJSON(map[string][]string{"": {"sudo"}}), dbPkg.Depends)
+					assert.Equal(t, map[string]string{"": "main desc"}, dbPkg.Description)
+					assert.Equal(t, map[string][]string{"": {"sudo"}}, dbPkg.Depends)
 					pkgCount++
 				}
 				assert.Equal(t, 1, pkgCount)
@@ -125,20 +119,18 @@ meta_buz() {
 				assert.NoError(t, err)
 
 				pkgCount := 0
-				for result.Next() {
-					var dbPkg db.Package
-					err = result.StructScan(&dbPkg)
+				for _, dbPkg := range result {
 					if err != nil {
 						t.Errorf("Expected no error, got %s", err)
 					}
 					if dbPkg.Name == "bar" {
-						assert.Equal(t, db.NewJSON(map[string]string{"": "foo desc"}), dbPkg.Description)
-						assert.Equal(t, db.NewJSON(map[string][]string{"": {"sudo"}}), dbPkg.Depends)
+						assert.Equal(t, map[string]string{"": "foo desc"}, dbPkg.Description)
+						assert.Equal(t, map[string][]string{"": {"sudo"}}, dbPkg.Depends)
 					}
 
 					if dbPkg.Name == "buz" {
-						assert.Equal(t, db.NewJSON(map[string]string{"": "main desc"}), dbPkg.Description)
-						assert.Equal(t, db.NewJSON(map[string][]string{"": {"sudo", "doas"}}), dbPkg.Depends)
+						assert.Equal(t, map[string]string{"": "main desc"}, dbPkg.Description)
+						assert.Equal(t, map[string][]string{"": {"sudo", "doas"}}, dbPkg.Depends)
 					}
 					pkgCount++
 				}
