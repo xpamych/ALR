@@ -56,8 +56,8 @@ jobs:
       - name: Update version
         working-directory: ./alr-default/alr-git
         run: |
-          alr-spec set-filed version $NEW_ALR_VERSION
-          alr-spec set-filed release 1
+          alr-spec set-field version $NEW_ALR_VERSION
+          alr-spec set-field release 1
 
       - name: Commit changes
         run: |
