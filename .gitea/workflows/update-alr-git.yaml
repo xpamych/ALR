@@ -30,7 +30,7 @@ jobs:
 
       - name: Setup alr-spec
         run: |
-          uv tool install alr-spec==0.0.4
+          uv tool install alr-spec==0.0.5
       
       - name: Install alr
         run: |
