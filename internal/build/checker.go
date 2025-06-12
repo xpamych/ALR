@@ -25,7 +25,7 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 type Checker struct {
@@ -35,7 +35,7 @@ type Checker struct {
 func (c *Checker) PerformChecks(
 	ctx context.Context,
 	input *BuildInput,
-	vars *types.BuildVars,
+	vars *alrsh.Package,
 ) (bool, error) {
 	if !cpu.IsCompatibleWith(cpu.Arch(), vars.Architectures) { // Проверяем совместимость архитектуры
 		cont, err := cliutils.YesNoPrompt(

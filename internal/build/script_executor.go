@@ -53,11 +53,11 @@ func NewLocalScriptExecutor(cfg Config) *LocalScriptExecutor {
 	}
 }
 
-func (e *LocalScriptExecutor) ReadScript(ctx context.Context, scriptPath string) (*alrsh.ALRSh, error) {
+func (e *LocalScriptExecutor) ReadScript(ctx context.Context, scriptPath string) (*alrsh.ScriptFile, error) {
 	return alrsh.ReadFromLocal(scriptPath)
 }
 
-func (e *LocalScriptExecutor) ExecuteFirstPass(ctx context.Context, input *BuildInput, sf *alrsh.ALRSh) (string, []*types.BuildVars, error) {
+func (e *LocalScriptExecutor) ExecuteFirstPass(ctx context.Context, input *BuildInput, sf *alrsh.ScriptFile) (string, []*alrsh.Package, error) {
 	return sf.ParseBuildVars(ctx, input.info, input.packages)
 }
 
@@ -86,8 +86,8 @@ func (e *LocalScriptExecutor) PrepareDirs(
 func (e *LocalScriptExecutor) ExecuteSecondPass(
 	ctx context.Context,
 	input *BuildInput,
-	sf *alrsh.ALRSh,
-	varsOfPackages []*types.BuildVars,
+	sf *alrsh.ScriptFile,
+	varsOfPackages []*alrsh.Package,
 	repoDeps []string,
 	builtDeps []*BuiltDep,
 	basePkg string,
@@ -126,7 +126,7 @@ func (e *LocalScriptExecutor) ExecuteSecondPass(
 
 	for _, vars := range varsOfPackages {
 		packageName := ""
-		if vars.Base != "" {
+		if vars.BasePkgName != "" {
 			packageName = vars.Name
 		}
 
@@ -194,24 +194,25 @@ func buildPkgMetadata(
 		PkgFormatProvider
 		RepositoryProvider
 	},
-	vars *types.BuildVars,
+	vars *alrsh.Package,
 	dirs types.Directories,
 	deps []string,
 	preferedContents *[]string,
 ) (*nfpm.Info, error) {
 	pkgInfo := getBasePkgInfo(vars, input)
-	pkgInfo.Description = vars.Description
+	slog.Warn("vars.Description", "vars.Description", vars.Description, "vars.Description.Resolved", vars.Description.Resolved())
+	pkgInfo.Description = vars.Description.Resolved()
 	pkgInfo.Platform = "linux"
-	pkgInfo.Homepage = vars.Homepage
+	pkgInfo.Homepage = vars.Homepage.Resolved()
 	pkgInfo.License = strings.Join(vars.Licenses, ", ")
-	pkgInfo.Maintainer = vars.Maintainer
+	pkgInfo.Maintainer = vars.Maintainer.Resolved()
 	pkgInfo.Overridables = nfpm.Overridables{
 		Conflicts: append(vars.Conflicts, vars.Name),
 		Replaces:  vars.Replaces,
 		Provides:  append(vars.Provides, vars.Name),
 		Depends:   deps,
 	}
-	pkgInfo.Section = vars.Group
+	pkgInfo.Section = vars.Group.Resolved()
 
 	pkgFormat := input.PkgFormat()
 	info := input.OSRelease()
@@ -224,12 +225,12 @@ func buildPkgMetadata(
 	}
 
 	if pkgFormat == "rpm" {
-		pkgInfo.RPM.Group = vars.Group
+		pkgInfo.RPM.Group = vars.Group.Resolved()
 
-		if vars.Summary != "" {
-			pkgInfo.RPM.Summary = vars.Summary
+		if vars.Summary.Resolved() != "" {
+			pkgInfo.RPM.Summary = vars.Summary.Resolved()
 		} else {
-			lines := strings.SplitN(vars.Description, "\n", 2)
+			lines := strings.SplitN(vars.Description.Resolved(), "\n", 2)
 			pkgInfo.RPM.Summary = lines[0]
 		}
 	}
@@ -250,17 +251,17 @@ func buildPkgMetadata(
 	}
 	pkgInfo.Overridables.Contents = contents
 
-	if len(vars.AutoProv) == 1 && decoder.IsTruthy(vars.AutoProv[0]) {
+	if len(vars.AutoProv.Resolved()) == 1 && decoder.IsTruthy(vars.AutoProv.Resolved()[0]) {
 		f := finddeps.New(info, pkgFormat)
-		err = f.FindProvides(ctx, pkgInfo, dirs, vars.AutoProvSkipList)
+		err = f.FindProvides(ctx, pkgInfo, dirs, vars.AutoProvSkipList.Resolved())
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if len(vars.AutoReq) == 1 && decoder.IsTruthy(vars.AutoReq[0]) {
+	if len(vars.AutoReq.Resolved()) == 1 && decoder.IsTruthy(vars.AutoReq.Resolved()[0]) {
 		f := finddeps.New(info, pkgFormat)
-		err = f.FindRequires(ctx, pkgInfo, dirs, vars.AutoReqSkipList)
+		err = f.FindRequires(ctx, pkgInfo, dirs, vars.AutoReqSkipList.Resolved())
 		if err != nil {
 			return nil, err
 		}

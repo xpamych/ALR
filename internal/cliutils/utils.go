@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"runtime/debug"
 
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
@@ -44,10 +45,12 @@ func HandleExitCoder(err error) {
 				slog.Error(err.Error())
 			}
 		}
+		debug.PrintStack()
 		cli.OsExiter(exitErr.ExitCode())
 		return
 	}
 
+	debug.PrintStack()
 	slog.Error(err.Error())
 	cli.OsExiter(1)
 }

@@ -27,10 +27,10 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/search"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
 
@@ -139,27 +139,16 @@ func SearchCmd() *cli.Command {
 				}
 			}
 
-			for _, dbPkg := range packages {
-				var pkg any
-				if !all {
-					pkg = overrides.ResolvePackage(&dbPkg, names)
-				} else {
-					pkg = &dbPkg
-				}
-
+			for _, pkg := range packages {
+				alrsh.ResolvePackage(&pkg, names)
 				if tmpl != nil {
-					err = tmpl.Execute(os.Stdout, pkg)
+					err = tmpl.Execute(os.Stdout, &pkg)
 					if err != nil {
 						return cliutils.FormatCliExit(gotext.Get("Error executing template"), err)
 					}
 					fmt.Println()
 				} else {
-					switch v := pkg.(type) {
-					case *overrides.ResolvedPackage:
-						fmt.Println(v.Name)
-					case *db.Package:
-						fmt.Println(v.Name)
-					}
+					fmt.Println(pkg.Name)
 				}
 			}
 

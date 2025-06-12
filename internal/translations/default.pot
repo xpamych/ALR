@@ -114,35 +114,35 @@ msgstr ""
 msgid "Error parsing os-release file"
 msgstr ""
 
-#: info.go:41
+#: info.go:42
 msgid "Print information about a package"
 msgstr ""
 
-#: info.go:46
+#: info.go:47
 msgid "Show all information, not just for the current distro"
 msgstr ""
 
-#: info.go:67
+#: info.go:68
 msgid "Error getting packages"
 msgstr ""
 
-#: info.go:82
+#: info.go:83
 msgid "Command info expected at least 1 argument, got %d"
 msgstr ""
 
-#: info.go:102
+#: info.go:104
 msgid "Error finding packages"
 msgstr ""
 
-#: info.go:116
+#: info.go:118
 msgid "Can't detect system language"
 msgstr ""
 
-#: info.go:133
+#: info.go:135
 msgid "Error resolving overrides"
 msgstr ""
 
-#: info.go:141 info.go:146
+#: info.go:144 info.go:149
 msgid "Error encoding script variables"
 msgstr ""
 
@@ -174,19 +174,19 @@ msgstr ""
 msgid "Error removing packages"
 msgstr ""
 
-#: internal/build/build.go:375
+#: internal/build/build.go:376
 msgid "Building package"
 msgstr ""
 
-#: internal/build/build.go:404
+#: internal/build/build.go:405
 msgid "The checksums array must be the same length as sources"
 msgstr ""
 
-#: internal/build/build.go:446
+#: internal/build/build.go:447
 msgid "Downloading sources"
 msgstr ""
 
-#: internal/build/build.go:538
+#: internal/build/build.go:539
 msgid "Installing dependencies"
 msgstr ""
 
@@ -224,15 +224,15 @@ msgstr ""
 msgid "Building package metadata"
 msgstr ""
 
-#: internal/build/script_executor.go:275
+#: internal/build/script_executor.go:276
 msgid "Executing prepare()"
 msgstr ""
 
-#: internal/build/script_executor.go:284
+#: internal/build/script_executor.go:285
 msgid "Executing build()"
 msgstr ""
 
-#: internal/build/script_executor.go:313 internal/build/script_executor.go:333
+#: internal/build/script_executor.go:314 internal/build/script_executor.go:334
 msgid "Executing %s()"
 msgstr ""
 
@@ -244,15 +244,15 @@ msgstr ""
 msgid "Error initialization database"
 msgstr ""
 
-#: internal/cliutils/app_builder/builder.go:135
+#: internal/cliutils/app_builder/builder.go:142
 msgid "Error pulling repositories"
 msgstr ""
 
-#: internal/cliutils/app_builder/builder.go:152
+#: internal/cliutils/app_builder/builder.go:159
 msgid "Error parsing os release"
 msgstr ""
 
-#: internal/cliutils/app_builder/builder.go:165
+#: internal/cliutils/app_builder/builder.go:172
 msgid "Unable to detect a supported package manager on the system"
 msgstr ""
 
@@ -336,17 +336,17 @@ msgstr ""
 msgid "OPTIONS"
 msgstr ""
 
-#: internal/cliutils/utils.go:69
+#: internal/cliutils/utils.go:72
 msgid ""
 "This command is deprecated and would be removed in the future, use \"%s\" "
 "instead!"
 msgstr ""
 
-#: internal/db/db.go:95
+#: internal/db/db.go:76
 msgid "Database version mismatch; resetting"
 msgstr ""
 
-#: internal/db/db.go:101
+#: internal/db/db.go:82
 msgid ""
 "Database version does not exist. Run alr fix if something isn't working."
 msgstr ""
@@ -541,14 +541,14 @@ msgstr ""
 msgid "Error while executing search"
 msgstr ""
 
-#: upgrade.go:47
+#: upgrade.go:48
 msgid "Upgrade all installed packages"
 msgstr ""
 
-#: upgrade.go:105 upgrade.go:122
+#: upgrade.go:106 upgrade.go:123
 msgid "Error checking for updates"
 msgstr ""
 
-#: upgrade.go:125
+#: upgrade.go:126
 msgid "There is nothing to do."
 msgstr ""

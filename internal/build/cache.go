@@ -23,7 +23,7 @@ import (
 
 	"github.com/goreleaser/nfpm/v2"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 type Cache struct {
@@ -33,7 +33,7 @@ type Cache struct {
 func (c *Cache) CheckForBuiltPackage(
 	ctx context.Context,
 	input *BuildInput,
-	vars *types.BuildVars,
+	vars *alrsh.Package,
 ) (string, bool, error) {
 	filename, err := pkgFileName(input, vars)
 	if err != nil {
@@ -56,7 +56,7 @@ func pkgFileName(
 		PkgFormatProvider
 		RepositoryProvider
 	},
-	vars *types.BuildVars,
+	vars *alrsh.Package,
 ) (string, error) {
 	pkgInfo := getBasePkgInfo(vars, input)
 

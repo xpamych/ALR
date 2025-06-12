@@ -28,8 +28,8 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/leonelquinteros/gotext"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/pager"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 // YesNoPrompt asks the user a yes or no question, using def as the default answer
@@ -102,8 +102,8 @@ func ShowScript(path, name, style string) error {
 
 // FlattenPkgs attempts to flatten the a map of slices of packages into a single slice
 // of packages by prompting the user if multiple packages match.
-func FlattenPkgs(ctx context.Context, found map[string][]db.Package, verb string, interactive bool) []db.Package {
-	var outPkgs []db.Package
+func FlattenPkgs(ctx context.Context, found map[string][]alrsh.Package, verb string, interactive bool) []alrsh.Package {
+	var outPkgs []alrsh.Package
 	for _, pkgs := range found {
 		if len(pkgs) > 1 && interactive {
 			choice, err := PkgPrompt(ctx, pkgs, verb, interactive)
@@ -120,7 +120,7 @@ func FlattenPkgs(ctx context.Context, found map[string][]db.Package, verb string
 }
 
 // PkgPrompt asks the user to choose between multiple packages.
-func PkgPrompt(ctx context.Context, options []db.Package, verb string, interactive bool) (db.Package, error) {
+func PkgPrompt(ctx context.Context, options []alrsh.Package, verb string, interactive bool) (alrsh.Package, error) {
 	if !interactive {
 		return options[0], nil
 	}
@@ -138,7 +138,7 @@ func PkgPrompt(ctx context.Context, options []db.Package, verb string, interacti
 	var choice int
 	err := survey.AskOne(prompt, &choice)
 	if err != nil {
-		return db.Package{}, err
+		return alrsh.Package{}, err
 	}
 
 	return options[choice], nil

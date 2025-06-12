@@ -22,11 +22,11 @@ package repos
 import (
 	"context"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
-func (rs *Repos) FindPkgs(ctx context.Context, pkgs []string) (map[string][]db.Package, []string, error) {
-	found := map[string][]db.Package{}
+func (rs *Repos) FindPkgs(ctx context.Context, pkgs []string) (map[string][]alrsh.Package, []string, error) {
+	found := map[string][]alrsh.Package{}
 	notFound := []string(nil)
 
 	for _, pkgName := range pkgs {

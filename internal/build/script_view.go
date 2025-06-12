@@ -34,7 +34,7 @@ type ScriptViewer struct {
 func (s *ScriptViewer) ViewScript(
 	ctx context.Context,
 	input *BuildInput,
-	a *alrsh.ALRSh,
+	a *alrsh.ScriptFile,
 	basePkg string,
 ) error {
 	return cliutils.PromptViewScript(

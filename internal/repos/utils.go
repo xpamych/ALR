@@ -18,12 +18,9 @@ package repos
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"path/filepath"
-	"reflect"
-	"strings"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -34,9 +31,7 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/parser"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
@@ -63,149 +58,19 @@ func parseScript(
 	syntaxParser *syntax.Parser,
 	runner *interp.Runner,
 	r io.ReadCloser,
-) ([]*db.Package, error) {
-	fl, err := syntaxParser.Parse(r, "alr.sh")
+) ([]*alrsh.Package, error) {
+	f, err := alrsh.ReadFromIOReader(r, "/tmp")
 	if err != nil {
 		return nil, err
 	}
-
-	runner.Reset()
-	err = runner.Run(ctx, fl)
+	_, dbPkgs, err := f.ParseBuildVars(ctx, &distro.OSRelease{}, []string{})
 	if err != nil {
 		return nil, err
 	}
-
-	d := decoder.New(&distro.OSRelease{}, runner)
-	d.Overrides = false
-	d.LikeDistros = false
-
-	pkgNames, err := parser.ParseNames(d)
-	if err != nil {
-		return nil, fmt.Errorf("failed parsing package names: %w", err)
+	for _, pkg := range dbPkgs {
+		pkg.Repository = repo.Name
 	}
-
-	if len(pkgNames.Names) == 0 {
-		return nil, errors.New("package name is missing")
-	}
-
-	var dbPkgs []*db.Package
-
-	if len(pkgNames.Names) > 1 {
-		if pkgNames.BasePkgName == "" {
-			pkgNames.BasePkgName = pkgNames.Names[0]
-		}
-		for _, pkgName := range pkgNames.Names {
-			pkgInfo := PackageInfo{}
-			funcName := fmt.Sprintf("meta_%s", pkgName)
-			runner.Reset()
-			err = runner.Run(ctx, fl)
-			if err != nil {
-				return nil, err
-			}
-			meta, ok := d.GetFuncWithSubshell(funcName)
-			if !ok {
-				return nil, fmt.Errorf("func %s is missing", funcName)
-			}
-			r, err := meta(ctx)
-			if err != nil {
-				return nil, err
-			}
-			d := decoder.New(&distro.OSRelease{}, r)
-			d.Overrides = false
-			d.LikeDistros = false
-			err = d.DecodeVars(&pkgInfo)
-			if err != nil {
-				return nil, err
-			}
-			pkg := pkgInfo.ToPackage(repo.Name)
-			resolveOverrides(r, pkg)
-			pkg.Name = pkgName
-			pkg.BasePkgName = pkgNames.BasePkgName
-			dbPkgs = append(dbPkgs, pkg)
-		}
-
-		return dbPkgs, nil
-	}
-
-	pkg := EmptyPackage(repo.Name)
-	err = d.DecodeVars(pkg)
-	if err != nil {
-		return nil, err
-	}
-	resolveOverrides(runner, pkg)
-	dbPkgs = append(dbPkgs, pkg)
-
 	return dbPkgs, nil
-}
-
-type PackageInfo struct {
-	Version       string   `sh:"version,required"`
-	Release       int      `sh:"release,required"`
-	Epoch         uint     `sh:"epoch"`
-	Architectures []string `sh:"architectures"`
-	Licenses      []string `sh:"license"`
-	Provides      []string `sh:"provides"`
-	Conflicts     []string `sh:"conflicts"`
-	Replaces      []string `sh:"replaces"`
-}
-
-func (inf *PackageInfo) ToPackage(repoName string) *db.Package {
-	pkg := EmptyPackage(repoName)
-	pkg.Version = inf.Version
-	pkg.Release = inf.Release
-	pkg.Epoch = inf.Epoch
-	pkg.Architectures = inf.Architectures
-	pkg.Licenses = inf.Licenses
-	pkg.Provides = inf.Provides
-	pkg.Conflicts = inf.Conflicts
-	pkg.Replaces = inf.Replaces
-	return pkg
-}
-
-func EmptyPackage(repoName string) *db.Package {
-	return &db.Package{
-		Group:        map[string]string{},
-		Summary:      map[string]string{},
-		Description:  map[string]string{},
-		Homepage:     map[string]string{},
-		Maintainer:   map[string]string{},
-		Depends:      map[string][]string{},
-		BuildDepends: map[string][]string{},
-		Repository:   repoName,
-	}
-}
-
-var overridable = map[string]string{
-	"deps":       "Depends",
-	"build_deps": "BuildDepends",
-	"desc":       "Description",
-	"homepage":   "Homepage",
-	"maintainer": "Maintainer",
-	"group":      "Group",
-	"summary":    "Summary",
-}
-
-func resolveOverrides(runner *interp.Runner, pkg *db.Package) {
-	pkgVal := reflect.ValueOf(pkg).Elem()
-	for name, val := range runner.Vars {
-		for prefix, field := range overridable {
-			if strings.HasPrefix(name, prefix) {
-				override := strings.TrimPrefix(name, prefix)
-				override = strings.TrimPrefix(override, "_")
-
-				varVal := pkgVal.FieldByName(field)
-				varType := varVal.Type()
-
-				switch varType.Elem().String() {
-				case "[]string":
-					varVal.SetMapIndex(reflect.ValueOf(override), reflect.ValueOf(val.List))
-				case "string":
-					varVal.SetMapIndex(reflect.ValueOf(override), reflect.ValueOf(val.Str))
-				}
-				break
-			}
-		}
-	}
 }
 
 func getHeadReference(r *git.Repository) (plumbing.ReferenceName, error) {

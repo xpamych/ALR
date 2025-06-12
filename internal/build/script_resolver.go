@@ -20,7 +20,7 @@ import (
 	"context"
 	"path/filepath"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 type ScriptResolver struct {
@@ -34,7 +34,7 @@ type ScriptInfo struct {
 
 func (s *ScriptResolver) ResolveScript(
 	ctx context.Context,
-	pkg *db.Package,
+	pkg *alrsh.Package,
 ) *ScriptInfo {
 	var repository, script string
 

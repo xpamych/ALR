@@ -29,7 +29,6 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/logger"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
 
 var HandshakeConfig = plugin.HandshakeConfig{
@@ -51,13 +50,13 @@ type ScriptExecutorRPCServer struct {
 // ReadScript
 //
 
-func (s *ScriptExecutorRPC) ReadScript(ctx context.Context, scriptPath string) (*alrsh.ALRSh, error) {
-	var resp *alrsh.ALRSh
+func (s *ScriptExecutorRPC) ReadScript(ctx context.Context, scriptPath string) (*alrsh.ScriptFile, error) {
+	var resp *alrsh.ScriptFile
 	err := s.client.Call("Plugin.ReadScript", scriptPath, &resp)
 	return resp, err
 }
 
-func (s *ScriptExecutorRPCServer) ReadScript(scriptPath string, resp *alrsh.ALRSh) error {
+func (s *ScriptExecutorRPCServer) ReadScript(scriptPath string, resp *alrsh.ScriptFile) error {
 	file, err := s.Impl.ReadScript(context.Background(), scriptPath)
 	if err != nil {
 		return err
@@ -73,15 +72,15 @@ func (s *ScriptExecutorRPCServer) ReadScript(scriptPath string, resp *alrsh.ALRS
 
 type ExecuteFirstPassArgs struct {
 	Input *BuildInput
-	Sf    *alrsh.ALRSh
+	Sf    *alrsh.ScriptFile
 }
 
 type ExecuteFirstPassResp struct {
 	BasePkg        string
-	VarsOfPackages []*types.BuildVars
+	VarsOfPackages []*alrsh.Package
 }
 
-func (s *ScriptExecutorRPC) ExecuteFirstPass(ctx context.Context, input *BuildInput, sf *alrsh.ALRSh) (string, []*types.BuildVars, error) {
+func (s *ScriptExecutorRPC) ExecuteFirstPass(ctx context.Context, input *BuildInput, sf *alrsh.ScriptFile) (string, []*alrsh.Package, error) {
 	var resp *ExecuteFirstPassResp
 	err := s.client.Call("Plugin.ExecuteFirstPass", &ExecuteFirstPassArgs{
 		Input: input,
@@ -149,8 +148,8 @@ func (s *ScriptExecutorRPCServer) PrepareDirs(args *PrepareDirsArgs, reply *stru
 
 type ExecuteSecondPassArgs struct {
 	Input          *BuildInput
-	Sf             *alrsh.ALRSh
-	VarsOfPackages []*types.BuildVars
+	Sf             *alrsh.ScriptFile
+	VarsOfPackages []*alrsh.Package
 	RepoDeps       []string
 	BuiltDeps      []*BuiltDep
 	BasePkg        string
@@ -159,8 +158,8 @@ type ExecuteSecondPassArgs struct {
 func (s *ScriptExecutorRPC) ExecuteSecondPass(
 	ctx context.Context,
 	input *BuildInput,
-	sf *alrsh.ALRSh,
-	varsOfPackages []*types.BuildVars,
+	sf *alrsh.ScriptFile,
+	varsOfPackages []*alrsh.Package,
 	repoDeps []string,
 	builtDeps []*BuiltDep,
 	basePkg string,

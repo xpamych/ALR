@@ -40,6 +40,7 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
@@ -59,7 +60,7 @@ func prepareDirs(dirs types.Directories) error {
 
 // Функция buildContents создает секцию содержимого пакета, которая содержит файлы,
 // которые будут включены в конечный пакет.
-func buildContents(vars *types.BuildVars, dirs types.Directories, preferedContents *[]string) ([]*files.Content, error) {
+func buildContents(vars *alrsh.Package, dirs types.Directories, preferedContents *[]string) ([]*files.Content, error) {
 	contents := []*files.Content{}
 
 	processPath := func(path, trimmed string, prefered bool) error {
@@ -122,7 +123,7 @@ func buildContents(vars *types.BuildVars, dirs types.Directories, preferedConten
 			},
 		}
 
-		if slices.Contains(vars.Backup, trimmed) {
+		if slices.Contains(vars.Backup.Resolved(), trimmed) {
 			fileContent.Type = "config|noreplace"
 		}
 
@@ -155,7 +156,7 @@ func buildContents(vars *types.BuildVars, dirs types.Directories, preferedConten
 
 var RegexpALRPackageName = regexp.MustCompile(`^(?P<package>[^+]+)\+alr-(?P<repo>.+)$`)
 
-func getBasePkgInfo(vars *types.BuildVars, input interface {
+func getBasePkgInfo(vars *alrsh.Package, input interface {
 	RepositoryProvider
 	OsInfoProvider
 },
@@ -211,39 +212,39 @@ func createBuildEnvVars(info *distro.OSRelease, dirs types.Directories) []string
 }
 
 // Функция setScripts добавляет скрипты-перехватчики к метаданным пакета.
-func setScripts(vars *types.BuildVars, info *nfpm.Info, scriptDir string) {
-	if vars.Scripts.PreInstall != "" {
-		info.Scripts.PreInstall = filepath.Join(scriptDir, vars.Scripts.PreInstall)
+func setScripts(vars *alrsh.Package, info *nfpm.Info, scriptDir string) {
+	if vars.Scripts.Resolved().PreInstall != "" {
+		info.Scripts.PreInstall = filepath.Join(scriptDir, vars.Scripts.Resolved().PreInstall)
 	}
 
-	if vars.Scripts.PostInstall != "" {
-		info.Scripts.PostInstall = filepath.Join(scriptDir, vars.Scripts.PostInstall)
+	if vars.Scripts.Resolved().PostInstall != "" {
+		info.Scripts.PostInstall = filepath.Join(scriptDir, vars.Scripts.Resolved().PostInstall)
 	}
 
-	if vars.Scripts.PreRemove != "" {
-		info.Scripts.PreRemove = filepath.Join(scriptDir, vars.Scripts.PreRemove)
+	if vars.Scripts.Resolved().PreRemove != "" {
+		info.Scripts.PreRemove = filepath.Join(scriptDir, vars.Scripts.Resolved().PreRemove)
 	}
 
-	if vars.Scripts.PostRemove != "" {
-		info.Scripts.PostRemove = filepath.Join(scriptDir, vars.Scripts.PostRemove)
+	if vars.Scripts.Resolved().PostRemove != "" {
+		info.Scripts.PostRemove = filepath.Join(scriptDir, vars.Scripts.Resolved().PostRemove)
 	}
 
-	if vars.Scripts.PreUpgrade != "" {
-		info.ArchLinux.Scripts.PreUpgrade = filepath.Join(scriptDir, vars.Scripts.PreUpgrade)
-		info.APK.Scripts.PreUpgrade = filepath.Join(scriptDir, vars.Scripts.PreUpgrade)
+	if vars.Scripts.Resolved().PreUpgrade != "" {
+		info.ArchLinux.Scripts.PreUpgrade = filepath.Join(scriptDir, vars.Scripts.Resolved().PreUpgrade)
+		info.APK.Scripts.PreUpgrade = filepath.Join(scriptDir, vars.Scripts.Resolved().PreUpgrade)
 	}
 
-	if vars.Scripts.PostUpgrade != "" {
-		info.ArchLinux.Scripts.PostUpgrade = filepath.Join(scriptDir, vars.Scripts.PostUpgrade)
-		info.APK.Scripts.PostUpgrade = filepath.Join(scriptDir, vars.Scripts.PostUpgrade)
+	if vars.Scripts.Resolved().PostUpgrade != "" {
+		info.ArchLinux.Scripts.PostUpgrade = filepath.Join(scriptDir, vars.Scripts.Resolved().PostUpgrade)
+		info.APK.Scripts.PostUpgrade = filepath.Join(scriptDir, vars.Scripts.Resolved().PostUpgrade)
 	}
 
-	if vars.Scripts.PreTrans != "" {
-		info.RPM.Scripts.PreTrans = filepath.Join(scriptDir, vars.Scripts.PreTrans)
+	if vars.Scripts.Resolved().PreTrans != "" {
+		info.RPM.Scripts.PreTrans = filepath.Join(scriptDir, vars.Scripts.Resolved().PreTrans)
 	}
 
-	if vars.Scripts.PostTrans != "" {
-		info.RPM.Scripts.PostTrans = filepath.Join(scriptDir, vars.Scripts.PostTrans)
+	if vars.Scripts.Resolved().PostTrans != "" {
+		info.RPM.Scripts.PostTrans = filepath.Join(scriptDir, vars.Scripts.Resolved().PostTrans)
 	}
 }
 

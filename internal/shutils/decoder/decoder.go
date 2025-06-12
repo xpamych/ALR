@@ -22,6 +22,8 @@ package decoder
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log/slog"
 	"reflect"
 	"strings"
 
@@ -52,7 +54,7 @@ type InvalidTypeError struct {
 }
 
 func (ite InvalidTypeError) Error() string {
-	return "variable '" + ite.name + "' is of type " + ite.vartype + ", but " + ite.exptype + " is expected"
+	return fmt.Sprintf("variable '%s' is of type %s, but %s is expected", ite.name, ite.vartype, ite.exptype)
 }
 
 // Decoder provides methods for decoding variable values
@@ -80,10 +82,58 @@ func (d *Decoder) DecodeVar(name string, val any) error {
 
 	dec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		WeaklyTypedInput: true,
-		Result:           val,
-		TagName:          "sh",
+		DecodeHook: mapstructure.DecodeHookFuncValue(func(from, to reflect.Value) (interface{}, error) {
+			if strings.Contains(to.Type().String(), "alrsh.OverridableField") {
+				if to.Kind() != reflect.Ptr && to.CanAddr() {
+					to = to.Addr()
+				}
+
+				names, err := overrides.Resolve(d.info, overrides.DefaultOpts.WithName(name))
+				if err != nil {
+					return nil, err
+				}
+
+				isNotSet := true
+
+				setMethod := to.MethodByName("Set")
+				setResolvedMethod := to.MethodByName("SetResolved")
+
+				for _, varName := range names {
+					val := d.getVarNoOverrides(varName)
+					if val == nil {
+						continue
+					}
+
+					t := setMethod.Type().In(1)
+
+					newVal := from
+
+					if !newVal.Type().AssignableTo(t) {
+						newVal = reflect.New(t)
+						err = d.DecodeVar(name, newVal.Interface())
+						if err != nil {
+							return nil, err
+						}
+						newVal = newVal.Elem()
+					}
+
+					if isNotSet {
+						setResolvedMethod.Call([]reflect.Value{newVal})
+					}
+
+					override := strings.TrimPrefix(strings.TrimPrefix(varName, name), "_")
+					setMethod.Call([]reflect.Value{reflect.ValueOf(override), newVal})
+				}
+
+				return to, nil
+			}
+			return from.Interface(), nil
+		}),
+		Result:  val,
+		TagName: "sh",
 	})
 	if err != nil {
+		slog.Warn("err", "err", err)
 		return err
 	}
 
@@ -243,19 +293,27 @@ func (d *Decoder) getVar(name string) *expand.Variable {
 	}
 
 	for _, varName := range names {
-		val, ok := d.Runner.Vars[varName]
-		if ok {
-			// Resolve nameref variables
-			_, resolved := val.Resolve(expand.FuncEnviron(func(s string) string {
-				if val, ok := d.Runner.Vars[s]; ok {
-					return val.String()
-				}
-				return ""
-			}))
-			val = resolved
-
-			return &val
+		res := d.getVarNoOverrides(varName)
+		if res != nil {
+			return res
 		}
+	}
+	return nil
+}
+
+func (d *Decoder) getVarNoOverrides(name string) *expand.Variable {
+	val, ok := d.Runner.Vars[name]
+	if ok {
+		// Resolve nameref variables
+		_, resolved := val.Resolve(expand.FuncEnviron(func(s string) string {
+			if val, ok := d.Runner.Vars[s]; ok {
+				return val.String()
+			}
+			return ""
+		}))
+		val = resolved
+
+		return &val
 	}
 	return nil
 }

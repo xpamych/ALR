@@ -31,8 +31,8 @@ func TestE2EGroupAndSummaryField(t *testing.T) {
 		RPM_SYSTEMS,
 		func(t *testing.T, r e2e.Runnable) {
 			defaultPrepare(t, r)
-			execShouldNoError(t, r, "sh", "-c", "alr search --name test-group-and-summary --format \"{{.Group}}\" | grep ^System/Base$")
-			execShouldNoError(t, r, "sh", "-c", "alr search --name test-group-and-summary --format \"{{.Summary}}\" | grep \"^Custom summary$\"")
+			execShouldNoError(t, r, "sh", "-c", "alr search --name test-group-and-summary --format \"{{.Group.Resolved}}\" | grep ^System/Base$")
+			execShouldNoError(t, r, "sh", "-c", "alr search --name test-group-and-summary --format \"{{.Summary.Resolved}}\" | grep \"^Custom summary$\"")
 		},
 	)
 }

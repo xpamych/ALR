@@ -32,6 +32,7 @@ import (
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
 
@@ -88,6 +89,7 @@ func InfoCmd() *cli.Command {
 				New(ctx).
 				WithConfig().
 				WithDB().
+				WithDistroInfo().
 				WithRepos().
 				Build()
 			if err != nil {
@@ -136,7 +138,8 @@ func InfoCmd() *cli.Command {
 
 			for _, pkg := range pkgs {
 				if !all {
-					err = yaml.NewEncoder(os.Stdout).Encode(overrides.ResolvePackage(&pkg, names))
+					alrsh.ResolvePackage(&pkg, names)
+					err = yaml.NewEncoder(os.Stdout).Encode(pkg)
 					if err != nil {
 						return cliutils.FormatCliExit(gotext.Get("Error encoding script variables"), err)
 					}

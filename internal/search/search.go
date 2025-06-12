@@ -22,12 +22,11 @@ package search
 import (
 	"context"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
-	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 type PackagesProvider interface {
-	GetPkgs(ctx context.Context, where string, args ...any) ([]db.Package, error)
+	GetPkgs(ctx context.Context, where string, args ...any) ([]alrsh.Package, error)
 }
 
 type Searcher struct {
@@ -43,7 +42,7 @@ func New(pp PackagesProvider) *Searcher {
 func (s *Searcher) Search(
 	ctx context.Context,
 	opts *SearchOptions,
-) ([]database.Package, error) {
+) ([]alrsh.Package, error) {
 	where, args := opts.WhereClause()
 	packages, err := s.pp.GetPkgs(ctx, where, args...)
 	return packages, err

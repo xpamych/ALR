@@ -123,8 +123,15 @@ func (b *AppBuilder) withRepos(enablePull, forcePull bool) *AppBuilder {
 
 	cfg := b.deps.Cfg
 	db := b.deps.DB
-	if cfg == nil || db == nil {
-		b.err = errors.New("config and db are required before initializing repos")
+	info := b.deps.Info
+
+	if info == nil {
+		b.WithDistroInfo()
+		info = b.deps.Info
+	}
+
+	if cfg == nil || db == nil || info == nil {
+		b.err = errors.New("config, db and info are required before initializing repos")
 		return b
 	}
 

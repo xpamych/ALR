@@ -37,6 +37,7 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/search"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
@@ -130,8 +131,8 @@ func UpgradeCmd() *cli.Command {
 	}
 }
 
-func mapUptatesInfoToPackages(updates []UpdateInfo) []database.Package {
-	var pkgs []database.Package
+func mapUptatesInfoToPackages(updates []UpdateInfo) []alrsh.Package {
+	var pkgs []alrsh.Package
 	for _, info := range updates {
 		pkgs = append(pkgs, *info.Package)
 	}
@@ -139,7 +140,7 @@ func mapUptatesInfoToPackages(updates []UpdateInfo) []database.Package {
 }
 
 type UpdateInfo struct {
-	Package *database.Package
+	Package *alrsh.Package
 
 	FromVersion string
 	ToVersion   string

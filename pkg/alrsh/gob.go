@@ -24,7 +24,7 @@ import (
 	"mvdan.cc/sh/v3/syntax/typedjson"
 )
 
-func (s *ALRSh) GobEncode() ([]byte, error) {
+func (s *ScriptFile) GobEncode() ([]byte, error) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	if err := enc.Encode(s.path); err != nil {
@@ -41,7 +41,7 @@ func (s *ALRSh) GobEncode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (s *ALRSh) GobDecode(data []byte) error {
+func (s *ScriptFile) GobDecode(data []byte) error {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
 	if err := dec.Decode(&s.path); err != nil {

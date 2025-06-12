@@ -27,6 +27,7 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
 
@@ -84,10 +85,10 @@ build_deps=('golang')
 				result, err := database.GetPkgs(ctx, "1 = 1")
 				assert.NoError(t, err)
 				pkgCount := 0
-				for _, dbPkg := range result {
-					assert.Equal(t, "foo", dbPkg.Name)
-					assert.Equal(t, map[string]string{"": "main desc"}, dbPkg.Description)
-					assert.Equal(t, map[string][]string{"": {"sudo"}}, dbPkg.Depends)
+				for _, pkg := range result {
+					assert.Equal(t, "foo", pkg.Name)
+					assert.Equal(t, alrsh.OverridableFromMap(map[string]string{"": "main desc"}), pkg.Description)
+					assert.Equal(t, alrsh.OverridableFromMap(map[string][]string{"": {"sudo"}}), pkg.Depends)
 					pkgCount++
 				}
 				assert.Equal(t, 1, pkgCount)
@@ -119,18 +120,18 @@ meta_buz() {
 				assert.NoError(t, err)
 
 				pkgCount := 0
-				for _, dbPkg := range result {
+				for _, pkg := range result {
 					if err != nil {
 						t.Errorf("Expected no error, got %s", err)
 					}
-					if dbPkg.Name == "bar" {
-						assert.Equal(t, map[string]string{"": "foo desc"}, dbPkg.Description)
-						assert.Equal(t, map[string][]string{"": {"sudo"}}, dbPkg.Depends)
+					if pkg.Name == "bar" {
+						assert.Equal(t, alrsh.OverridableFromMap(map[string]string{"": "foo desc"}), pkg.Description)
+						assert.Equal(t, alrsh.OverridableFromMap(map[string][]string{"": {"sudo"}}), pkg.Depends)
 					}
 
-					if dbPkg.Name == "buz" {
-						assert.Equal(t, map[string]string{"": "main desc"}, dbPkg.Description)
-						assert.Equal(t, map[string][]string{"": {"sudo", "doas"}}, dbPkg.Depends)
+					if pkg.Name == "buz" {
+						assert.Equal(t, alrsh.OverridableFromMap(map[string]string{"": "main desc"}), pkg.Description)
+						assert.Equal(t, alrsh.OverridableFromMap(map[string][]string{"": {"sudo", "doas"}}), pkg.Depends)
 					}
 					pkgCount++
 				}

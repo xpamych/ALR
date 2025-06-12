@@ -24,8 +24,8 @@ import (
 	"strings"
 	"testing"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/repos"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
 
@@ -89,31 +89,31 @@ func TestFindPkgsEmpty(t *testing.T) {
 		e.Db,
 	)
 
-	err := e.Db.InsertPackage(e.Ctx, db.Package{
+	err := e.Db.InsertPackage(e.Ctx, alrsh.Package{
 		Name:       "test1",
 		Repository: "default",
 		Version:    "0.0.1",
 		Release:    1,
-		Description: map[string]string{
+		Provides:   []string{""},
+		Description: alrsh.OverridableFromMap(map[string]string{
 			"en": "Test package 1",
 			"ru": "Проверочный пакет 1",
-		},
-		Provides: []string{""},
+		}),
 	})
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}
 
-	err = e.Db.InsertPackage(e.Ctx, db.Package{
+	err = e.Db.InsertPackage(e.Ctx, alrsh.Package{
 		Name:       "test2",
 		Repository: "default",
 		Version:    "0.0.1",
 		Release:    1,
-		Description: map[string]string{
+		Provides:   []string{"test"},
+		Description: alrsh.OverridableFromMap(map[string]string{
 			"en": "Test package 2",
 			"ru": "Проверочный пакет 2",
-		},
-		Provides: []string{"test"},
+		}),
 	})
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)

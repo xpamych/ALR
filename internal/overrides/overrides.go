@@ -21,7 +21,6 @@ package overrides
 
 import (
 	"fmt"
-	"reflect"
 	"regexp"
 	"strings"
 
@@ -29,7 +28,6 @@ import (
 	"golang.org/x/text/language"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
 
@@ -147,65 +145,6 @@ func (o *Opts) WithLanguageTags(langs []string) *Opts {
 	*out = *o
 
 	out.Languages = langs
-	return out
-}
-
-// ResolvedPackage is a ALR package after its overrides
-// have been resolved
-type ResolvedPackage struct {
-	Name          string   `sh:"name"`
-	Version       string   `sh:"version"`
-	Release       int      `sh:"release"`
-	Epoch         uint     `sh:"epoch"`
-	Group         string   `db:"group_name"`
-	Summary       string   `db:"summary"`
-	Description   string   `db:"description"`
-	Homepage      string   `db:"homepage"`
-	Maintainer    string   `db:"maintainer"`
-	Architectures []string `sh:"architectures"`
-	Licenses      []string `sh:"license"`
-	Provides      []string `sh:"provides"`
-	Conflicts     []string `sh:"conflicts"`
-	Replaces      []string `sh:"replaces"`
-	Depends       []string `sh:"deps"`
-	BuildDepends  []string `sh:"build_deps"`
-	OptDepends    []string `sh:"opt_deps"`
-}
-
-func ResolvePackage(pkg *db.Package, overrides []string) *ResolvedPackage {
-	out := &ResolvedPackage{}
-	outVal := reflect.ValueOf(out).Elem()
-	pkgVal := reflect.ValueOf(pkg).Elem()
-
-	for i := 0; i < outVal.NumField(); i++ {
-		fieldVal := outVal.Field(i)
-		fieldType := fieldVal.Type()
-		pkgFieldVal := pkgVal.FieldByName(outVal.Type().Field(i).Name)
-		pkgFieldType := pkgFieldVal.Type()
-
-		if strings.HasPrefix(pkgFieldType.String(), "db.JSON") {
-			pkgFieldVal = pkgFieldVal.FieldByName("Val")
-			pkgFieldType = pkgFieldVal.Type()
-		}
-
-		if pkgFieldType.AssignableTo(fieldType) {
-			fieldVal.Set(pkgFieldVal)
-			continue
-		}
-
-		if pkgFieldVal.Kind() == reflect.Map && pkgFieldType.Elem().AssignableTo(fieldType) {
-			for _, override := range overrides {
-				overrideVal := pkgFieldVal.MapIndex(reflect.ValueOf(override))
-				if !overrideVal.IsValid() {
-					continue
-				}
-
-				fieldVal.Set(overrideVal)
-				break
-			}
-		}
-	}
-
 	return out
 }
 

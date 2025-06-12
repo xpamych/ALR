@@ -24,13 +24,13 @@ import (
 	"context"
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"log/slog"
 
 	"github.com/leonelquinteros/gotext"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
@@ -158,7 +158,7 @@ func GetBuiltName(deps []*BuiltDep) []string {
 }
 
 type PackageFinder interface {
-	FindPkgs(ctx context.Context, pkgs []string) (map[string][]db.Package, []string, error)
+	FindPkgs(ctx context.Context, pkgs []string) (map[string][]alrsh.Package, []string, error)
 }
 
 type Config interface {
@@ -173,12 +173,12 @@ type FunctionsOutput struct {
 // EXECUTORS
 
 type ScriptResolverExecutor interface {
-	ResolveScript(ctx context.Context, pkg *db.Package) *ScriptInfo
+	ResolveScript(ctx context.Context, pkg *alrsh.Package) *ScriptInfo
 }
 
 type ScriptExecutor interface {
-	ReadScript(ctx context.Context, scriptPath string) (*alrsh.ALRSh, error)
-	ExecuteFirstPass(ctx context.Context, input *BuildInput, sf *alrsh.ALRSh) (string, []*types.BuildVars, error)
+	ReadScript(ctx context.Context, scriptPath string) (*alrsh.ScriptFile, error)
+	ExecuteFirstPass(ctx context.Context, input *BuildInput, sf *alrsh.ScriptFile) (string, []*alrsh.Package, error)
 	PrepareDirs(
 		ctx context.Context,
 		input *BuildInput,
@@ -187,8 +187,8 @@ type ScriptExecutor interface {
 	ExecuteSecondPass(
 		ctx context.Context,
 		input *BuildInput,
-		sf *alrsh.ALRSh,
-		varsOfPackages []*types.BuildVars,
+		sf *alrsh.ScriptFile,
+		varsOfPackages []*alrsh.Package,
 		repoDeps []string,
 		builtDeps []*BuiltDep,
 		basePkg string,
@@ -196,18 +196,18 @@ type ScriptExecutor interface {
 }
 
 type CacheExecutor interface {
-	CheckForBuiltPackage(ctx context.Context, input *BuildInput, vars *types.BuildVars) (string, bool, error)
+	CheckForBuiltPackage(ctx context.Context, input *BuildInput, vars *alrsh.Package) (string, bool, error)
 }
 
 type ScriptViewerExecutor interface {
-	ViewScript(ctx context.Context, input *BuildInput, sf *alrsh.ALRSh, basePkg string) error
+	ViewScript(ctx context.Context, input *BuildInput, sf *alrsh.ScriptFile, basePkg string) error
 }
 
 type CheckerExecutor interface {
 	PerformChecks(
 		ctx context.Context,
 		input *BuildInput,
-		vars *types.BuildVars,
+		vars *alrsh.Package,
 	) (bool, error)
 }
 
@@ -285,7 +285,7 @@ func (b *BuildArgs) PkgFormat() string {
 
 type BuildPackageFromDbArgs struct {
 	BuildArgs
-	Package  *db.Package
+	Package  *alrsh.Package
 	Packages []string
 }
 
@@ -334,19 +334,19 @@ func (b *Builder) BuildPackage(
 	slog.Debug("ReadScript")
 	sf, err := b.scriptExecutor.ReadScript(ctx, scriptPath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed reading script: %w", err)
 	}
 
 	slog.Debug("ExecuteFirstPass")
 	basePkg, varsOfPackages, err := b.scriptExecutor.ExecuteFirstPass(ctx, input, sf)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed ExecuteFirstPass: %w", err)
 	}
 
 	var builtDeps []*BuiltDep
 
 	if !input.opts.Clean {
-		var remainingVars []*types.BuildVars
+		var remainingVars []*alrsh.Package
 		for _, vars := range varsOfPackages {
 			builtPkgPath, ok, err := b.cacheExecutor.CheckForBuiltPackage(ctx, input, vars)
 			if err != nil {
@@ -367,6 +367,7 @@ func (b *Builder) BuildPackage(
 	}
 
 	slog.Debug("ViewScript")
+	slog.Debug("", "varsOfPackages", varsOfPackages)
 	err = b.scriptViewerExecutor.ViewScript(ctx, input, sf, basePkg)
 	if err != nil {
 		return nil, err
@@ -390,11 +391,11 @@ func (b *Builder) BuildPackage(
 	sources := []string{}
 	checksums := []string{}
 	for _, vars := range varsOfPackages {
-		buildDepends = append(buildDepends, vars.BuildDepends...)
-		optDepends = append(optDepends, vars.OptDepends...)
-		depends = append(depends, vars.Depends...)
-		sources = append(sources, vars.Sources...)
-		checksums = append(checksums, vars.Checksums...)
+		buildDepends = append(buildDepends, vars.BuildDepends.Resolved()...)
+		optDepends = append(optDepends, vars.OptDepends.Resolved()...)
+		depends = append(depends, vars.Depends.Resolved()...)
+		sources = append(sources, vars.Sources.Resolved()...)
+		checksums = append(checksums, vars.Checksums.Resolved()...)
 	}
 	buildDepends = removeDuplicates(buildDepends)
 	optDepends = removeDuplicates(optDepends)
@@ -481,7 +482,7 @@ func (b *Builder) BuildPackage(
 
 type InstallPkgsArgs struct {
 	BuildArgs
-	AlrPkgs    []db.Package
+	AlrPkgs    []alrsh.Package
 	NativePkgs []string
 }
 
@@ -492,7 +493,7 @@ func (b *Builder) InstallALRPackages(
 		BuildOptsProvider
 		PkgFormatProvider
 	},
-	alrPkgs []db.Package,
+	alrPkgs []alrsh.Package,
 ) error {
 	for _, pkg := range alrPkgs {
 		res, err := b.BuildPackageFromDb(
@@ -539,7 +540,7 @@ func (b *Builder) BuildALRDeps(
 
 		found, notFound, err := b.repos.FindPkgs(ctx, depends) // Поиск зависимостей
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("failed FindPkgs: %w", err)
 		}
 		repoDeps = notFound
 
@@ -551,7 +552,7 @@ func (b *Builder) BuildALRDeps(
 			input.BuildOpts().Interactive,
 		)
 		type item struct {
-			pkg      *db.Package
+			pkg      *alrsh.Package
 			packages []string
 		}
 		pkgsMap := make(map[string]*item)
@@ -586,7 +587,7 @@ func (b *Builder) BuildALRDeps(
 				},
 			)
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, fmt.Errorf("failed build package from db: %w", err)
 			}
 
 			buildDeps = append(buildDeps, res...)

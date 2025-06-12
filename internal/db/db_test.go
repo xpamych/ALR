@@ -25,8 +25,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 type TestALRConfig struct{}
@@ -43,35 +46,38 @@ func prepareDb() *db.Database {
 	return database
 }
 
-var testPkg = db.Package{
+var testPkg = alrsh.Package{
 	Name:    "test",
 	Version: "0.0.1",
 	Release: 1,
 	Epoch:   2,
-	Description: map[string]string{
+	Description: alrsh.OverridableFromMap(map[string]string{
 		"en": "Test package",
 		"ru": "Проверочный пакет",
-	},
-	Homepage: map[string]string{
+	}),
+	Homepage: alrsh.OverridableFromMap(map[string]string{
 		"en": "https://gitea.plemya-x.ru/xpamych/ALR",
-	},
-	Maintainer: map[string]string{
+	}),
+	Maintainer: alrsh.OverridableFromMap(map[string]string{
 		"en": "Evgeniy Khramov <xpamych@yandex.ru>",
 		"ru": "Евгений Храмов <xpamych@yandex.ru>",
-	},
+	}),
 	Architectures: []string{"arm64", "amd64"},
 	Licenses:      []string{"GPL-3.0-or-later"},
 	Provides:      []string{"test"},
 	Conflicts:     []string{"test"},
 	Replaces:      []string{"test-old"},
-	Depends: map[string][]string{
+	Depends: alrsh.OverridableFromMap(map[string][]string{
 		"": {"sudo"},
-	},
-	BuildDepends: map[string][]string{
+	}),
+	BuildDepends: alrsh.OverridableFromMap(map[string][]string{
 		"":     {"golang"},
 		"arch": {"go"},
-	},
+	}),
 	Repository: "default",
+	Summary:    alrsh.OverridableFromMap(map[string]string{}),
+	Group:      alrsh.OverridableFromMap(map[string]string{}),
+	OptDepends: alrsh.OverridableFromMap(map[string][]string{}),
 }
 
 func TestInit(t *testing.T) {
@@ -106,9 +112,7 @@ func TestInsertPackage(t *testing.T) {
 		t.Fatalf("Expected 1 package, got %d", len(pkgs))
 	}
 
-	if !reflect.DeepEqual(testPkg, pkgs[0]) {
-		t.Errorf("Expected test package to be the same as database package")
-	}
+	assert.Equal(t, testPkg, pkgs[0])
 }
 
 func TestGetPkgs(t *testing.T) {

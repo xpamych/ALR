@@ -18,6 +18,7 @@ package alrsh
 
 import (
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 
@@ -30,23 +31,27 @@ func (fs *localFs) Open(name string) (fs.File, error) {
 	return os.Open(name)
 }
 
-func ReadFromFS(fsys fs.FS, script string) (*ALRSh, error) {
+func ReadFromIOReader(r io.Reader, script string) (*ScriptFile, error) {
+	file, err := syntax.NewParser().Parse(r, "alr.sh")
+	if err != nil {
+		return nil, err
+	}
+	return &ScriptFile{
+		file: file,
+		path: script,
+	}, nil
+}
+
+func ReadFromFS(fsys fs.FS, script string) (*ScriptFile, error) {
 	fl, err := fsys.Open(script)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open alr.sh: %w", err)
 	}
 	defer fl.Close()
 
-	file, err := syntax.NewParser().Parse(fl, "alr.sh")
-	if err != nil {
-		return nil, err
-	}
-	return &ALRSh{
-		file: file,
-		path: script,
-	}, nil
+	return ReadFromIOReader(fl, script)
 }
 
-func ReadFromLocal(script string) (*ALRSh, error) {
+func ReadFromLocal(script string) (*ScriptFile, error) {
 	return ReadFromFS(&localFs{}, script)
 }

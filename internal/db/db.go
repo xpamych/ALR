@@ -28,31 +28,10 @@ import (
 	"xorm.io/xorm"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 const CurrentVersion = 5
-
-type Package struct {
-	BasePkgName   string              `sh:"basepkg_name" xorm:"notnull 'basepkg_name'"`
-	Name          string              `sh:"name,required" xorm:"notnull unique(name_repo) 'name'"`
-	Version       string              `sh:"version,required" xorm:"notnull 'version'"`
-	Release       int                 `sh:"release" xorm:"notnull 'release'"`
-	Epoch         uint                `sh:"epoch" xorm:"'epoch'"`
-	Summary       map[string]string   `xorm:"json 'summary'"`
-	Description   map[string]string   `xorm:"json 'description'"`
-	Group         map[string]string   `xorm:"json 'group_name'"`
-	Homepage      map[string]string   `xorm:"json 'homepage'"`
-	Maintainer    map[string]string   `xorm:"json 'maintainer'"`
-	Architectures []string            `sh:"architectures" xorm:"json 'architectures'"`
-	Licenses      []string            `sh:"license" xorm:"json 'licenses'"`
-	Provides      []string            `sh:"provides" xorm:"json 'provides'"`
-	Conflicts     []string            `sh:"conflicts" xorm:"json 'conflicts'"`
-	Replaces      []string            `sh:"replaces" xorm:"json 'replaces'"`
-	Depends       map[string][]string `xorm:"json 'depends'"`
-	BuildDepends  map[string][]string `xorm:"json 'builddepends'"`
-	OptDepends    map[string][]string `xorm:"json 'optdepends'"`
-	Repository    string              `xorm:"notnull unique(name_repo) 'repository'"`
-}
 
 type Version struct {
 	Version int `xorm:"'version'"`
@@ -76,6 +55,8 @@ func New(config Config) *Database {
 func (d *Database) Connect() error {
 	dsn := d.config.GetPaths().DBPath
 	engine, err := xorm.NewEngine("sqlite", dsn)
+	// engine.SetLogLevel(log.LOG_DEBUG)
+	// engine.ShowSQL(true)
 	if err != nil {
 		return err
 	}
@@ -87,7 +68,7 @@ func (d *Database) Init(ctx context.Context) error {
 	if err := d.Connect(); err != nil {
 		return err
 	}
-	if err := d.engine.Sync2(new(Package), new(Version)); err != nil {
+	if err := d.engine.Sync2(new(alrsh.Package), new(Version)); err != nil {
 		return err
 	}
 	ver, ok := d.GetVersion(ctx)
@@ -119,10 +100,10 @@ func (d *Database) addVersion(ver int) error {
 }
 
 func (d *Database) reset() error {
-	return d.engine.DropTables(new(Package), new(Version))
+	return d.engine.DropTables(new(alrsh.Package), new(Version))
 }
 
-func (d *Database) InsertPackage(ctx context.Context, pkg Package) error {
+func (d *Database) InsertPackage(ctx context.Context, pkg alrsh.Package) error {
 	session := d.engine.Context(ctx)
 
 	affected, err := session.Where("name = ? AND repository = ?", pkg.Name, pkg.Repository).Update(&pkg)
@@ -140,14 +121,14 @@ func (d *Database) InsertPackage(ctx context.Context, pkg Package) error {
 	return nil
 }
 
-func (d *Database) GetPkgs(_ context.Context, where string, args ...any) ([]Package, error) {
-	var pkgs []Package
+func (d *Database) GetPkgs(_ context.Context, where string, args ...any) ([]alrsh.Package, error) {
+	var pkgs []alrsh.Package
 	err := d.engine.Where(where, args...).Find(&pkgs)
 	return pkgs, err
 }
 
-func (d *Database) GetPkg(where string, args ...any) (*Package, error) {
-	var pkg Package
+func (d *Database) GetPkg(where string, args ...any) (*alrsh.Package, error) {
+	var pkg alrsh.Package
 	has, err := d.engine.Where(where, args...).Get(&pkg)
 	if err != nil || !has {
 		return nil, err
@@ -156,12 +137,12 @@ func (d *Database) GetPkg(where string, args ...any) (*Package, error) {
 }
 
 func (d *Database) DeletePkgs(_ context.Context, where string, args ...any) error {
-	_, err := d.engine.Where(where, args...).Delete(&Package{})
+	_, err := d.engine.Where(where, args...).Delete(&alrsh.Package{})
 	return err
 }
 
 func (d *Database) IsEmpty() bool {
-	count, err := d.engine.Count(new(Package))
+	count, err := d.engine.Count(new(alrsh.Package))
 	return err != nil || count == 0
 }
 

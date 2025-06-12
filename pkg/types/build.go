@@ -24,49 +24,6 @@ type BuildOpts struct {
 	Interactive bool
 }
 
-type BuildVarsPre struct {
-	Version          string   `sh:"version,required"`
-	Release          int      `sh:"release,required"`
-	Epoch            uint     `sh:"epoch"`
-	Summary          string   `sh:"summary"`
-	Description      string   `sh:"desc"`
-	Group            string   `sh:"group"`
-	Homepage         string   `sh:"homepage"`
-	Maintainer       string   `sh:"maintainer"`
-	Architectures    []string `sh:"architectures"`
-	Licenses         []string `sh:"license"`
-	Provides         []string `sh:"provides"`
-	Conflicts        []string `sh:"conflicts"`
-	Depends          []string `sh:"deps"`
-	BuildDepends     []string `sh:"build_deps"`
-	OptDepends       []string `sh:"opt_deps"`
-	Replaces         []string `sh:"replaces"`
-	Sources          []string `sh:"sources"`
-	Checksums        []string `sh:"checksums"`
-	Backup           []string `sh:"backup"`
-	Scripts          Scripts  `sh:"scripts"`
-	AutoReq          []string `sh:"auto_req"`
-	AutoProv         []string `sh:"auto_prov"`
-	AutoReqSkipList  []string `sh:"auto_req_skiplist"`
-	AutoProvSkipList []string `sh:"auto_prov_skiplist"`
-}
-
-func (bv *BuildVarsPre) ToBuildVars() BuildVars {
-	return BuildVars{
-		Name:         "",
-		Base:         "",
-		BuildVarsPre: *bv,
-	}
-}
-
-// BuildVars represents the script variables required
-// to build a package
-type BuildVars struct {
-	Name string `sh:"name,required"`
-	Base string
-	BuildVarsPre
-}
-
 type Scripts struct {
 	PreInstall  string `sh:"preinstall"`
 	PostInstall string `sh:"postinstall"`

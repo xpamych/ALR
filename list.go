@@ -32,9 +32,9 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/build"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
-	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 func ListCmd() *cli.Command {
@@ -69,9 +69,9 @@ func ListCmd() *cli.Command {
 				WithConfig().
 				WithDB().
 				WithManager().
+				WithDistroInfo().
 				// autoPull only
 				WithRepos().
-				WithDistroInfo().
 				Build()
 			if err != nil {
 				return err
@@ -159,7 +159,7 @@ func ListCmd() *cli.Command {
 				}
 
 				type packageInfo struct {
-					Package *database.Package
+					Package *alrsh.Package
 					Version string
 				}
 

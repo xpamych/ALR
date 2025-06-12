@@ -121,35 +121,35 @@ msgstr "Такой вспомогательной команды нет"
 msgid "Error parsing os-release file"
 msgstr "Ошибка при разборе файла выпуска операционной системы"
 
-#: info.go:41
+#: info.go:42
 msgid "Print information about a package"
 msgstr "Отобразить информацию о пакете"
 
-#: info.go:46
+#: info.go:47
 msgid "Show all information, not just for the current distro"
 msgstr "Показывать всю информацию, не только для текущего дистрибутива"
 
-#: info.go:67
+#: info.go:68
 msgid "Error getting packages"
 msgstr "Ошибка при получении пакетов"
 
-#: info.go:82
+#: info.go:83
 msgid "Command info expected at least 1 argument, got %d"
 msgstr "Для команды info ожидался хотя бы 1 аргумент, получено %d"
 
-#: info.go:102
+#: info.go:104
 msgid "Error finding packages"
 msgstr "Ошибка при поиске пакетов"
 
-#: info.go:116
+#: info.go:118
 msgid "Can't detect system language"
 msgstr "Ошибка при определении языка системы"
 
-#: info.go:133
+#: info.go:135
 msgid "Error resolving overrides"
 msgstr "Ошибка устранения переорпеделений"
 
-#: info.go:141 info.go:146
+#: info.go:144 info.go:149
 msgid "Error encoding script variables"
 msgstr "Ошибка кодирования переменных скрита"
 
@@ -181,19 +181,19 @@ msgstr "Для команды remove ожидался хотя бы 1 аргум
 msgid "Error removing packages"
 msgstr "Ошибка при удалении пакетов"
 
-#: internal/build/build.go:375
+#: internal/build/build.go:376
 msgid "Building package"
 msgstr "Сборка пакета"
 
-#: internal/build/build.go:404
+#: internal/build/build.go:405
 msgid "The checksums array must be the same length as sources"
 msgstr "Массив контрольных сумм должен быть той же длины, что и источники"
 
-#: internal/build/build.go:446
+#: internal/build/build.go:447
 msgid "Downloading sources"
 msgstr "Скачивание источников"
 
-#: internal/build/build.go:538
+#: internal/build/build.go:539
 msgid "Installing dependencies"
 msgstr "Установка зависимостей"
 
@@ -235,15 +235,15 @@ msgstr ""
 msgid "Building package metadata"
 msgstr "Сборка метаданных пакета"
 
-#: internal/build/script_executor.go:275
+#: internal/build/script_executor.go:276
 msgid "Executing prepare()"
 msgstr "Выполнение prepare()"
 
-#: internal/build/script_executor.go:284
+#: internal/build/script_executor.go:285
 msgid "Executing build()"
 msgstr "Выполнение build()"
 
-#: internal/build/script_executor.go:313 internal/build/script_executor.go:333
+#: internal/build/script_executor.go:314 internal/build/script_executor.go:334
 msgid "Executing %s()"
 msgstr "Выполнение %s()"
 
@@ -255,15 +255,15 @@ msgstr "Ошибка при загрузке"
 msgid "Error initialization database"
 msgstr "Ошибка инициализации базы данных"
 
-#: internal/cliutils/app_builder/builder.go:135
+#: internal/cliutils/app_builder/builder.go:142
 msgid "Error pulling repositories"
 msgstr "Ошибка при извлечении репозиториев"
 
-#: internal/cliutils/app_builder/builder.go:152
+#: internal/cliutils/app_builder/builder.go:159
 msgid "Error parsing os release"
 msgstr "Ошибка при разборе файла выпуска операционной системы"
 
-#: internal/cliutils/app_builder/builder.go:165
+#: internal/cliutils/app_builder/builder.go:172
 msgid "Unable to detect a supported package manager on the system"
 msgstr "Не удалось обнаружить поддерживаемый менеджер пакетов в системе"
 
@@ -347,7 +347,7 @@ msgstr "КАТЕГОРИЯ"
 msgid "OPTIONS"
 msgstr "ПАРАМЕТРЫ"
 
-#: internal/cliutils/utils.go:69
+#: internal/cliutils/utils.go:72
 msgid ""
 "This command is deprecated and would be removed in the future, use \"%s\" "
 "instead!"
@@ -355,11 +355,11 @@ msgstr ""
 "Эта команда устарела и будет удалена в будущем, используйте вместо нее \"%s"
 "\"!"
 
-#: internal/db/db.go:95
+#: internal/db/db.go:76
 msgid "Database version mismatch; resetting"
 msgstr "Несоответствие версий базы данных; сброс настроек"
 
-#: internal/db/db.go:101
+#: internal/db/db.go:82
 msgid ""
 "Database version does not exist. Run alr fix if something isn't working."
 msgstr ""
@@ -557,15 +557,15 @@ msgstr "Иcкать по provides"
 msgid "Error while executing search"
 msgstr "Ошибка при выполнении поиска"
 
-#: upgrade.go:47
+#: upgrade.go:48
 msgid "Upgrade all installed packages"
 msgstr "Обновить все установленные пакеты"
 
-#: upgrade.go:105 upgrade.go:122
+#: upgrade.go:106 upgrade.go:123
 msgid "Error checking for updates"
 msgstr "Ошибка при проверке обновлений"
 
-#: upgrade.go:125
+#: upgrade.go:126
 msgid "There is nothing to do."
 msgstr "Здесь нечего делать."
 
