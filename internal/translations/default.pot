@@ -58,11 +58,11 @@ msgstr ""
 msgid "Done"
 msgstr ""
 
-#: fix.go:38
+#: fix.go:39
 msgid "Attempt to fix problems with ALR"
 msgstr ""
 
-#: fix.go:59
+#: fix.go:60
 msgid "Clearing cache directory"
 msgstr ""
 
@@ -74,15 +74,15 @@ msgstr ""
 msgid "Unable to read cache directory contents"
 msgstr ""
 
-#: fix.go:76
+#: fix.go:82
 msgid "Unable to remove cache item (%s)"
 msgstr ""
 
-#: fix.go:80
+#: fix.go:86
 msgid "Rebuilding cache"
 msgstr ""
 
-#: fix.go:84
+#: fix.go:90
 msgid "Unable to create new cache directory"
 msgstr ""
 
@@ -224,15 +224,15 @@ msgstr ""
 msgid "Building package metadata"
 msgstr ""
 
-#: internal/build/script_executor.go:276
+#: internal/build/script_executor.go:275
 msgid "Executing prepare()"
 msgstr ""
 
-#: internal/build/script_executor.go:285
+#: internal/build/script_executor.go:284
 msgid "Executing build()"
 msgstr ""
 
-#: internal/build/script_executor.go:314 internal/build/script_executor.go:334
+#: internal/build/script_executor.go:313 internal/build/script_executor.go:333
 msgid "Executing %s()"
 msgstr ""
 
@@ -336,7 +336,7 @@ msgstr ""
 msgid "OPTIONS"
 msgstr ""
 
-#: internal/cliutils/utils.go:72
+#: internal/cliutils/utils.go:69
 msgid ""
 "This command is deprecated and would be removed in the future, use \"%s\" "
 "instead!"

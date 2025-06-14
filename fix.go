@@ -20,6 +20,7 @@
 package main
 
 import (
+	"io/fs"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -57,7 +58,6 @@ func FixCmd() *cli.Command {
 			paths := cfg.GetPaths()
 
 			slog.Info(gotext.Get("Clearing cache directory"))
-			// Remove all nested directories of paths.CacheDir
 
 			dir, err := os.Open(paths.CacheDir)
 			if err != nil {
@@ -71,7 +71,13 @@ func FixCmd() *cli.Command {
 			}
 
 			for _, entry := range entries {
-				err = os.RemoveAll(filepath.Join(paths.CacheDir, entry))
+				fullPath := filepath.Join(paths.CacheDir, entry)
+
+				if err := makeWritableRecursive(fullPath); err != nil {
+					slog.Debug("Failed to make path writable", "path", fullPath, "error", err)
+				}
+
+				err = os.RemoveAll(fullPath)
 				if err != nil {
 					return cliutils.FormatCliExit(gotext.Get("Unable to remove cache item (%s)", entry), err)
 				}
@@ -100,4 +106,24 @@ func FixCmd() *cli.Command {
 			return nil
 		},
 	}
+}
+
+func makeWritableRecursive(path string) error {
+	return filepath.WalkDir(path, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
+
+		newMode := info.Mode() | 0o200
+		if d.IsDir() {
+			newMode |= 0o100
+		}
+
+		return os.Chmod(path, newMode)
+	})
 }
