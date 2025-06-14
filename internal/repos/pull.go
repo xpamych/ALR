@@ -277,7 +277,15 @@ func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git
 	for _, fp := range patch.FilePatches() {
 		from, to := fp.Files()
 
-		if !isValid(from, to) {
+		var isValidPath bool
+		if from != nil {
+			isValidPath = isValidScriptPath(from.Path())
+		}
+		if to != nil {
+			isValidPath = isValidPath || isValidScriptPath(to.Path())
+		}
+
+		if !isValidPath {
 			continue
 		}
 
@@ -316,55 +324,60 @@ func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git
 	parser := syntax.NewParser()
 
 	for _, action := range actions {
-		runner, err := rs.processRepoChangesRunner(repoDir, filepath.Dir(filepath.Join(repoDir, action.File)))
+		var scriptDir string
+		if filepath.Dir(action.File) == "." {
+			scriptDir = repoDir
+		} else {
+			scriptDir = filepath.Dir(filepath.Join(repoDir, action.File))
+		}
+
+		runner, err := rs.processRepoChangesRunner(repoDir, scriptDir)
 		if err != nil {
 			return fmt.Errorf("error creating process repo changes runner: %w", err)
 		}
 
 		switch action.Type {
 		case actionDelete:
-			if filepath.Base(action.File) != "alr.sh" {
-				continue
-			}
 			scriptFl, err := oldCommit.File(action.File)
 			if err != nil {
-				return nil
+				slog.Warn("Failed to get deleted file from old commit", "file", action.File, "error", err)
+				continue
 			}
 
 			r, err := scriptFl.Reader()
 			if err != nil {
-				return nil
+				slog.Warn("Failed to read deleted file", "file", action.File, "error", err)
+				continue
 			}
 
 			pkgs, err := parseScript(ctx, repo, parser, runner, r)
 			if err != nil {
-				return err
+				return fmt.Errorf("error parsing deleted script %s: %w", action.File, err)
 			}
 
 			for _, pkg := range pkgs {
 				err = rs.db.DeletePkgs(ctx, "name = ? AND repository = ?", pkg.Name, repo.Name)
 				if err != nil {
-					return err
+					return fmt.Errorf("error deleting package %s: %w", pkg.Name, err)
 				}
 			}
-		case actionUpdate:
-			if filepath.Base(action.File) != "alr.sh" {
-				action.File = filepath.Join(filepath.Dir(action.File), "alr.sh")
-			}
 
+		case actionUpdate:
 			scriptFl, err := newCommit.File(action.File)
 			if err != nil {
-				return nil
+				slog.Warn("Failed to get updated file from new commit", "file", action.File, "error", err)
+				continue
 			}
 
 			r, err := scriptFl.Reader()
 			if err != nil {
-				return nil
+				slog.Warn("Failed to read updated file", "file", action.File, "error", err)
+				continue
 			}
 
 			err = rs.updatePkg(ctx, repo, runner, r)
 			if err != nil {
-				return fmt.Errorf("error updatePkg: %w", err)
+				return fmt.Errorf("error updating package from %s: %w", action.File, err)
 			}
 		}
 	}
@@ -372,27 +385,68 @@ func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git
 	return nil
 }
 
+func isValidScriptPath(path string) bool {
+	if filepath.Base(path) != "alr.sh" {
+		return false
+	}
+
+	dir := filepath.Dir(path)
+	return dir == "." || !strings.Contains(strings.TrimPrefix(dir, "./"), "/")
+}
+
 func (rs *Repos) processRepoFull(ctx context.Context, repo types.Repo, repoDir string) error {
-	glob := filepath.Join(repoDir, "/*/alr.sh")
+	rootScript := filepath.Join(repoDir, "alr.sh")
+	if fi, err := os.Stat(rootScript); err == nil && !fi.IsDir() {
+		slog.Debug("Found root alr.sh, processing single-script repository", "repo", repo.Name)
+
+		runner, err := rs.processRepoChangesRunner(repoDir, repoDir)
+		if err != nil {
+			return fmt.Errorf("error creating runner for root alr.sh: %w", err)
+		}
+
+		scriptFl, err := os.Open(rootScript)
+		if err != nil {
+			return fmt.Errorf("error opening root alr.sh: %w", err)
+		}
+		defer scriptFl.Close()
+
+		err = rs.updatePkg(ctx, repo, runner, scriptFl)
+		if err != nil {
+			return fmt.Errorf("error processing root alr.sh: %w", err)
+		}
+
+		return nil
+	}
+
+	glob := filepath.Join(repoDir, "*/alr.sh")
 	matches, err := filepath.Glob(glob)
 	if err != nil {
-		return err
+		return fmt.Errorf("error globbing for alr.sh files: %w", err)
 	}
+
+	if len(matches) == 0 {
+		slog.Warn("No alr.sh files found in repository", "repo", repo.Name)
+		return nil
+	}
+
+	slog.Debug("Found multiple alr.sh files, processing multi-package repository",
+		"repo", repo.Name, "count", len(matches))
 
 	for _, match := range matches {
 		runner, err := rs.processRepoChangesRunner(repoDir, filepath.Dir(match))
 		if err != nil {
-			return err
+			return fmt.Errorf("error creating runner for %s: %w", match, err)
 		}
 
 		scriptFl, err := os.Open(match)
 		if err != nil {
-			return err
+			return fmt.Errorf("error opening %s: %w", match, err)
 		}
 
 		err = rs.updatePkg(ctx, repo, runner, scriptFl)
+		scriptFl.Close()
 		if err != nil {
-			return err
+			return fmt.Errorf("error processing %s: %w", match, err)
 		}
 	}
 

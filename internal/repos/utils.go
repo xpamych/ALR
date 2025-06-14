@@ -20,11 +20,9 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"path/filepath"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/format/diff"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/client"
 
@@ -35,22 +33,6 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
-
-// isValid makes sure the path of the file being updated is valid.
-// It checks to make sure the file is not within a nested directory
-// and that it is called alr.sh.
-func isValid(from, to diff.File) bool {
-	var path string
-	if from != nil {
-		path = from.Path()
-	}
-	if to != nil {
-		path = to.Path()
-	}
-
-	match, _ := filepath.Match("*/*.sh", path)
-	return match
-}
 
 func parseScript(
 	ctx context.Context,

@@ -18,6 +18,7 @@ package build
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
@@ -40,10 +41,21 @@ func (s *ScriptResolver) ResolveScript(
 
 	repodir := s.cfg.GetPaths().RepoDir
 	repository = pkg.Repository
-	if pkg.BasePkgName != "" {
-		script = filepath.Join(repodir, repository, pkg.BasePkgName, "alr.sh")
+
+	// First, we check if there is a root alr.sh in the repository
+	rootScriptPath := filepath.Join(repodir, repository, "alr.sh")
+	if _, err := os.Stat(rootScriptPath); err == nil {
+		// A repository with a single alr.sh at the root
+		script = rootScriptPath
 	} else {
-		script = filepath.Join(repodir, repository, pkg.Name, "alr.sh")
+		// Multi-package repository - we are looking for alr.sh in the subfolder
+		var scriptPath string
+		if pkg.BasePkgName != "" {
+			scriptPath = filepath.Join(repodir, repository, pkg.BasePkgName, "alr.sh")
+		} else {
+			scriptPath = filepath.Join(repodir, repository, pkg.Name, "alr.sh")
+		}
+		script = scriptPath
 	}
 
 	return &ScriptInfo{
