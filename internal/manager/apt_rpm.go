@@ -67,7 +67,7 @@ func (a *APTRpm) Sync(opts *Opts) error {
 
 func (a *APTRpm) Install(opts *Opts, pkgs ...string) error {
 	opts = ensureOpts(opts)
-	cmd := a.getCmd(opts, "apt-get", "install")
+	cmd := a.getCmd(opts, "apt-get", "install", "-o", "APT::Install::Virtual=true")
 	cmd.Args = append(cmd.Args, pkgs...)
 	setCmdEnv(cmd)
 	cmd.Stdout = cmd.Stderr
