@@ -154,6 +154,12 @@ func buildContents(vars *alrsh.Package, dirs types.Directories, preferedContents
 	return contents, nil
 }
 
+func normalizeContents(contents []*files.Content) {
+	for _, content := range contents {
+		content.Destination = filepath.Join("/", content.Destination)
+	}
+}
+
 var RegexpALRPackageName = regexp.MustCompile(`^(?P<package>[^+]+)\+alr-(?P<repo>.+)$`)
 
 func getBasePkgInfo(vars *alrsh.Package, input interface {

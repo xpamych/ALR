@@ -68,6 +68,9 @@ type Package struct {
 	AutoProv         OverridableField[[]string] `sh:"auto_prov" xorm:"-"`
 	AutoReqSkipList  OverridableField[[]string] `sh:"auto_req_skiplist" xorm:"-"`
 	AutoProvSkipList OverridableField[[]string] `sh:"auto_prov_skiplist" xorm:"-"`
+
+	FireJailed       OverridableField[bool]              `sh:"firejailed" xorm:"-"`
+	FireJailProfiles OverridableField[map[string]string] `sh:"firejail_profiles" xorm:"-"`
 }
 
 type Scripts struct {

@@ -248,6 +248,16 @@ func buildPkgMetadata(
 	if err != nil {
 		return nil, err
 	}
+
+	normalizeContents(contents)
+
+	if vars.FireJailed.Resolved() {
+		contents, err = applyFirejailIntegration(vars, dirs, contents)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	pkgInfo.Overridables.Contents = contents
 
 	if len(vars.AutoProv.Resolved()) == 1 && decoder.IsTruthy(vars.AutoProv.Resolved()[0]) {
