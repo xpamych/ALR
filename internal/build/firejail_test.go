@@ -138,7 +138,10 @@ func TestCreateFirejailedBinary(t *testing.T) {
 				os.MkdirAll(pkgDir, 0o755)
 				os.MkdirAll(scriptDir, 0o755)
 
-				srcBinary := filepath.Join(tmpDir, "test-binary")
+				binDir := filepath.Join(pkgDir, "usr", "bin")
+				os.MkdirAll(binDir, 0o755)
+
+				srcBinary := filepath.Join(binDir, "test-binary")
 				os.WriteFile(srcBinary, []byte("#!/bin/bash\necho test"), 0o755)
 
 				defaultProfile := filepath.Join(scriptDir, "default.profile")
@@ -154,7 +157,7 @@ func TestCreateFirejailedBinary(t *testing.T) {
 
 				content := &files.Content{
 					Source:      srcBinary,
-					Destination: "./usr/bin/test-binary",
+					Destination: "/usr/bin/test-binary",
 					Type:        "file",
 				}
 
@@ -172,7 +175,10 @@ func TestCreateFirejailedBinary(t *testing.T) {
 				os.MkdirAll(pkgDir, 0o755)
 				os.MkdirAll(scriptDir, 0o755)
 
-				srcBinary := filepath.Join(tmpDir, "special-binary")
+				binDir := filepath.Join(pkgDir, "usr", "bin")
+				os.MkdirAll(binDir, 0o755)
+
+				srcBinary := filepath.Join(binDir, "special-binary")
 				os.WriteFile(srcBinary, []byte("#!/bin/bash\necho special"), 0o755)
 
 				defaultProfile := filepath.Join(scriptDir, "default.profile")
@@ -191,7 +197,7 @@ func TestCreateFirejailedBinary(t *testing.T) {
 
 				content := &files.Content{
 					Source:      srcBinary,
-					Destination: "./usr/bin/special-binary",
+					Destination: "/usr/bin/special-binary",
 					Type:        "file",
 				}
 

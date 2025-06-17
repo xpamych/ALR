@@ -28,7 +28,6 @@ import (
 	"github.com/goreleaser/nfpm/v2/files"
 	"github.com/leonelquinteros/gotext"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/osutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
@@ -49,6 +48,92 @@ var binaryDirectories = []string{
 	"/usr/bin/",
 	"/bin/",
 	"/usr/local/bin/",
+}
+
+func moveWithSymlinkHandling(src, dst string) error {
+	srcInfo, err := os.Lstat(src)
+	if err != nil {
+		return fmt.Errorf("failed to get source info: %w", err)
+	}
+
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+		return fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
+	if srcInfo.Mode()&os.ModeSymlink != 0 {
+		return moveSymlink(src, dst)
+	}
+
+	if err := os.Rename(src, dst); err != nil {
+		return copyAndRemove(src, dst)
+	}
+
+	return nil
+}
+
+func moveSymlink(src, dst string) error {
+	target, err := os.Readlink(src)
+	if err != nil {
+		return fmt.Errorf("failed to read symlink: %w", err)
+	}
+
+	if err := os.Symlink(target, dst); err != nil {
+		return fmt.Errorf("failed to create symlink: %w", err)
+	}
+
+	if err := os.Remove(src); err != nil {
+		os.Remove(dst)
+		return fmt.Errorf("failed to remove original symlink: %w", err)
+	}
+
+	return nil
+}
+
+func copyAndRemove(src, dst string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("failed to open source: %w", err)
+	}
+	defer srcFile.Close()
+
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("failed to create destination: %w", err)
+	}
+	defer dstFile.Close()
+
+	if _, err := io.Copy(dstFile, srcFile); err != nil {
+		return fmt.Errorf("failed to copy content: %w", err)
+	}
+
+	srcInfo, err := srcFile.Stat()
+	if err != nil {
+		return fmt.Errorf("failed to get source stats: %w", err)
+	}
+
+	if err := dstFile.Chmod(srcInfo.Mode()); err != nil {
+		return fmt.Errorf("failed to set permissions: %w", err)
+	}
+
+	if err := os.Remove(src); err != nil {
+		return fmt.Errorf("failed to remove source: %w", err)
+	}
+
+	return nil
+}
+
+func moveFileWithErrorHandling(src, dst string) error {
+	err := moveWithSymlinkHandling(src, dst)
+	if err != nil {
+		if os.IsPermission(err) {
+			return fmt.Errorf("permission denied: %w", err)
+		}
+		if os.IsNotExist(err) {
+			return fmt.Errorf("source file does not exist: %w", err)
+		}
+		return fmt.Errorf("failed to move file: %w", err)
+	}
+	return nil
 }
 
 func applyFirejailIntegration(
@@ -143,12 +228,15 @@ func createFirejailedBinary(
 		return nil, err
 	}
 
-	if err := osutils.Move(content.Source, filepath.Join(dirs.PkgDir, origFilePath)); err != nil {
+	if err := moveFileWithErrorHandling(filepath.Join(dirs.PkgDir, content.Destination), filepath.Join(dirs.PkgDir, origFilePath)); err != nil {
 		return nil, fmt.Errorf("failed to move original binary: %w", err)
 	}
 
+	content.Type = "file"
+	content.Source = filepath.Join(dirs.PkgDir, content.Destination)
+
 	// Create wrapper script
-	if err := createWrapperScript(content.Source, origFilePath, dest); err != nil {
+	if err := createWrapperScript(filepath.Join(dirs.PkgDir, content.Destination), origFilePath, dest); err != nil {
 		return nil, fmt.Errorf("failed to create wrapper script: %w", err)
 	}
 

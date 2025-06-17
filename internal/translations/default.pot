@@ -220,7 +220,7 @@ msgstr ""
 msgid "AutoReq is not implemented for this package format, so it's skipped"
 msgstr ""
 
-#: internal/build/firejail.go:59
+#: internal/build/firejail.go:144
 msgid "Applying FireJail integration"
 msgstr ""
 
