@@ -65,6 +65,8 @@ func (a *HCLoggerAdapter) Log(level hclog.Level, msg string, args ...interface{}
 	var chLogLevel chLog.Level
 	if msg == "plugin process exited" ||
 		strings.HasPrefix(msg, "[ERR] plugin: stream copy 'stderr' error") ||
+		strings.HasPrefix(msg, "[WARN] error closing client during Kill") ||
+		strings.HasPrefix(msg, "[WARN] plugin failed to exit gracefully") ||
 		strings.HasPrefix(msg, "[DEBUG] plugin") {
 		chLogLevel = chLog.DebugLevel
 	} else {

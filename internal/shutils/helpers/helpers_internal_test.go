@@ -31,12 +31,18 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
 )
 
+type symlink struct {
+	linkPath   string
+	targetPath string
+}
+
 type testCase struct {
-	name           string
-	dirsToCreate   []string
-	filesToCreate  []string
-	expectedOutput []string
-	args           string
+	name             string
+	dirsToCreate     []string
+	filesToCreate    []string
+	expectedOutput   []string
+	symlinksToCreate []symlink
+	args             string
 }
 
 func TestFindFilesDoc(t *testing.T) {
@@ -202,6 +208,97 @@ func TestFindLang(t *testing.T) {
 			scriptContent := `
 shopt -s globstar
 files-find-lang ` + tc.args
+
+			script, err := syntax.NewParser().Parse(strings.NewReader(scriptContent), "")
+			assert.NoError(t, err)
+
+			err = runner.Run(context.Background(), script)
+			assert.NoError(t, err)
+
+			contents := strings.Fields(strings.TrimSpace(buf.String()))
+			assert.ElementsMatch(t, tc.expectedOutput, contents)
+		})
+	}
+}
+
+func TestFindFiles(t *testing.T) {
+	tests := []testCase{
+		{
+			name: "With file and dir symlinks",
+			dirsToCreate: []string{
+				"usr/share/locale/ru/LC_MESSAGES",
+				"usr/share/locale/tr/LC_MESSAGES",
+				"opt/app",
+				"opt/app/internal",
+			},
+			filesToCreate: []string{
+				"usr/share/locale/ru/LC_MESSAGES/yandex-disk.mo",
+				"usr/share/locale/ru/LC_MESSAGES/yandex-disk-indicator.mo",
+				"usr/share/locale/tr/LC_MESSAGES/yandex-disk.mo",
+				"opt/app/internal/test",
+			},
+			symlinksToCreate: []symlink{
+				{
+					linkPath:   "/opt/app/etc",
+					targetPath: "/etc",
+				},
+			},
+			expectedOutput: []string{
+				"./usr/share/locale/ru/LC_MESSAGES/yandex-disk.mo",
+				"./usr/share/locale/ru/LC_MESSAGES/yandex-disk-indicator.mo",
+				"./usr/share/locale/tr/LC_MESSAGES/yandex-disk.mo",
+				"./opt/app/etc",
+				"./opt/app/internal",
+				"./opt/app/internal/test",
+			},
+			args: "\"/usr/share/locale/*/LC_MESSAGES/*.mo\" \"/opt/app/**/*\"",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tempDir, err := os.MkdirTemp("", "test-files-find")
+			assert.NoError(t, err)
+			defer os.RemoveAll(tempDir)
+
+			for _, dir := range tc.dirsToCreate {
+				dirPath := filepath.Join(tempDir, dir)
+				err := os.MkdirAll(dirPath, 0o755)
+				assert.NoError(t, err)
+			}
+
+			for _, file := range tc.filesToCreate {
+				filePath := filepath.Join(tempDir, file)
+				err := os.WriteFile(filePath, []byte("test content"), 0o644)
+				assert.NoError(t, err)
+			}
+
+			for _, sl := range tc.symlinksToCreate {
+				linkFullPath := filepath.Join(tempDir, sl.linkPath)
+				targetFullPath := sl.targetPath
+
+				// make sure parent dir exists
+				err := os.MkdirAll(filepath.Dir(linkFullPath), 0o755)
+				assert.NoError(t, err)
+
+				err = os.Symlink(targetFullPath, linkFullPath)
+				assert.NoError(t, err)
+			}
+
+			helpers := handlers.ExecFuncs{
+				"files-find": filesFindCmd,
+			}
+			buf := &bytes.Buffer{}
+			runner, err := interp.New(
+				interp.Dir(tempDir),
+				interp.StdIO(os.Stdin, buf, os.Stderr),
+				interp.ExecHandler(helpers.ExecHandler(interp.DefaultExecHandler(1000))),
+			)
+			assert.NoError(t, err)
+
+			scriptContent := `
+shopt -s globstar
+files-find ` + tc.args
 
 			script, err := syntax.NewParser().Parse(strings.NewReader(scriptContent), "")
 			assert.NoError(t, err)

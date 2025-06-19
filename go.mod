@@ -9,6 +9,7 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/PuerkitoBio/purell v1.2.0
 	github.com/alecthomas/chroma/v2 v2.9.1
+	github.com/bmatcuk/doublestar/v4 v4.8.1
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.2.4
@@ -22,7 +23,6 @@ require (
 	github.com/hashicorp/go-hclog v0.14.1
 	github.com/hashicorp/go-plugin v1.6.3
 	github.com/jeandeaual/go-locale v0.0.0-20241217141322-fcc2cadd6f08
-	github.com/jmoiron/sqlx v1.3.5
 	github.com/leonelquinteros/gotext v1.7.0
 	github.com/mattn/go-isatty v0.0.20
 	github.com/mholt/archiver/v4 v4.0.0-alpha.8
