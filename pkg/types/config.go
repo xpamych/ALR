@@ -32,7 +32,8 @@ type Config struct {
 
 // Repo represents a ALR repo within a configuration file
 type Repo struct {
-	Name string `toml:"name"`
-	URL  string `toml:"url"`
-	Ref  string `toml:"ref"`
+	Name    string   `toml:"name"`
+	URL     string   `toml:"url"`
+	Ref     string   `toml:"ref"`
+	Mirrors []string `toml:"mirrors"`
 }

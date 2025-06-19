@@ -31,7 +31,6 @@ import (
 	"strings"
 
 	"github.com/go-git/go-billy/v5"
-	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
 	gitConfig "github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -69,157 +68,210 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 	}
 
 	for _, repo := range repos {
-		repoURL, err := url.Parse(repo.URL)
+		urls := []string{repo.URL}
+		urls = append(urls, repo.Mirrors...)
+
+		var lastErr error
+
+		for i, repoURL := range urls {
+			if i > 0 {
+				slog.Info(gotext.Get("Trying mirror"), "repo", repo.Name, "mirror", repoURL)
+			}
+
+			err := rs.pullRepoFromURL(ctx, repoURL, repo)
+			if err != nil {
+				lastErr = err
+				slog.Warn(gotext.Get("Failed to pull from URL"), "repo", repo.Name, "url", repoURL, "error", err)
+				continue
+			}
+
+			// Success
+			return nil
+		}
+
+		return fmt.Errorf("failed to pull repository %s from any URL: %w", repo.Name, lastErr)
+	}
+
+	return nil
+}
+
+func readGitRepo(repoDir, repoUrl string) (*git.Repository, bool, error) {
+	gitDir := filepath.Join(repoDir, ".git")
+	if fi, err := os.Stat(gitDir); err == nil && fi.IsDir() {
+		r, err := git.PlainOpen(repoDir)
+		if err == nil {
+			err = updateRemoteURL(r, repoUrl)
+			if err == nil {
+				_, err := r.Head()
+				if err == nil {
+					return r, false, nil
+				}
+
+				if errors.Is(err, plumbing.ErrReferenceNotFound) {
+					return r, true, nil
+				}
+
+				slog.Debug("error getting HEAD, reinitializing...", "err", err)
+			}
+		}
+
+		slog.Debug("error while reading repo, reinitializing...", "err", err)
+	}
+
+	if err := os.RemoveAll(repoDir); err != nil {
+		return nil, false, fmt.Errorf("failed to remove repo directory: %w", err)
+	}
+
+	if err := os.MkdirAll(repoDir, 0o755); err != nil {
+		return nil, false, fmt.Errorf("failed to create repo directory: %w", err)
+	}
+
+	r, err := git.PlainInit(repoDir, false)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to initialize git repo: %w", err)
+	}
+
+	_, err = r.CreateRemote(&gitConfig.RemoteConfig{
+		Name: git.DefaultRemoteName,
+		URLs: []string{repoUrl},
+	})
+	if err != nil {
+		return nil, false, err
+	}
+
+	return r, true, nil
+}
+
+func (rs *Repos) pullRepoFromURL(ctx context.Context, rawRepoUrl string, repo types.Repo) error {
+	repoURL, err := url.Parse(rawRepoUrl)
+	if err != nil {
+		return fmt.Errorf("invalid URL %s: %w", rawRepoUrl, err)
+	}
+
+	slog.Info(gotext.Get("Pulling repository"), "name", repo.Name)
+	repoDir := filepath.Join(rs.cfg.GetPaths().RepoDir, repo.Name)
+
+	var repoFS billy.Filesystem
+
+	r, freshGit, err := readGitRepo(repoDir, repoURL.String())
+	if err != nil {
+		return fmt.Errorf("failed to open repo")
+	}
+
+	err = r.FetchContext(ctx, &git.FetchOptions{
+		Progress: os.Stderr,
+		Force:    true,
+	})
+	if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
+		return err
+	}
+
+	var old *plumbing.Reference
+
+	w, err := r.Worktree()
+	if err != nil {
+		return err
+	}
+
+	revHash, err := resolveHash(r, repo.Ref)
+	if err != nil {
+		return fmt.Errorf("error resolving hash: %w", err)
+	}
+
+	if !freshGit {
+		old, err = r.Head()
 		if err != nil {
 			return err
 		}
 
-		slog.Info(gotext.Get("Pulling repository"), "name", repo.Name)
-		repoDir := filepath.Join(rs.cfg.GetPaths().RepoDir, repo.Name)
-
-		var repoFS billy.Filesystem
-		gitDir := filepath.Join(repoDir, ".git")
-		// Only pull repos that contain valid git repos
-		if fi, err := os.Stat(gitDir); err == nil && fi.IsDir() {
-			r, err := git.PlainOpen(repoDir)
-			if err != nil {
-				return err
-			}
-
-			err = r.FetchContext(ctx, &git.FetchOptions{
-				Progress: os.Stderr,
-				Force:    true,
-			})
-			if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
-				return err
-			}
-
-			w, err := r.Worktree()
-			if err != nil {
-				return err
-			}
-
-			old, err := r.Head()
-			if err != nil {
-				return err
-			}
-
-			revHash, err := resolveHash(r, repo.Ref)
-			if err != nil {
-				return fmt.Errorf("error resolving hash: %w", err)
-			}
-
-			if old.Hash() == *revHash {
-				slog.Info(gotext.Get("Repository up to date"), "name", repo.Name)
-			}
-
-			err = w.Checkout(&git.CheckoutOptions{
-				Hash:  plumbing.NewHash(revHash.String()),
-				Force: true,
-			})
-			if err != nil {
-				return err
-			}
-			repoFS = w.Filesystem
-
-			new, err := r.Head()
-			if err != nil {
-				return err
-			}
-
-			// If the DB was not present at startup, that means it's
-			// empty. In this case, we need to update the DB fully
-			// rather than just incrementally.
-			if rs.db.IsEmpty() {
-				err = rs.processRepoFull(ctx, repo, repoDir)
-				if err != nil {
-					return err
-				}
-			} else {
-				err = rs.processRepoChanges(ctx, repo, r, w, old, new)
-				if err != nil {
-					return err
-				}
-			}
-		} else {
-			err = os.RemoveAll(repoDir)
-			if err != nil {
-				return err
-			}
-
-			err = os.MkdirAll(repoDir, 0o755)
-			if err != nil {
-				return err
-			}
-
-			r, err := git.PlainInit(repoDir, false)
-			if err != nil {
-				return err
-			}
-
-			_, err = r.CreateRemote(&gitConfig.RemoteConfig{
-				Name: git.DefaultRemoteName,
-				URLs: []string{repoURL.String()},
-			})
-			if err != nil {
-				return err
-			}
-
-			err = r.FetchContext(ctx, &git.FetchOptions{
-				Progress: os.Stderr,
-				Force:    true,
-			})
-			if err != nil {
-				return err
-			}
-
-			w, err := r.Worktree()
-			if err != nil {
-				return err
-			}
-
-			revHash, err := resolveHash(r, repo.Ref)
-			if err != nil {
-				return fmt.Errorf("error resolving hash: %w", err)
-			}
-
-			err = w.Checkout(&git.CheckoutOptions{
-				Hash:  plumbing.NewHash(revHash.String()),
-				Force: true,
-			})
-			if err != nil {
-				return err
-			}
-
-			err = rs.processRepoFull(ctx, repo, repoDir)
-			if err != nil {
-				return err
-			}
-
-			repoFS = osfs.New(repoDir)
+		if old.Hash() == *revHash {
+			slog.Info(gotext.Get("Repository up to date"), "name", repo.Name)
 		}
+	}
 
-		fl, err := repoFS.Open("alr-repo.toml")
-		if err != nil {
-			slog.Warn(gotext.Get("Git repository does not appear to be a valid ALR repo"), "repo", repo.Name)
-			continue
-		}
+	err = w.Checkout(&git.CheckoutOptions{
+		Hash:  plumbing.NewHash(revHash.String()),
+		Force: true,
+	})
+	if err != nil {
+		return err
+	}
+	repoFS = w.Filesystem
 
-		var repoCfg types.RepoConfig
-		err = toml.NewDecoder(fl).Decode(&repoCfg)
+	new, err := r.Head()
+	if err != nil {
+		return err
+	}
+
+	// If the DB was not present at startup, that means it's
+	// empty. In this case, we need to update the DB fully
+	// rather than just incrementally.
+	if rs.db.IsEmpty() || freshGit {
+		err = rs.processRepoFull(ctx, repo, repoDir)
 		if err != nil {
 			return err
 		}
-		fl.Close()
-
-		// If the version doesn't have a "v" prefix, it's not a standard version.
-		// It may be "unknown" or a git version, but either way, there's no way
-		// to compare it to the repo version, so only compare versions with the "v".
-		if strings.HasPrefix(config.Version, "v") {
-			if vercmp.Compare(config.Version, repoCfg.Repo.MinVersion) == -1 {
-				slog.Warn(gotext.Get("ALR repo's minimum ALR version is greater than the current version. Try updating ALR if something doesn't work."), "repo", repo.Name)
-			}
+	} else {
+		err = rs.processRepoChanges(ctx, repo, r, w, old, new)
+		if err != nil {
+			return err
 		}
+	}
+
+	fl, err := repoFS.Open("alr-repo.toml")
+	if err != nil {
+		slog.Warn(gotext.Get("Git repository does not appear to be a valid ALR repo"), "repo", repo.Name)
+		return nil
+	}
+
+	var repoCfg types.RepoConfig
+	err = toml.NewDecoder(fl).Decode(&repoCfg)
+	if err != nil {
+		return err
+	}
+	fl.Close()
+
+	// If the version doesn't have a "v" prefix, it's not a standard version.
+	// It may be "unknown" or a git version, but either way, there's no way
+	// to compare it to the repo version, so only compare versions with the "v".
+	if strings.HasPrefix(config.Version, "v") {
+		if vercmp.Compare(config.Version, repoCfg.Repo.MinVersion) == -1 {
+			slog.Warn(gotext.Get("ALR repo's minimum ALR version is greater than the current version. Try updating ALR if something doesn't work."), "repo", repo.Name)
+		}
+	}
+
+	return nil
+}
+
+func updateRemoteURL(r *git.Repository, newURL string) error {
+	cfg, err := r.Config()
+	if err != nil {
+		return err
+	}
+
+	remote, ok := cfg.Remotes[git.DefaultRemoteName]
+	if !ok || len(remote.URLs) == 0 {
+		return fmt.Errorf("no remote '%s' found", git.DefaultRemoteName)
+	}
+
+	currentURL := remote.URLs[0]
+	if currentURL == newURL {
+		return nil
+	}
+
+	slog.Debug("Updating remote URL", "old", currentURL, "new", newURL)
+
+	err = r.DeleteRemote(git.DefaultRemoteName)
+	if err != nil {
+		return fmt.Errorf("failed to delete old remote: %w", err)
+	}
+
+	_, err = r.CreateRemote(&gitConfig.RemoteConfig{
+		Name: git.DefaultRemoteName,
+		URLs: []string{newURL},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create new remote: %w", err)
 	}
 
 	return nil

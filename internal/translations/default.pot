@@ -383,19 +383,27 @@ msgstr ""
 msgid "ERROR"
 msgstr ""
 
-#: internal/repos/pull.go:77
+#: internal/repos/pull.go:78
+msgid "Trying mirror"
+msgstr ""
+
+#: internal/repos/pull.go:84
+msgid "Failed to pull from URL"
+msgstr ""
+
+#: internal/repos/pull.go:151
 msgid "Pulling repository"
 msgstr ""
 
-#: internal/repos/pull.go:113
+#: internal/repos/pull.go:188
 msgid "Repository up to date"
 msgstr ""
 
-#: internal/repos/pull.go:204
+#: internal/repos/pull.go:223
 msgid "Git repository does not appear to be a valid ALR repo"
 msgstr ""
 
-#: internal/repos/pull.go:220
+#: internal/repos/pull.go:239
 msgid ""
 "ALR repo's minimum ALR version is greater than the current version. Try "
 "updating ALR if something doesn't work."
@@ -461,63 +469,104 @@ msgstr ""
 msgid "Pull all repositories that have changed"
 msgstr ""
 
-#: repo.go:39
+#: repo.go:41
 msgid "Manage repos"
 msgstr ""
 
-#: repo.go:51 repo.go:269
+#: repo.go:55 repo.go:625
 msgid "Remove an existing repository"
 msgstr ""
 
-#: repo.go:53
+#: repo.go:57 repo.go:521
 msgid "<name>"
 msgstr ""
 
-#: repo.go:83
+#: repo.go:102 repo.go:465 repo.go:568
 msgid "Repo \"%s\" does not exist"
 msgstr ""
 
-#: repo.go:90
+#: repo.go:109
 msgid "Error removing repo directory"
 msgstr ""
 
-#: repo.go:94 repo.go:161 repo.go:219
+#: repo.go:113 repo.go:180 repo.go:253 repo.go:316 repo.go:389 repo.go:504
+#: repo.go:576
 msgid "Error saving config"
 msgstr ""
 
-#: repo.go:113
+#: repo.go:132
 msgid "Error removing packages from database"
 msgstr ""
 
-#: repo.go:124 repo.go:239
+#: repo.go:143 repo.go:595
 msgid "Add a new repository"
 msgstr ""
 
-#: repo.go:125
+#: repo.go:144 repo.go:270 repo.go:345 repo.go:402
 msgid "<name> <url>"
 msgstr ""
 
-#: repo.go:150
+#: repo.go:169
 msgid "Repo \"%s\" already exists"
 msgstr ""
 
-#: repo.go:187
+#: repo.go:206
 msgid "Set the reference of the repository"
 msgstr ""
 
-#: repo.go:188
+#: repo.go:207
 msgid "<name> <ref>"
 msgstr ""
 
-#: repo.go:246
+#: repo.go:269
+msgid "Set the main url of the repository"
+msgstr ""
+
+#: repo.go:332
+msgid "Manage mirrors of repos"
+msgstr ""
+
+#: repo.go:344
+msgid "Add a mirror URL to repository"
+msgstr ""
+
+#: repo.go:401
+msgid "Remove mirror from the repository"
+msgstr ""
+
+#: repo.go:420
+msgid "Ignore if mirror does not exist"
+msgstr ""
+
+#: repo.go:425
+msgid "Match partial URL (e.g., github.com instead of full URL)"
+msgstr ""
+
+#: repo.go:490
+msgid "No mirrors containing \"%s\" found in repo \"%s\""
+msgstr ""
+
+#: repo.go:492
+msgid "URL \"%s\" does not exist in repo \"%s\""
+msgstr ""
+
+#: repo.go:508 repo.go:580
+msgid "Removed %d mirrors from repo \"%s\"\n"
+msgstr ""
+
+#: repo.go:520
+msgid "Remove all mirrors from the repository"
+msgstr ""
+
+#: repo.go:602
 msgid "Name of the new repo"
 msgstr ""
 
-#: repo.go:252
+#: repo.go:608
 msgid "URL of the new repo"
 msgstr ""
 
-#: repo.go:276
+#: repo.go:632
 msgid "Name of the repo to be deleted"
 msgstr ""
 

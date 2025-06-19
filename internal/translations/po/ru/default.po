@@ -5,15 +5,15 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: unnamed project\n"
-"PO-Revision-Date: 2025-06-15 16:05+0300\n"
+"PO-Revision-Date: 2025-06-19 18:54+0300\n"
 "Last-Translator: Maxim Slipenko <maks1ms@alt-gnome.ru>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 48.0\n"
 
 #: build.go:42
@@ -356,8 +356,8 @@ msgid ""
 "This command is deprecated and would be removed in the future, use \"%s\" "
 "instead!"
 msgstr ""
-"Эта команда устарела и будет удалена в будущем, используйте вместо нее \"%s"
-"\"!"
+"Эта команда устарела и будет удалена в будущем, используйте вместо нее "
+"\"%s\"!"
 
 #: internal/db/db.go:76
 msgid "Database version mismatch; resetting"
@@ -397,19 +397,27 @@ msgstr "%s %s загружается — %s/с\n"
 msgid "ERROR"
 msgstr "ОШИБКА"
 
-#: internal/repos/pull.go:77
+#: internal/repos/pull.go:78
+msgid "Trying mirror"
+msgstr "Пробую зеркало"
+
+#: internal/repos/pull.go:84
+msgid "Failed to pull from URL"
+msgstr "Не удалось извлечь из URL"
+
+#: internal/repos/pull.go:151
 msgid "Pulling repository"
 msgstr "Скачивание репозитория"
 
-#: internal/repos/pull.go:113
+#: internal/repos/pull.go:188
 msgid "Repository up to date"
 msgstr "Репозиторий уже обновлён"
 
-#: internal/repos/pull.go:204
+#: internal/repos/pull.go:223
 msgid "Git repository does not appear to be a valid ALR repo"
 msgstr "Репозиторий Git не поддерживается репозиторием ALR"
 
-#: internal/repos/pull.go:220
+#: internal/repos/pull.go:239
 msgid ""
 "ALR repo's minimum ALR version is greater than the current version. Try "
 "updating ALR if something doesn't work."
@@ -477,63 +485,104 @@ msgstr "Ошибка при запуске приложения"
 msgid "Pull all repositories that have changed"
 msgstr "Скачать все изменённые репозитории"
 
-#: repo.go:39
+#: repo.go:41
 msgid "Manage repos"
 msgstr "Управление репозиториями"
 
-#: repo.go:51 repo.go:269
+#: repo.go:55 repo.go:625
 msgid "Remove an existing repository"
 msgstr "Удалить существующий репозиторий"
 
-#: repo.go:53
+#: repo.go:57 repo.go:521
 msgid "<name>"
 msgstr "<имя>"
 
-#: repo.go:83
+#: repo.go:102 repo.go:465 repo.go:568
 msgid "Repo \"%s\" does not exist"
 msgstr "Репозитория \"%s\" не существует"
 
-#: repo.go:90
+#: repo.go:109
 msgid "Error removing repo directory"
 msgstr "Ошибка при удалении каталога репозитория"
 
-#: repo.go:94 repo.go:161 repo.go:219
+#: repo.go:113 repo.go:180 repo.go:253 repo.go:316 repo.go:389 repo.go:504
+#: repo.go:576
 msgid "Error saving config"
 msgstr "Ошибка при сохранении конфигурации"
 
-#: repo.go:113
+#: repo.go:132
 msgid "Error removing packages from database"
 msgstr "Ошибка при удалении пакетов из базы данных"
 
-#: repo.go:124 repo.go:239
+#: repo.go:143 repo.go:595
 msgid "Add a new repository"
 msgstr "Добавить новый репозиторий"
 
-#: repo.go:125
+#: repo.go:144 repo.go:270 repo.go:345 repo.go:402
 msgid "<name> <url>"
 msgstr "<имя> <url>"
 
-#: repo.go:150
+#: repo.go:169
 msgid "Repo \"%s\" already exists"
 msgstr "Репозиторий \"%s\" уже существует"
 
-#: repo.go:187
+#: repo.go:206
 msgid "Set the reference of the repository"
 msgstr "Установить ссылку на версию репозитория"
 
-#: repo.go:188
+#: repo.go:207
 msgid "<name> <ref>"
 msgstr "<имя> <ссылка_на_версию>"
 
-#: repo.go:246
+#: repo.go:269
+msgid "Set the main url of the repository"
+msgstr "Установить главный URL репозитория"
+
+#: repo.go:332
+msgid "Manage mirrors of repos"
+msgstr "Управление зеркалами репозитория"
+
+#: repo.go:344
+msgid "Add a mirror URL to repository"
+msgstr "Добавить зеркало репозитория"
+
+#: repo.go:401
+msgid "Remove mirror from the repository"
+msgstr "Удалить зеркало из репозитория"
+
+#: repo.go:420
+msgid "Ignore if mirror does not exist"
+msgstr "Игнорировать, если зеркала не существует"
+
+#: repo.go:425
+msgid "Match partial URL (e.g., github.com instead of full URL)"
+msgstr "Соответствует частичному URL (например, github.com вместо полного URL)"
+
+#: repo.go:490
+msgid "No mirrors containing \"%s\" found in repo \"%s\""
+msgstr "В репозитории \"%s\" не найдено зеркал, содержащих \"%s\""
+
+#: repo.go:492
+msgid "URL \"%s\" does not exist in repo \"%s\""
+msgstr "URL \"%s\" не существует в репозитории \"%s\""
+
+#: repo.go:508 repo.go:580
+msgid "Removed %d mirrors from repo \"%s\"\n"
+msgstr "Удалены зеркала %d из репозитория \"%s\"\n"
+
+#: repo.go:520
+msgid "Remove all mirrors from the repository"
+msgstr "Удалить все зеркала из репозитория"
+
+#: repo.go:602
 msgid "Name of the new repo"
 msgstr "Название нового репозитория"
 
-#: repo.go:252
+#: repo.go:608
 msgid "URL of the new repo"
 msgstr "URL-адрес нового репозитория"
 
-#: repo.go:276
+#: repo.go:632
 msgid "Name of the repo to be deleted"
 msgstr "Название репозитория  удалён"
 
