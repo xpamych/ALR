@@ -29,7 +29,7 @@ import (
 	"testing"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/dlcache"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/dlcache"
 )
 
 type TestALRConfig struct {

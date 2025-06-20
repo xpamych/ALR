@@ -369,30 +369,6 @@ msgid ""
 msgstr ""
 "Версия базы данных не существует. Запустите alr fix, если что-то не работает."
 
-#: internal/dl/dl.go:170
-msgid "Source can be updated, updating if required"
-msgstr "Исходный код можно обновлять, обновляя при необходимости"
-
-#: internal/dl/dl.go:201
-msgid "Source found in cache and linked to destination"
-msgstr "Источник найден в кэше и связан с пунктом назначения"
-
-#: internal/dl/dl.go:208
-msgid "Source updated and linked to destination"
-msgstr "Источник обновлён и связан с пунктом назначения"
-
-#: internal/dl/dl.go:222
-msgid "Downloading source"
-msgstr "Скачивание источника"
-
-#: internal/dl/progress_tui.go:100
-msgid "%s: done!\n"
-msgstr "%s: выполнено!\n"
-
-#: internal/dl/progress_tui.go:104
-msgid "%s %s downloading at %s/s\n"
-msgstr "%s %s загружается — %s/с\n"
-
 #: internal/logger/log.go:41
 msgid "ERROR"
 msgstr "ОШИБКА"
@@ -480,6 +456,30 @@ msgstr "Показать справку"
 #: main.go:150
 msgid "Error while running app"
 msgstr "Ошибка при запуске приложения"
+
+#: pkg/dl/dl.go:170
+msgid "Source can be updated, updating if required"
+msgstr "Исходный код можно обновлять, обновляя при необходимости"
+
+#: pkg/dl/dl.go:201
+msgid "Source found in cache and linked to destination"
+msgstr "Источник найден в кэше и связан с пунктом назначения"
+
+#: pkg/dl/dl.go:208
+msgid "Source updated and linked to destination"
+msgstr "Источник обновлён и связан с пунктом назначения"
+
+#: pkg/dl/dl.go:222
+msgid "Downloading source"
+msgstr "Скачивание источника"
+
+#: pkg/dl/progress_tui.go:100
+msgid "%s: done!\n"
+msgstr "%s: выполнено!\n"
+
+#: pkg/dl/progress_tui.go:104
+msgid "%s %s downloading at %s/s\n"
+msgstr "%s %s загружается — %s/с\n"
 
 #: refresh.go:30
 msgid "Pull all repositories that have changed"

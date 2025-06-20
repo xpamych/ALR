@@ -20,8 +20,11 @@
 package dl
 
 import (
+	"bytes"
 	"context"
+	"encoding/hex"
 	"errors"
+	"log/slog"
 	"net/url"
 	"path"
 	"strconv"
@@ -48,7 +51,7 @@ func (GitDownloader) MatchURL(u string) bool {
 // Download uses git to clone the repository from the specified URL.
 // It allows specifying the revision, depth and recursion options
 // via query string
-func (GitDownloader) Download(ctx context.Context, opts Options) (Type, string, error) {
+func (d *GitDownloader) Download(ctx context.Context, opts Options) (Type, string, error) {
 	u, err := url.Parse(opts.URL)
 	if err != nil {
 		return 0, "", err
@@ -60,6 +63,9 @@ func (GitDownloader) Download(ctx context.Context, opts Options) (Type, string, 
 	rev := query.Get("~rev")
 	query.Del("~rev")
 
+	// Right now, this only affects the return value of name,
+	// which will be used by dl_cache.
+	// It seems wrong, but for now it's better to leave it as it is.
 	name := query.Get("~name")
 	query.Del("~name")
 
@@ -121,6 +127,11 @@ func (GitDownloader) Download(ctx context.Context, opts Options) (Type, string, 
 		}
 	}
 
+	err = d.verifyHash(opts)
+	if err != nil {
+		return 0, "", err
+	}
+
 	if name == "" {
 		name = strings.TrimSuffix(path.Base(u.Path), ".git")
 	}
@@ -128,12 +139,36 @@ func (GitDownloader) Download(ctx context.Context, opts Options) (Type, string, 
 	return TypeDir, name, nil
 }
 
+func (GitDownloader) verifyHash(opts Options) error {
+	if opts.Hash != nil {
+		h, err := opts.NewHash()
+		if err != nil {
+			return err
+		}
+
+		err = HashDir(opts.Destination, h)
+		if err != nil {
+			return err
+		}
+
+		sum := h.Sum(nil)
+
+		slog.Warn("validate checksum", "real", hex.EncodeToString(sum), "expected", hex.EncodeToString(opts.Hash))
+
+		if !bytes.Equal(sum, opts.Hash) {
+			return ErrChecksumMismatch
+		}
+	}
+
+	return nil
+}
+
 // Update uses git to pull the repository and update it
 // to the latest revision. It allows specifying the depth
 // and recursion options via query string. It returns
 // true if update was successful and false if the
 // repository is already up-to-date
-func (GitDownloader) Update(opts Options) (bool, error) {
+func (d *GitDownloader) Update(opts Options) (bool, error) {
 	u, err := url.Parse(opts.URL)
 	if err != nil {
 		return false, err
@@ -183,18 +218,21 @@ func (GitDownloader) Update(opts Options) (bool, error) {
 	manifestOK := err == nil
 
 	err = w.Pull(po)
-	if errors.Is(err, git.NoErrAlreadyUpToDate) {
-		return false, nil
-	} else if err != nil {
+	if err != nil {
+		if errors.Is(err, git.NoErrAlreadyUpToDate) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	err = d.verifyHash(opts)
+	if err != nil {
 		return false, err
 	}
 
 	if manifestOK {
 		err = writeManifest(opts.Destination, m)
-		if err != nil {
-			return true, err
-		}
 	}
 
-	return true, nil
+	return true, err
 }

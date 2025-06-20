@@ -55,7 +55,7 @@ var (
 
 // Массив доступных загрузчиков в порядке их проверки
 var Downloaders = []Downloader{
-	GitDownloader{},
+	&GitDownloader{},
 	TorrentDownloader{},
 	FileDownloader{},
 }

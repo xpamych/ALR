@@ -355,30 +355,6 @@ msgid ""
 "Database version does not exist. Run alr fix if something isn't working."
 msgstr ""
 
-#: internal/dl/dl.go:170
-msgid "Source can be updated, updating if required"
-msgstr ""
-
-#: internal/dl/dl.go:201
-msgid "Source found in cache and linked to destination"
-msgstr ""
-
-#: internal/dl/dl.go:208
-msgid "Source updated and linked to destination"
-msgstr ""
-
-#: internal/dl/dl.go:222
-msgid "Downloading source"
-msgstr ""
-
-#: internal/dl/progress_tui.go:100
-msgid "%s: done!\n"
-msgstr ""
-
-#: internal/dl/progress_tui.go:104
-msgid "%s %s downloading at %s/s\n"
-msgstr ""
-
 #: internal/logger/log.go:41
 msgid "ERROR"
 msgstr ""
@@ -463,6 +439,30 @@ msgstr ""
 
 #: main.go:150
 msgid "Error while running app"
+msgstr ""
+
+#: pkg/dl/dl.go:170
+msgid "Source can be updated, updating if required"
+msgstr ""
+
+#: pkg/dl/dl.go:201
+msgid "Source found in cache and linked to destination"
+msgstr ""
+
+#: pkg/dl/dl.go:208
+msgid "Source updated and linked to destination"
+msgstr ""
+
+#: pkg/dl/dl.go:222
+msgid "Downloading source"
+msgstr ""
+
+#: pkg/dl/progress_tui.go:100
+msgid "%s: done!\n"
+msgstr ""
+
+#: pkg/dl/progress_tui.go:104
+msgid "%s %s downloading at %s/s\n"
 msgstr ""
 
 #: refresh.go:30

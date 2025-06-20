@@ -20,11 +20,12 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/dl"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/dlcache"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/dl"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/dlcache"
 )
 
 type SourceDownloader struct {
@@ -76,6 +77,7 @@ func (s *SourceDownloader) DownloadSources(
 
 		opts.DlCache = dlcache.New(s.cfg)
 
+		slog.Warn("opts", "opts", opts)
 		err := dl.Download(ctx, opts)
 		if err != nil {
 			return err
