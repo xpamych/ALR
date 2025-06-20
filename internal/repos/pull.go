@@ -68,31 +68,38 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 	}
 
 	for _, repo := range repos {
-		urls := []string{repo.URL}
-		urls = append(urls, repo.Mirrors...)
-
-		var lastErr error
-
-		for i, repoURL := range urls {
-			if i > 0 {
-				slog.Info(gotext.Get("Trying mirror"), "repo", repo.Name, "mirror", repoURL)
-			}
-
-			err := rs.pullRepoFromURL(ctx, repoURL, repo)
-			if err != nil {
-				lastErr = err
-				slog.Warn(gotext.Get("Failed to pull from URL"), "repo", repo.Name, "url", repoURL, "error", err)
-				continue
-			}
-
-			// Success
-			return nil
+		err := rs.pullRepo(ctx, repo)
+		if err != nil {
+			return err
 		}
-
-		return fmt.Errorf("failed to pull repository %s from any URL: %w", repo.Name, lastErr)
 	}
 
 	return nil
+}
+
+func (rs *Repos) pullRepo(ctx context.Context, repo types.Repo) error {
+	urls := []string{repo.URL}
+	urls = append(urls, repo.Mirrors...)
+
+	var lastErr error
+
+	for i, repoURL := range urls {
+		if i > 0 {
+			slog.Info(gotext.Get("Trying mirror"), "repo", repo.Name, "mirror", repoURL)
+		}
+
+		err := rs.pullRepoFromURL(ctx, repoURL, repo)
+		if err != nil {
+			lastErr = err
+			slog.Warn(gotext.Get("Failed to pull from URL"), "repo", repo.Name, "url", repoURL, "error", err)
+			continue
+		}
+
+		// Success
+		return nil
+	}
+
+	return fmt.Errorf("failed to pull repository %s from any URL: %w", repo.Name, lastErr)
 }
 
 func readGitRepo(repoDir, repoUrl string) (*git.Repository, bool, error) {

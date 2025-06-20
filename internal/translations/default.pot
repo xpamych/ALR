@@ -383,27 +383,27 @@ msgstr ""
 msgid "ERROR"
 msgstr ""
 
-#: internal/repos/pull.go:78
+#: internal/repos/pull.go:88
 msgid "Trying mirror"
 msgstr ""
 
-#: internal/repos/pull.go:84
+#: internal/repos/pull.go:94
 msgid "Failed to pull from URL"
 msgstr ""
 
-#: internal/repos/pull.go:151
+#: internal/repos/pull.go:158
 msgid "Pulling repository"
 msgstr ""
 
-#: internal/repos/pull.go:188
+#: internal/repos/pull.go:195
 msgid "Repository up to date"
 msgstr ""
 
-#: internal/repos/pull.go:223
+#: internal/repos/pull.go:230
 msgid "Git repository does not appear to be a valid ALR repo"
 msgstr ""
 
-#: internal/repos/pull.go:239
+#: internal/repos/pull.go:246
 msgid ""
 "ALR repo's minimum ALR version is greater than the current version. Try "
 "updating ALR if something doesn't work."

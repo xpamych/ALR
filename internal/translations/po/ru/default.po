@@ -12,8 +12,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 48.0\n"
 
 #: build.go:42
@@ -356,8 +356,8 @@ msgid ""
 "This command is deprecated and would be removed in the future, use \"%s\" "
 "instead!"
 msgstr ""
-"Эта команда устарела и будет удалена в будущем, используйте вместо нее "
-"\"%s\"!"
+"Эта команда устарела и будет удалена в будущем, используйте вместо нее \"%s"
+"\"!"
 
 #: internal/db/db.go:76
 msgid "Database version mismatch; resetting"
@@ -397,27 +397,27 @@ msgstr "%s %s загружается — %s/с\n"
 msgid "ERROR"
 msgstr "ОШИБКА"
 
-#: internal/repos/pull.go:78
+#: internal/repos/pull.go:88
 msgid "Trying mirror"
 msgstr "Пробую зеркало"
 
-#: internal/repos/pull.go:84
+#: internal/repos/pull.go:94
 msgid "Failed to pull from URL"
 msgstr "Не удалось извлечь из URL"
 
-#: internal/repos/pull.go:151
+#: internal/repos/pull.go:158
 msgid "Pulling repository"
 msgstr "Скачивание репозитория"
 
-#: internal/repos/pull.go:188
+#: internal/repos/pull.go:195
 msgid "Repository up to date"
 msgstr "Репозиторий уже обновлён"
 
-#: internal/repos/pull.go:223
+#: internal/repos/pull.go:230
 msgid "Git repository does not appear to be a valid ALR repo"
 msgstr "Репозиторий Git не поддерживается репозиторием ALR"
 
-#: internal/repos/pull.go:239
+#: internal/repos/pull.go:246
 msgid ""
 "ALR repo's minimum ALR version is greater than the current version. Try "
 "updating ALR if something doesn't work."
