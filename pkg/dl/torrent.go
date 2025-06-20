@@ -71,7 +71,17 @@ func (TorrentDownloader) Download(ctx context.Context, opts Options) (Type, stri
 		return 0, "", err
 	}
 
-	return determineType(opts.Destination)
+	dlType, name, err := determineType(opts.Destination)
+	if err != nil {
+		return 0, "", err
+	}
+
+	err = VerifyHashFromLocal(name, opts)
+	if err != nil {
+		return 0, "", err
+	}
+
+	return dlType, name, nil
 }
 
 func removeTorrentFiles(path string) error {

@@ -17,39 +17,79 @@
 package dl
 
 import (
+	"bytes"
+	"encoding/hex"
+	"fmt"
 	"hash"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 )
 
-func HashDir(dirPath string, h hash.Hash) error {
-	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+// If the checksum does not match, returns ErrChecksumMismatch
+func VerifyHashFromLocal(path string, opts Options) error {
+	if opts.Hash != nil {
+		h, err := opts.NewHash()
 		if err != nil {
 			return err
 		}
-		// Skip .git directory
-		if info.IsDir() && info.Name() == ".git" {
-			return filepath.SkipDir
+
+		err = HashLocal(filepath.Join(opts.Destination, path), h)
+		if err != nil {
+			return err
 		}
-		// Skip directories (only process files)
-		if !info.Mode().IsRegular() {
-			return nil
+
+		sum := h.Sum(nil)
+
+		slog.Debug("validate checksum", "real", hex.EncodeToString(sum), "expected", hex.EncodeToString(opts.Hash))
+
+		if !bytes.Equal(sum, opts.Hash) {
+			return ErrChecksumMismatch
 		}
-		// Open file
+	}
+
+	return nil
+}
+
+func HashLocal(path string, h hash.Hash) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+
+	if info.Mode().IsRegular() {
+		// Single file
 		f, err := os.Open(path)
 		if err != nil {
 			return err
 		}
 		defer f.Close()
-		// Write file content to hasher
-		if _, err := io.Copy(h, f); err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
+		_, err = io.Copy(h, f)
 		return err
 	}
-	return nil
+
+	if info.IsDir() {
+		// Walk directory
+		return filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() && info.Name() == ".git" {
+				return filepath.SkipDir
+			}
+			if !info.Mode().IsRegular() {
+				return nil
+			}
+			f, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+			_, err = io.Copy(h, f)
+			return err
+		})
+	}
+
+	return fmt.Errorf("unsupported file type: %s", path)
 }

@@ -20,11 +20,8 @@
 package dl
 
 import (
-	"bytes"
 	"context"
-	"encoding/hex"
 	"errors"
-	"log/slog"
 	"net/url"
 	"path"
 	"strconv"
@@ -127,7 +124,7 @@ func (d *GitDownloader) Download(ctx context.Context, opts Options) (Type, strin
 		}
 	}
 
-	err = d.verifyHash(opts)
+	err = VerifyHashFromLocal("", opts)
 	if err != nil {
 		return 0, "", err
 	}
@@ -137,30 +134,6 @@ func (d *GitDownloader) Download(ctx context.Context, opts Options) (Type, strin
 	}
 
 	return TypeDir, name, nil
-}
-
-func (GitDownloader) verifyHash(opts Options) error {
-	if opts.Hash != nil {
-		h, err := opts.NewHash()
-		if err != nil {
-			return err
-		}
-
-		err = HashDir(opts.Destination, h)
-		if err != nil {
-			return err
-		}
-
-		sum := h.Sum(nil)
-
-		slog.Warn("validate checksum", "real", hex.EncodeToString(sum), "expected", hex.EncodeToString(opts.Hash))
-
-		if !bytes.Equal(sum, opts.Hash) {
-			return ErrChecksumMismatch
-		}
-	}
-
-	return nil
 }
 
 // Update uses git to pull the repository and update it
@@ -225,7 +198,7 @@ func (d *GitDownloader) Update(opts Options) (bool, error) {
 		return false, err
 	}
 
-	err = d.verifyHash(opts)
+	err = VerifyHashFromLocal("", opts)
 	if err != nil {
 		return false, err
 	}
