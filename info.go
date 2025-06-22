@@ -23,10 +23,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/goccy/go-yaml"
 	"github.com/jeandeaual/go-locale"
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
-	"gopkg.in/yaml.v3"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
@@ -121,35 +121,27 @@ func InfoCmd() *cli.Command {
 				systemLang = "en"
 			}
 
-			if !all {
-				info, err := distro.ParseOSRelease(ctx)
-				if err != nil {
-					return cliutils.FormatCliExit(gotext.Get("Error parsing os-release file"), err)
-				}
-				names, err = overrides.Resolve(
-					info,
-					overrides.DefaultOpts.
-						WithLanguages([]string{systemLang}),
-				)
-				if err != nil {
-					return cliutils.FormatCliExit(gotext.Get("Error resolving overrides"), err)
-				}
+			info, err := distro.ParseOSRelease(ctx)
+			if err != nil {
+				return cliutils.FormatCliExit(gotext.Get("Error parsing os-release file"), err)
+			}
+			names, err = overrides.Resolve(
+				info,
+				overrides.DefaultOpts.
+					WithLanguages([]string{systemLang}),
+			)
+			if err != nil {
+				return cliutils.FormatCliExit(gotext.Get("Error resolving overrides"), err)
 			}
 
 			for _, pkg := range pkgs {
-				if !all {
-					alrsh.ResolvePackage(&pkg, names)
-					err = yaml.NewEncoder(os.Stdout).Encode(pkg)
-					if err != nil {
-						return cliutils.FormatCliExit(gotext.Get("Error encoding script variables"), err)
-					}
-				} else {
-					err = yaml.NewEncoder(os.Stdout).Encode(pkg)
-					if err != nil {
-						return cliutils.FormatCliExit(gotext.Get("Error encoding script variables"), err)
-					}
+				alrsh.ResolvePackage(&pkg, names)
+				view := alrsh.NewPackageView(pkg)
+				view.Resolved = !all
+				err = yaml.NewEncoder(os.Stdout, yaml.UseJSONMarshaler(), yaml.OmitEmpty()).Encode(view)
+				if err != nil {
+					return cliutils.FormatCliExit(gotext.Get("Error encoding script variables"), err)
 				}
-
 				fmt.Println("---")
 			}
 

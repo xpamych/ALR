@@ -367,7 +367,7 @@ func (b *Builder) BuildPackage(
 	}
 
 	slog.Debug("ViewScript")
-	slog.Debug("", "varsOfPackages", varsOfPackages)
+	slog.Debug("", "varsOfPackages", varsOfPackages[0])
 	err = b.scriptViewerExecutor.ViewScript(ctx, input, sf, basePkg)
 	if err != nil {
 		return nil, err

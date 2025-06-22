@@ -32,24 +32,25 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
 
 type BuildVars struct {
-	Name          string   `sh:"name,required"`
-	Version       string   `sh:"version,required"`
-	Release       int      `sh:"release,required"`
-	Epoch         uint     `sh:"epoch"`
-	Description   string   `sh:"desc"`
-	Homepage      string   `sh:"homepage"`
-	Maintainer    string   `sh:"maintainer"`
-	Architectures []string `sh:"architectures"`
-	Licenses      []string `sh:"license"`
-	Provides      []string `sh:"provides"`
-	Conflicts     []string `sh:"conflicts"`
-	Depends       []string `sh:"deps"`
-	BuildDepends  []string `sh:"build_deps"`
-	Replaces      []string `sh:"replaces"`
+	Name          string                           `sh:"name,required"`
+	Version       string                           `sh:"version,required"`
+	Release       int                              `sh:"release,required"`
+	Epoch         uint                             `sh:"epoch"`
+	Description   alrsh.OverridableField[string]   `sh:"desc"`
+	Homepage      string                           `sh:"homepage"`
+	Maintainer    string                           `sh:"maintainer"`
+	Architectures []string                         `sh:"architectures"`
+	Licenses      []string                         `sh:"license"`
+	Provides      []string                         `sh:"provides"`
+	Conflicts     []string                         `sh:"conflicts"`
+	Depends       []string                         `sh:"deps"`
+	BuildDepends  alrsh.OverridableField[[]string] `sh:"build_deps"`
+	Replaces      alrsh.OverridableField[[]string] `sh:"replaces"`
 }
 
 const testScript = `
@@ -113,21 +114,33 @@ func TestDecodeVars(t *testing.T) {
 	}
 
 	expected := BuildVars{
-		Name:          "test",
-		Version:       "0.0.1",
-		Release:       1,
-		Epoch:         2,
-		Description:   "Test package",
+		Name:    "test",
+		Version: "0.0.1",
+		Release: 1,
+		Epoch:   2,
+		Description: alrsh.OverridableFromMap(map[string]string{
+			"": "Test package",
+		}),
 		Homepage:      "https://gitea.plemya-x.ru/xpamych/ALR",
 		Maintainer:    "Евгений Храмов <xpamych@yandex.ru>",
 		Architectures: []string{"arm64", "amd64"},
 		Licenses:      []string{"GPL-3.0-or-later"},
 		Provides:      []string{"test"},
 		Conflicts:     []string{"test"},
-		Replaces:      []string{"test-legacy"},
-		Depends:       []string{"sudo"},
-		BuildDepends:  []string{"go"},
+		Replaces: alrsh.OverridableFromMap(map[string][]string{
+			"":        {"test-old"},
+			"test_os": {"test-legacy"},
+		}),
+		Depends: []string{"sudo"},
+		BuildDepends: alrsh.OverridableFromMap(map[string][]string{
+			"":     {"golang"},
+			"arch": {"go"},
+		}),
 	}
+
+	expected.Description.SetResolved("Test package")
+	expected.Replaces.SetResolved([]string{"test-legacy"})
+	expected.BuildDepends.SetResolved([]string{"go"})
 
 	if !reflect.DeepEqual(bv, expected) {
 		t.Errorf("Expected %v, got %v", expected, bv)

@@ -18,6 +18,7 @@ require (
 	github.com/efficientgo/e2e v0.14.1-0.20240418111536-97db25a0c6c0
 	github.com/go-git/go-billy/v5 v5.6.0
 	github.com/go-git/go-git/v5 v5.13.0
+	github.com/goccy/go-yaml v1.18.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/goreleaser/nfpm/v2 v2.41.0
 	github.com/hashicorp/go-hclog v0.14.1
@@ -38,7 +39,6 @@ require (
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	golang.org/x/sys v0.31.0
 	golang.org/x/text v0.23.0
-	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.25.0
 	mvdan.cc/sh/v3 v3.10.0
 	xorm.io/xorm v1.3.9
@@ -139,6 +139,7 @@ require (
 	google.golang.org/grpc v1.58.3 // indirect
 	google.golang.org/protobuf v1.36.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect
 	modernc.org/cc/v3 v3.40.0 // indirect
 	modernc.org/ccgo/v3 v3.16.13 // indirect

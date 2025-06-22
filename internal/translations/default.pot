@@ -138,11 +138,11 @@ msgstr ""
 msgid "Can't detect system language"
 msgstr ""
 
-#: info.go:135
+#: info.go:134
 msgid "Error resolving overrides"
 msgstr ""
 
-#: info.go:144 info.go:149
+#: info.go:143
 msgid "Error encoding script variables"
 msgstr ""
 

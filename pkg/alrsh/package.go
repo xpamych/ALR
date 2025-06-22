@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+//go:generate go run ../../generators/alrsh-package
+
 package alrsh
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
@@ -39,38 +42,38 @@ func ParseNames(dec *decoder.Decoder) (*PackageNames, error) {
 }
 
 type Package struct {
-	Repository  string `xorm:"pk 'repository'"`
-	Name        string `xorm:"pk 'name'"`
-	BasePkgName string `xorm:"notnull 'basepkg_name'"`
+	Repository  string `xorm:"pk 'repository'" json:"repository"`
+	Name        string `xorm:"pk 'name'" json:"name"`
+	BasePkgName string `xorm:"notnull 'basepkg_name'" json:"basepkg_name"`
 
-	Version       string   `sh:"version" xorm:"notnull 'version'"`
-	Release       int      `sh:"release" xorm:"notnull 'release'"`
-	Epoch         uint     `sh:"epoch" xorm:"'epoch'"`
-	Architectures []string `sh:"architectures" xorm:"json 'architectures'"`
-	Licenses      []string `sh:"license" xorm:"json 'licenses'"`
-	Provides      []string `sh:"provides" xorm:"json 'provides'"`
-	Conflicts     []string `sh:"conflicts" xorm:"json 'conflicts'"`
-	Replaces      []string `sh:"replaces" xorm:"json 'replaces'"`
+	Version       string   `sh:"version" xorm:"notnull 'version'" json:"version"`
+	Release       int      `sh:"release" xorm:"notnull 'release'" json:"release"`
+	Epoch         uint     `sh:"epoch" xorm:"'epoch'" json:"epoch"`
+	Architectures []string `sh:"architectures" xorm:"json 'architectures'" json:"architectures"`
+	Licenses      []string `sh:"license" xorm:"json 'licenses'" json:"license"`
+	Provides      []string `sh:"provides" xorm:"json 'provides'" json:"provides"`
+	Conflicts     []string `sh:"conflicts" xorm:"json 'conflicts'" json:"conflicts"`
+	Replaces      []string `sh:"replaces" xorm:"json 'replaces'" json:"replaces"`
 
-	Summary          OverridableField[string]   `sh:"summary" xorm:"'summary'"`
-	Description      OverridableField[string]   `sh:"desc" xorm:"'description'"`
-	Group            OverridableField[string]   `sh:"group" xorm:"'group_name'"`
-	Homepage         OverridableField[string]   `sh:"homepage" xorm:"'homepage'"`
-	Maintainer       OverridableField[string]   `sh:"maintainer" xorm:"'maintainer'"`
-	Depends          OverridableField[[]string] `sh:"deps" xorm:"'depends'"`
-	BuildDepends     OverridableField[[]string] `sh:"build_deps" xorm:"'builddepends'"`
-	OptDepends       OverridableField[[]string] `sh:"opt_deps" xorm:"'optdepends'"`
-	Sources          OverridableField[[]string] `sh:"sources" xorm:"-"`
-	Checksums        OverridableField[[]string] `sh:"checksums" xorm:"-"`
-	Backup           OverridableField[[]string] `sh:"backup" xorm:"-"`
-	Scripts          OverridableField[Scripts]  `sh:"scripts" xorm:"-"`
-	AutoReq          OverridableField[[]string] `sh:"auto_req" xorm:"-"`
-	AutoProv         OverridableField[[]string] `sh:"auto_prov" xorm:"-"`
-	AutoReqSkipList  OverridableField[[]string] `sh:"auto_req_skiplist" xorm:"-"`
-	AutoProvSkipList OverridableField[[]string] `sh:"auto_prov_skiplist" xorm:"-"`
+	Summary          OverridableField[string]   `sh:"summary" xorm:"'summary'" json:"summary"`
+	Description      OverridableField[string]   `sh:"desc" xorm:"'description'" json:"description"`
+	Group            OverridableField[string]   `sh:"group" xorm:"'group_name'" json:"group"`
+	Homepage         OverridableField[string]   `sh:"homepage" xorm:"'homepage'" json:"homepage"`
+	Maintainer       OverridableField[string]   `sh:"maintainer" xorm:"'maintainer'" json:"maintainer"`
+	Depends          OverridableField[[]string] `sh:"deps" xorm:"'depends'" json:"deps"`
+	BuildDepends     OverridableField[[]string] `sh:"build_deps" xorm:"'builddepends'" json:"build_deps"`
+	OptDepends       OverridableField[[]string] `sh:"opt_deps" xorm:"'optdepends'" json:"opt_deps,omitempty"`
+	Sources          OverridableField[[]string] `sh:"sources" xorm:"-" json:"sources"`
+	Checksums        OverridableField[[]string] `sh:"checksums" xorm:"-" json:"checksums,omitempty"`
+	Backup           OverridableField[[]string] `sh:"backup" xorm:"-" json:"backup"`
+	Scripts          OverridableField[Scripts]  `sh:"scripts" xorm:"-" json:"scripts,omitempty"`
+	AutoReq          OverridableField[[]string] `sh:"auto_req" xorm:"-" json:"auto_req"`
+	AutoProv         OverridableField[[]string] `sh:"auto_prov" xorm:"-" json:"auto_prov"`
+	AutoReqSkipList  OverridableField[[]string] `sh:"auto_req_skiplist" xorm:"-" json:"auto_req_skiplist,omitempty"`
+	AutoProvSkipList OverridableField[[]string] `sh:"auto_prov_skiplist" xorm:"-" json:"auto_prov_skiplist,omitempty"`
 
-	FireJailed       OverridableField[bool]              `sh:"firejailed" xorm:"-"`
-	FireJailProfiles OverridableField[map[string]string] `sh:"firejail_profiles" xorm:"-"`
+	FireJailed       OverridableField[bool]              `sh:"firejailed" xorm:"-" json:"firejailed"`
+	FireJailProfiles OverridableField[map[string]string] `sh:"firejail_profiles" xorm:"-" json:"firejail_profiles,omitempty"`
 }
 
 type Scripts struct {
@@ -84,25 +87,70 @@ type Scripts struct {
 	PostTrans   string `sh:"posttrans"`
 }
 
-func ResolvePackage(p *Package, overrides []string) {
-	val := reflect.ValueOf(p).Elem()
-	typ := val.Type()
+func (p Package) MarshalJSONWithOptions(includeOverrides bool) ([]byte, error) {
+	// Сначала сериализуем обычным способом для получения базовой структуры
+	type PackageAlias Package
+	baseData, err := json.Marshal(PackageAlias(p))
+	if err != nil {
+		return nil, err
+	}
 
-	for i := range val.NumField() {
-		field := val.Field(i)
-		fieldType := typ.Field(i)
+	// Десериализуем в map для модификации
+	var result map[string]json.RawMessage
+	if err := json.Unmarshal(baseData, &result); err != nil {
+		return nil, err
+	}
 
-		if !field.CanInterface() {
+	// Теперь заменяем OverridableField поля
+	v := reflect.ValueOf(p)
+	t := reflect.TypeOf(p)
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		fieldType := t.Field(i)
+
+		jsonTag := fieldType.Tag.Get("json")
+		if jsonTag == "" || jsonTag == "-" {
 			continue
 		}
 
-		if field.Kind() == reflect.Struct && strings.HasPrefix(fieldType.Type.String(), "alrsh.OverridableField") {
-			of := field.Addr().Interface()
-			if res, ok := of.(interface {
-				Resolve([]string)
-			}); ok {
-				res.Resolve(overrides)
+		fieldName := jsonTag
+		if commaIdx := strings.Index(jsonTag, ","); commaIdx != -1 {
+			fieldName = jsonTag[:commaIdx]
+		}
+
+		if field.Type().Name() == "OverridableField" ||
+			(field.Type().Kind() == reflect.Struct &&
+				strings.Contains(field.Type().String(), "OverridableField")) {
+
+			fieldPtr := field.Addr()
+
+			resolvedMethod := fieldPtr.MethodByName("Resolved")
+			if resolvedMethod.IsValid() {
+				resolved := resolvedMethod.Call(nil)[0]
+
+				fieldData := map[string]interface{}{
+					"resolved": resolved.Interface(),
+				}
+
+				if includeOverrides {
+					allMethod := field.MethodByName("All")
+					if allMethod.IsValid() {
+						overrides := allMethod.Call(nil)[0]
+						if !overrides.IsNil() && overrides.Len() > 0 {
+							fieldData["overrides"] = overrides.Interface()
+						}
+					}
+				}
+
+				fieldJSON, err := json.Marshal(fieldData)
+				if err != nil {
+					return nil, err
+				}
+				result[fieldName] = json.RawMessage(fieldJSON)
 			}
 		}
 	}
+
+	return json.Marshal(result)
 }

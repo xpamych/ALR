@@ -145,11 +145,11 @@ msgstr "Ошибка при поиске пакетов"
 msgid "Can't detect system language"
 msgstr "Ошибка при определении языка системы"
 
-#: info.go:135
+#: info.go:134
 msgid "Error resolving overrides"
 msgstr "Ошибка устранения переорпеделений"
 
-#: info.go:144 info.go:149
+#: info.go:143
 msgid "Error encoding script variables"
 msgstr "Ошибка кодирования переменных скрита"
 

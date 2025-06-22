@@ -68,10 +68,12 @@ func (o *OverridableField[T]) Resolve(overrides []string) {
 	for _, override := range overrides {
 		if v, ok := o.Has(override); ok {
 			o.SetResolved(v)
+			return
 		}
 	}
 }
 
+// Database serialization (JSON)
 func (f *OverridableField[T]) ToDB() ([]byte, error) {
 	var data map[string]T
 
@@ -103,6 +105,7 @@ func (f *OverridableField[T]) FromDB(data []byte) error {
 	return nil
 }
 
+// Gob serialization
 type overridableFieldGobPayload[T any] struct {
 	Data     map[string]T
 	Resolved T
@@ -133,6 +136,48 @@ func (f *OverridableField[T]) GobDecode(data []byte) error {
 
 	f.data = payload.Data
 	f.resolved = payload.Resolved
+	return nil
+}
+
+type overridableFieldJSONPayload[T any] struct {
+	Resolved *T           `json:"resolved,omitempty,omitzero"`
+	Data     map[string]T `json:"overrides,omitempty,omitzero"`
+}
+
+func (f OverridableField[T]) MarshalJSON() ([]byte, error) {
+	data := make(map[string]T)
+
+	for k, v := range f.data {
+		if k == "" {
+			data["default"] = v
+		} else {
+			data[k] = v
+		}
+	}
+
+	payload := overridableFieldJSONPayload[T]{
+		Data:     data,
+		Resolved: &f.resolved,
+	}
+
+	return json.Marshal(payload)
+}
+
+func (f *OverridableField[T]) UnmarshalJSON(data []byte) error {
+	var payload overridableFieldJSONPayload[T]
+	if err := json.Unmarshal(data, &payload); err != nil {
+		return err
+	}
+
+	if payload.Data == nil {
+		payload.Data = make(map[string]T)
+	}
+
+	f.data = payload.Data
+	if payload.Resolved != nil {
+		f.resolved = *payload.Resolved
+	}
+
 	return nil
 }
 
