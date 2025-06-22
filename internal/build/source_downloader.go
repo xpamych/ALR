@@ -20,7 +20,6 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"log/slog"
 	"os"
 	"strings"
 
@@ -77,7 +76,6 @@ func (s *SourceDownloader) DownloadSources(
 
 		opts.DlCache = dlcache.New(s.cfg)
 
-		slog.Warn("opts", "opts", opts)
 		err := dl.Download(ctx, opts)
 		if err != nil {
 			return err
