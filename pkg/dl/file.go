@@ -108,7 +108,7 @@ func (FileDownloader) Download(ctx context.Context, opts Options) (Type, string,
 	}
 	defer r.Close()
 
-	opts.PostprocDisabled = archive == "false"
+	postprocDisabled := opts.PostprocDisabled || archive == "false"
 
 	path := filepath.Join(opts.Destination, name)
 	fl, err := os.Create(path)
@@ -154,7 +154,7 @@ func (FileDownloader) Download(ctx context.Context, opts Options) (Type, string,
 	}
 
 	// Проверка необходимости постобработки
-	if opts.PostprocDisabled {
+	if postprocDisabled {
 		return TypeFile, name, nil
 	}
 

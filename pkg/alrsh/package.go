@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-//go:generate go run ../../generators/alrsh-package
+//go:generate bash -c "go run ../../generators/alrsh-package && cd ../.. && make update-license"
 
 package alrsh
 
