@@ -155,7 +155,7 @@ func TestDownloadFileWithCache(t *testing.T) {
 				CacheDisabled: false,
 				URL:           server.URL + "/file",
 				Destination:   tmpdir,
-				DlCache:       dlcache.New(cfg),
+				DlCache:       dlcache.New(cfg.GetPaths().CacheDir),
 			}
 
 			outputFile := path.Join(tmpdir, "file")

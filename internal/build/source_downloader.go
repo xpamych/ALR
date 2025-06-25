@@ -74,7 +74,7 @@ func (s *SourceDownloader) DownloadSources(
 			}
 		}
 
-		opts.DlCache = dlcache.New(s.cfg)
+		opts.DlCache = dlcache.New(s.cfg.GetPaths().CacheDir)
 
 		err := dl.Download(ctx, opts)
 		if err != nil {

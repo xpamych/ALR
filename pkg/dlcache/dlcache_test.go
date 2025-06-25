@@ -64,7 +64,7 @@ func TestNew(t *testing.T) {
 	cfg := prepare(t)
 	defer cleanup(t, cfg)
 
-	dc := dlcache.New(cfg)
+	dc := dlcache.New(cfg.GetPaths().CacheDir)
 
 	ctx := context.Background()
 

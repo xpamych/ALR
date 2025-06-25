@@ -32,19 +32,15 @@ type Config interface {
 }
 
 type DownloadCache struct {
-	cfg Config
+	cacheDir string
 }
 
-func New(cfg Config) *DownloadCache {
-	return &DownloadCache{
-		cfg,
-	}
+func New(cacheDir string) *DownloadCache {
+	return &DownloadCache{cacheDir}
 }
 
 func (dc *DownloadCache) BasePath(ctx context.Context) string {
-	return filepath.Join(
-		dc.cfg.GetPaths().CacheDir, "dl",
-	)
+	return filepath.Join(dc.cacheDir, "dl")
 }
 
 // New creates a new directory with the given ID in the cache.
