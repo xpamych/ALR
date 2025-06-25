@@ -445,15 +445,15 @@ msgstr ""
 msgid "Source can be updated, updating if required"
 msgstr ""
 
-#: pkg/dl/dl.go:201
+#: pkg/dl/dl.go:196
 msgid "Source found in cache and linked to destination"
 msgstr ""
 
-#: pkg/dl/dl.go:208
+#: pkg/dl/dl.go:203
 msgid "Source updated and linked to destination"
 msgstr ""
 
-#: pkg/dl/dl.go:222
+#: pkg/dl/dl.go:217
 msgid "Downloading source"
 msgstr ""
 

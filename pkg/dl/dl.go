@@ -172,15 +172,10 @@ func Download(ctx context.Context, opts Options) (err error) {
 				"downloader", d.Name(),
 			)
 
-			updated, err = d.Update(Options{
-				Hash:          opts.Hash,
-				HashAlgorithm: opts.HashAlgorithm,
-				Name:          opts.Name,
-				URL:           opts.URL,
-				Destination:   cacheDir,
-				Progress:      opts.Progress,
-				LocalDir:      opts.LocalDir,
-			})
+			newOpts := opts
+			newOpts.Destination = cacheDir
+
+			updated, err = d.Update(newOpts)
 			if err != nil {
 				return err
 			}
@@ -226,15 +221,10 @@ func Download(ctx context.Context, opts Options) (err error) {
 		return err
 	}
 
-	t, name, err := d.Download(ctx, Options{
-		Hash:          opts.Hash,
-		HashAlgorithm: opts.HashAlgorithm,
-		Name:          opts.Name,
-		URL:           opts.URL,
-		Destination:   cacheDir,
-		Progress:      opts.Progress,
-		LocalDir:      opts.LocalDir,
-	})
+	newOpts := opts
+	newOpts.Destination = cacheDir
+
+	t, name, err := d.Download(ctx, newOpts)
 	if err != nil {
 		return err
 	}

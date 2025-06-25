@@ -461,15 +461,15 @@ msgstr "Ошибка при запуске приложения"
 msgid "Source can be updated, updating if required"
 msgstr "Исходный код можно обновлять, обновляя при необходимости"
 
-#: pkg/dl/dl.go:201
+#: pkg/dl/dl.go:196
 msgid "Source found in cache and linked to destination"
 msgstr "Источник найден в кэше и связан с пунктом назначения"
 
-#: pkg/dl/dl.go:208
+#: pkg/dl/dl.go:203
 msgid "Source updated and linked to destination"
 msgstr "Источник обновлён и связан с пунктом назначения"
 
-#: pkg/dl/dl.go:222
+#: pkg/dl/dl.go:217
 msgid "Downloading source"
 msgstr "Скачивание источника"
 
