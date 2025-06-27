@@ -160,7 +160,7 @@ func filesFindCmd(hc interp.HandlerContext, cmd string, args []string) error {
 		searchPath := path.Join(hc.Dir, globPattern)
 
 		basepath, pattern := doublestar.SplitPattern(searchPath)
-		fsys := os.DirFS(basepath)
+		fsys := NewDirLFS(basepath)
 		matches, err := doublestar.Glob(fsys, pattern, doublestar.WithNoFollow(), doublestar.WithFailOnPatternNotExist())
 		if err != nil {
 			return fmt.Errorf("files-find: glob pattern error: %w", err)

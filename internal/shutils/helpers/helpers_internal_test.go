@@ -236,6 +236,7 @@ func TestFindFiles(t *testing.T) {
 				"opt/app",
 				"opt/app/internal",
 				"opt/app/with space",
+				"usr/bin",
 			},
 			filesToCreate: []string{
 				"usr/share/locale/ru/LC_MESSAGES/yandex-disk.mo",
@@ -249,6 +250,10 @@ func TestFindFiles(t *testing.T) {
 					linkPath:   "/opt/app/etc",
 					targetPath: "/etc",
 				},
+				{
+					linkPath:   "/usr/bin/file",
+					targetPath: "/not-existing",
+				},
 			},
 			expectedOutput: []string{
 				"./usr/share/locale/ru/LC_MESSAGES/yandex-disk.mo",
@@ -259,8 +264,9 @@ func TestFindFiles(t *testing.T) {
 				"./opt/app/internal/test",
 				"./opt/app/with space",
 				"./opt/app/with space/file",
+				"./usr/bin/file",
 			},
-			args:          "\"/usr/share/locale/*/LC_MESSAGES/*.mo\" \"/opt/app/**/*\"",
+			args:          "\"/usr/share/locale/*/LC_MESSAGES/*.mo\" \"/opt/app/**/*\" \"/usr/bin/file\"",
 			expectedError: nil,
 		},
 		{
