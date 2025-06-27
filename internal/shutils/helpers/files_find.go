@@ -18,13 +18,13 @@ package helpers
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 	"path"
 	"path/filepath"
 
 	"github.com/bmatcuk/doublestar/v4"
 	"mvdan.cc/sh/v3/interp"
+	"mvdan.cc/sh/v3/syntax"
 )
 
 func matchNamePattern(name, pattern string) bool {
@@ -46,10 +46,15 @@ func validateDir(dirPath, commandName string) error {
 	return nil
 }
 
-func outputFiles(hc interp.HandlerContext, files []string) {
+func outputFiles(hc interp.HandlerContext, files []string) error {
 	for _, file := range files {
-		fmt.Fprintln(hc.Stdout, file)
+		v, err := syntax.Quote(file, syntax.LangAuto)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintln(hc.Stdout, v)
 	}
+	return nil
 }
 
 func makeRelativePath(basePath, fullPath string) (string, error) {
@@ -92,8 +97,7 @@ func filesFindLangCmd(hc interp.HandlerContext, cmd string, args []string) error
 		return fmt.Errorf("files-find-lang: %w", err)
 	}
 
-	outputFiles(hc, langFiles)
-	return nil
+	return outputFiles(hc, langFiles)
 }
 
 func filesFindDocCmd(hc interp.HandlerContext, cmd string, args []string) error {
@@ -142,13 +146,12 @@ func filesFindDocCmd(hc interp.HandlerContext, cmd string, args []string) error 
 		}
 	}
 
-	outputFiles(hc, docFiles)
-	return nil
+	return outputFiles(hc, docFiles)
 }
 
 func filesFindCmd(hc interp.HandlerContext, cmd string, args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("find-files: at least one glob pattern is required")
+		return fmt.Errorf("files-find: at least one glob pattern is required")
 	}
 
 	var foundFiles []string
@@ -158,10 +161,9 @@ func filesFindCmd(hc interp.HandlerContext, cmd string, args []string) error {
 
 		basepath, pattern := doublestar.SplitPattern(searchPath)
 		fsys := os.DirFS(basepath)
-		matches, err := doublestar.Glob(fsys, pattern, doublestar.WithNoFollow())
+		matches, err := doublestar.Glob(fsys, pattern, doublestar.WithNoFollow(), doublestar.WithFailOnPatternNotExist())
 		if err != nil {
-			slog.Warn("find-files: invalid glob pattern", "pattern", globPattern, "error", err)
-			continue
+			return fmt.Errorf("files-find: glob pattern error: %w", err)
 		}
 
 		for _, match := range matches {
@@ -173,6 +175,5 @@ func filesFindCmd(hc interp.HandlerContext, cmd string, args []string) error {
 		}
 	}
 
-	outputFiles(hc, foundFiles)
-	return nil
+	return outputFiles(hc, foundFiles)
 }

@@ -24,6 +24,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bmatcuk/doublestar/v4"
+	"github.com/google/shlex"
 	"github.com/stretchr/testify/assert"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
@@ -43,6 +45,7 @@ type testCase struct {
 	expectedOutput   []string
 	symlinksToCreate []symlink
 	args             string
+	expectedError    error
 }
 
 func TestFindFilesDoc(t *testing.T) {
@@ -131,7 +134,8 @@ files-find-doc ` + tc.args
 			err = runner.Run(context.Background(), script)
 			assert.NoError(t, err)
 
-			contents := strings.Fields(strings.TrimSpace(buf.String()))
+			contents, err := shlex.Split(buf.String())
+			assert.NoError(t, err)
 			assert.ElementsMatch(t, tc.expectedOutput, contents)
 		})
 	}
@@ -215,7 +219,8 @@ files-find-lang ` + tc.args
 			err = runner.Run(context.Background(), script)
 			assert.NoError(t, err)
 
-			contents := strings.Fields(strings.TrimSpace(buf.String()))
+			contents, err := shlex.Split(buf.String())
+			assert.NoError(t, err)
 			assert.ElementsMatch(t, tc.expectedOutput, contents)
 		})
 	}
@@ -230,12 +235,14 @@ func TestFindFiles(t *testing.T) {
 				"usr/share/locale/tr/LC_MESSAGES",
 				"opt/app",
 				"opt/app/internal",
+				"opt/app/with space",
 			},
 			filesToCreate: []string{
 				"usr/share/locale/ru/LC_MESSAGES/yandex-disk.mo",
 				"usr/share/locale/ru/LC_MESSAGES/yandex-disk-indicator.mo",
 				"usr/share/locale/tr/LC_MESSAGES/yandex-disk.mo",
 				"opt/app/internal/test",
+				"opt/app/with space/file",
 			},
 			symlinksToCreate: []symlink{
 				{
@@ -250,8 +257,16 @@ func TestFindFiles(t *testing.T) {
 				"./opt/app/etc",
 				"./opt/app/internal",
 				"./opt/app/internal/test",
+				"./opt/app/with space",
+				"./opt/app/with space/file",
 			},
-			args: "\"/usr/share/locale/*/LC_MESSAGES/*.mo\" \"/opt/app/**/*\"",
+			args:          "\"/usr/share/locale/*/LC_MESSAGES/*.mo\" \"/opt/app/**/*\"",
+			expectedError: nil,
+		},
+		{
+			name:          "Not existing paths should throw error",
+			args:          "\"/opt/test/not-existing\"",
+			expectedError: doublestar.ErrPatternNotExist,
 		},
 	}
 
@@ -304,9 +319,14 @@ files-find ` + tc.args
 			assert.NoError(t, err)
 
 			err = runner.Run(context.Background(), script)
-			assert.NoError(t, err)
+			if tc.expectedError != nil {
+				assert.ErrorAs(t, err, &tc.expectedError)
+			} else {
+				assert.NoError(t, err)
+			}
 
-			contents := strings.Fields(strings.TrimSpace(buf.String()))
+			contents, err := shlex.Split(buf.String())
+			assert.NoError(t, err)
 			assert.ElementsMatch(t, tc.expectedOutput, contents)
 		})
 	}
