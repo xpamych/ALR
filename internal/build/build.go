@@ -214,6 +214,8 @@ type CheckerExecutor interface {
 type InstallerExecutor interface {
 	InstallLocal(paths []string, opts *manager.Opts) error
 	Install(pkgs []string, opts *manager.Opts) error
+	Remove(pkgs []string, opts *manager.Opts) error
+
 	RemoveAlreadyInstalled(pkgs []string) ([]string, error)
 }
 
@@ -408,7 +410,7 @@ func (b *Builder) BuildPackage(
 	sources, checksums = removeDuplicatesSources(sources, checksums)
 
 	slog.Debug("installBuildDeps")
-	alrBuildDeps, err := b.installBuildDeps(ctx, input, buildDepends)
+	alrBuildDeps, installedBuildDeps, err := b.installBuildDeps(ctx, input, buildDepends)
 	if err != nil {
 		return nil, err
 	}
@@ -477,7 +479,37 @@ func (b *Builder) BuildPackage(
 
 	builtDeps = removeDuplicates(append(builtDeps, res...))
 
+	err = b.removeBuildDeps(ctx, input, installedBuildDeps)
+	if err != nil {
+		return nil, err
+	}
+
 	return builtDeps, nil
+}
+
+func (b *Builder) removeBuildDeps(ctx context.Context, input interface {
+	BuildOptsProvider
+}, deps []string,
+) error {
+	if len(deps) > 0 {
+		remove, err := cliutils.YesNoPrompt(ctx, gotext.Get("Would you like to remove the build dependencies?"), input.BuildOpts().Interactive, false)
+		if err != nil {
+			return err
+		}
+
+		if remove {
+			err = b.installerExecutor.Remove(
+				deps,
+				&manager.Opts{
+					NoConfirm: !input.BuildOpts().Interactive,
+				},
+			)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 type InstallPkgsArgs struct {
@@ -608,20 +640,22 @@ func (i *Builder) installBuildDeps(
 		PkgFormatProvider
 	},
 	pkgs []string,
-) ([]*BuiltDep, error) {
+) ([]*BuiltDep, []string, error) {
 	var builtDeps []*BuiltDep
+	var deps []string
+	var err error
 	if len(pkgs) > 0 {
-		deps, err := i.installerExecutor.RemoveAlreadyInstalled(pkgs)
+		deps, err = i.installerExecutor.RemoveAlreadyInstalled(pkgs)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		builtDeps, err = i.InstallPkgs(ctx, input, deps) // Устанавливаем выбранные пакеты
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
-	return builtDeps, nil
+	return builtDeps, deps, nil
 }
 
 func (i *Builder) installOptDeps(

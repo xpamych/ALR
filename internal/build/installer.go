@@ -36,6 +36,10 @@ func (i *Installer) Install(pkgs []string, opts *manager.Opts) error {
 	return i.mgr.Install(opts, pkgs...)
 }
 
+func (i *Installer) Remove(pkgs []string, opts *manager.Opts) error {
+	return i.mgr.Remove(opts, pkgs...)
+}
+
 func (i *Installer) RemoveAlreadyInstalled(pkgs []string) ([]string, error) {
 	filteredPackages := []string{}
 

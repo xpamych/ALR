@@ -70,6 +70,17 @@ func (s *InstallerRPCServer) Install(args *InstallArgs, reply *struct{}) error {
 	return s.Impl.Install(args.PackagesOrPaths, args.Opts)
 }
 
+func (r *InstallerRPC) Remove(pkgs []string, opts *manager.Opts) error {
+	return r.client.Call("Plugin.Remove", &InstallArgs{
+		PackagesOrPaths: pkgs,
+		Opts:            opts,
+	}, nil)
+}
+
+func (s *InstallerRPCServer) Remove(args *InstallArgs, reply *struct{}) error {
+	return s.Impl.Remove(args.PackagesOrPaths, args.Opts)
+}
+
 func (r *InstallerRPC) RemoveAlreadyInstalled(paths []string) ([]string, error) {
 	var val []string
 	err := r.client.Call("Plugin.RemoveAlreadyInstalled", paths, &val)
