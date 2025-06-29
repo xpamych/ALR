@@ -83,6 +83,7 @@ func GetApp() *cli.App {
 			VersionCmd(),
 			SearchCmd(),
 			RepoCmd(),
+			ConfigCmd(),
 			// Internal commands
 			InternalBuildCmd(),
 			InternalInstallCmd(),

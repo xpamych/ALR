@@ -66,7 +66,7 @@ func TestE2EAlrAddRepo(t *testing.T) {
 				"cat /etc/alr/alr.toml",
 			), e2e.WithExecOptionStdout(&buf))
 			assert.NoError(t, err)
-			assert.Contains(t, buf.String(), "rootCmd")
+			assert.Contains(t, buf.String(), "repo = []")
 		},
 	)
 }

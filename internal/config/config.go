@@ -20,13 +20,12 @@
 package config
 
 import (
-	"log/slog"
-	"os"
+	"fmt"
 	"path/filepath"
-	"reflect"
 
-	"github.com/caarlos0/env"
-	"github.com/pelletier/go-toml/v2"
+	"github.com/goccy/go-yaml"
+	"github.com/knadh/koanf/providers/confmap"
+	"github.com/knadh/koanf/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/constants"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
@@ -35,74 +34,65 @@ import (
 type ALRConfig struct {
 	cfg   *types.Config
 	paths *Paths
-}
 
-var defaultConfig = &types.Config{
-	RootCmd:          "sudo",
-	UseRootCmd:       true,
-	PagerStyle:       "native",
-	IgnorePkgUpdates: []string{},
-	AutoPull:         true,
-	Repos:            []types.Repo{},
+	System *SystemConfig
+	env    *EnvConfig
 }
 
 func New() *ALRConfig {
-	return &ALRConfig{}
+	return &ALRConfig{
+		System: NewSystemConfig(),
+		env:    NewEnvConfig(),
+	}
 }
 
-func readConfig(path string) (*types.Config, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
+func defaultConfigKoanf() *koanf.Koanf {
+	k := koanf.New(".")
+	defaults := map[string]interface{}{
+		"rootCmd":          "sudo",
+		"useRootCmd":       true,
+		"pagerStyle":       "native",
+		"ignorePkgUpdates": []string{},
+		"logLevel":         "info",
+		"autoPull":         true,
+		"repos":            []types.Repo{},
 	}
-	defer file.Close()
-
-	config := types.Config{}
-
-	if err := toml.NewDecoder(file).Decode(&config); err != nil {
-		return nil, err
+	if err := k.Load(confmap.Provider(defaults, "."), nil); err != nil {
+		panic(k)
 	}
-
-	return &config, nil
-}
-
-func mergeStructs(dst, src interface{}) {
-	srcVal := reflect.ValueOf(src)
-	if srcVal.IsNil() {
-		return
-	}
-	srcVal = srcVal.Elem()
-	dstVal := reflect.ValueOf(dst).Elem()
-
-	for i := range srcVal.NumField() {
-		srcField := srcVal.Field(i)
-		srcFieldName := srcVal.Type().Field(i).Name
-
-		dstField := dstVal.FieldByName(srcFieldName)
-		if dstField.IsValid() && dstField.CanSet() {
-			dstField.Set(srcField)
-		}
-	}
+	return k
 }
 
 func (c *ALRConfig) Load() error {
-	systemConfig, err := readConfig(
-		constants.SystemConfigPath,
-	)
-	if err != nil {
-		slog.Debug("Cannot read system config", "err", err)
+	config := types.Config{}
+
+	merged := koanf.New(".")
+
+	if err := c.System.Load(); err != nil {
+		return fmt.Errorf("failed to load system config: %w", err)
 	}
 
-	config := &types.Config{}
-
-	mergeStructs(config, defaultConfig)
-	mergeStructs(config, systemConfig)
-	err = env.Parse(config)
-	if err != nil {
-		return err
+	if err := c.env.Load(); err != nil {
+		return fmt.Errorf("failed to load env config: %w", err)
 	}
 
-	c.cfg = config
+	systemK := c.System.koanf()
+	envK := c.env.koanf()
+
+	if err := merged.Merge(defaultConfigKoanf()); err != nil {
+		return fmt.Errorf("failed to merge default config: %w", err)
+	}
+	if err := merged.Merge(systemK); err != nil {
+		return fmt.Errorf("failed to merge system config: %w", err)
+	}
+	if err := merged.Merge(envK); err != nil {
+		return fmt.Errorf("failed to merge env config: %w", err)
+	}
+	if err := merged.Unmarshal("", &config); err != nil {
+		return fmt.Errorf("failed to unmarshal merged config: %w", err)
+	}
+
+	c.cfg = &config
 
 	c.paths = &Paths{}
 	c.paths.UserConfigPath = constants.SystemConfigPath
@@ -110,52 +100,24 @@ func (c *ALRConfig) Load() error {
 	c.paths.RepoDir = filepath.Join(c.paths.CacheDir, "repo")
 	c.paths.PkgsDir = filepath.Join(c.paths.CacheDir, "pkgs")
 	c.paths.DBPath = filepath.Join(c.paths.CacheDir, "db")
-	// c.initPaths()
 
 	return nil
 }
 
-func (c *ALRConfig) RootCmd() string {
-	return c.cfg.RootCmd
-}
-
-func (c *ALRConfig) PagerStyle() string {
-	return c.cfg.PagerStyle
-}
-
-func (c *ALRConfig) AutoPull() bool {
-	return c.cfg.AutoPull
-}
-
-func (c *ALRConfig) Repos() []types.Repo {
-	return c.cfg.Repos
-}
-
-func (c *ALRConfig) SetRepos(repos []types.Repo) {
-	c.cfg.Repos = repos
-}
-
-func (c *ALRConfig) IgnorePkgUpdates() []string {
-	return c.cfg.IgnorePkgUpdates
-}
-
-func (c *ALRConfig) LogLevel() string {
-	return c.cfg.LogLevel
-}
-
-func (c *ALRConfig) UseRootCmd() bool {
-	return c.cfg.UseRootCmd
-}
-
-func (c *ALRConfig) GetPaths() *Paths {
-	return c.paths
-}
-
-func (c *ALRConfig) SaveUserConfig() error {
-	f, err := os.Create(c.paths.UserConfigPath)
+func (c *ALRConfig) ToYAML() (string, error) {
+	data, err := yaml.Marshal(c.cfg)
 	if err != nil {
-		return err
+		return "", err
 	}
-
-	return toml.NewEncoder(f).Encode(c.cfg)
+	return string(data), nil
 }
+
+func (c *ALRConfig) RootCmd() string             { return c.cfg.RootCmd }
+func (c *ALRConfig) PagerStyle() string          { return c.cfg.PagerStyle }
+func (c *ALRConfig) AutoPull() bool              { return c.cfg.AutoPull }
+func (c *ALRConfig) Repos() []types.Repo         { return c.cfg.Repos }
+func (c *ALRConfig) SetRepos(repos []types.Repo) { c.System.SetRepos(repos) }
+func (c *ALRConfig) IgnorePkgUpdates() []string  { return c.cfg.IgnorePkgUpdates }
+func (c *ALRConfig) LogLevel() string            { return c.cfg.LogLevel }
+func (c *ALRConfig) UseRootCmd() bool            { return c.cfg.UseRootCmd }
+func (c *ALRConfig) GetPaths() *Paths            { return c.paths }

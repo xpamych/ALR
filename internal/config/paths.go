@@ -21,9 +21,10 @@ package config
 
 // Paths contains various paths used by ALR
 type Paths struct {
-	UserConfigPath string
-	CacheDir       string
-	RepoDir        string
-	PkgsDir        string
-	DBPath         string
+	SystemConfigPath string
+	UserConfigPath   string
+	CacheDir         string
+	RepoDir          string
+	PkgsDir          string
+	DBPath           string
 }

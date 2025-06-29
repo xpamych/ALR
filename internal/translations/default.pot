@@ -58,6 +58,50 @@ msgstr ""
 msgid "Done"
 msgstr ""
 
+#: config.go:36
+msgid "Manage config"
+msgstr ""
+
+#: config.go:48
+msgid "Show config"
+msgstr ""
+
+#: config.go:84
+msgid "Set config value"
+msgstr ""
+
+#: config.go:85
+msgid "<key> <value>"
+msgstr ""
+
+#: config.go:118 config.go:126
+msgid "invalid boolean value for %s: %s"
+msgstr ""
+
+#: config.go:141
+msgid "use 'repo add/remove' commands to manage repositories"
+msgstr ""
+
+#: config.go:143 config.go:221
+msgid "unknown config key: %s"
+msgstr ""
+
+#: config.go:147
+msgid "failed to save config"
+msgstr ""
+
+#: config.go:150
+msgid "Successfully set %s = %s"
+msgstr ""
+
+#: config.go:159
+msgid "Get config value"
+msgstr ""
+
+#: config.go:160
+msgid "<key>"
+msgstr ""
+
 #: fix.go:39
 msgid "Attempt to fix problems with ALR"
 msgstr ""
@@ -437,11 +481,11 @@ msgstr ""
 msgid "Enable interactive questions and prompts"
 msgstr ""
 
-#: main.go:146
+#: main.go:147
 msgid "Show help"
 msgstr ""
 
-#: main.go:150
+#: main.go:151
 msgid "Error while running app"
 msgstr ""
 

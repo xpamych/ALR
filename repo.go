@@ -108,7 +108,7 @@ func RemoveRepoCmd() *cli.Command {
 			if err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error removing repo directory"), err)
 			}
-			err = cfg.SaveUserConfig()
+			err = cfg.System.Save()
 			if err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error saving config"), err)
 			}
@@ -175,7 +175,7 @@ func AddRepoCmd() *cli.Command {
 			})
 			cfg.SetRepos(reposSlice)
 
-			err = cfg.SaveUserConfig()
+			err = cfg.System.Save()
 			if err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error saving config"), err)
 			}
@@ -248,7 +248,7 @@ func SetRepoRefCmd() *cli.Command {
 				newRepos = append(newRepos, repo)
 			}
 			deps.Cfg.SetRepos(newRepos)
-			err = deps.Cfg.SaveUserConfig()
+			err = deps.Cfg.System.Save()
 			if err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error saving config"), err)
 			}
@@ -311,7 +311,7 @@ func SetUrlCmd() *cli.Command {
 				newRepos = append(newRepos, repo)
 			}
 			deps.Cfg.SetRepos(newRepos)
-			err = deps.Cfg.SaveUserConfig()
+			err = deps.Cfg.System.Save()
 			if err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error saving config"), err)
 			}
@@ -384,7 +384,7 @@ func AddMirror() *cli.Command {
 				}
 			}
 			deps.Cfg.SetRepos(repos)
-			err = deps.Cfg.SaveUserConfig()
+			err = deps.Cfg.System.Save()
 			if err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error saving config"), err)
 			}
@@ -499,7 +499,7 @@ func RemoveMirror() *cli.Command {
 			}
 
 			deps.Cfg.SetRepos(reposSlice)
-			err = deps.Cfg.SaveUserConfig()
+			err = deps.Cfg.System.Save()
 			if err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error saving config"), err)
 			}
@@ -571,7 +571,7 @@ func ClearMirrors() *cli.Command {
 			reposSlice[repoIndex].Mirrors = []string{}
 
 			deps.Cfg.SetRepos(reposSlice)
-			err = deps.Cfg.SaveUserConfig()
+			err = deps.Cfg.System.Save()
 			if err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error saving config"), err)
 			}

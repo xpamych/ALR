@@ -21,19 +21,19 @@ package types
 
 // Config represents the ALR configuration file
 type Config struct {
-	RootCmd          string   `toml:"rootCmd" env:"ALR_ROOT_CMD"`
-	UseRootCmd       bool     `toml:"useRootCmd"`
-	PagerStyle       string   `toml:"pagerStyle" env:"ALR_PAGER_STYLE"`
-	IgnorePkgUpdates []string `toml:"ignorePkgUpdates"`
-	Repos            []Repo   `toml:"repo"`
-	AutoPull         bool     `toml:"autoPull" env:"ALR_AUTOPULL"`
-	LogLevel         string   `toml:"logLevel" env:"ALR_LOG_LEVEL"`
+	RootCmd          string   `json:"rootCmd" koanf:"rootCmd"`
+	UseRootCmd       bool     `json:"useRootCmd" koanf:"useRootCmd"`
+	PagerStyle       string   `json:"pagerStyle" koanf:"pagerStyle"`
+	IgnorePkgUpdates []string `json:"ignorePkgUpdates" koanf:"ignorePkgUpdates"`
+	Repos            []Repo   `json:"repo" koanf:"repo"`
+	AutoPull         bool     `json:"autoPull" koanf:"autoPull"`
+	LogLevel         string   `json:"logLevel" koanf:"logLevel"`
 }
 
 // Repo represents a ALR repo within a configuration file
 type Repo struct {
-	Name    string   `toml:"name"`
-	URL     string   `toml:"url"`
-	Ref     string   `toml:"ref"`
-	Mirrors []string `toml:"mirrors"`
+	Name    string   `json:"name" koanf:"name"`
+	URL     string   `json:"url" koanf:"url"`
+	Ref     string   `json:"ref" koanf:"ref"`
+	Mirrors []string `json:"mirrors" koanf:"mirrors"`
 }
