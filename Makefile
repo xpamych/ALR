@@ -1,15 +1,20 @@
 NAME := alr
-GIT_VERSION = $(shell git describe --tags )
+GIT_VERSION ?= $(shell git describe --tags )
 IGNORE_ROOT_CHECK ?= 0
 DESTDIR ?=
 PREFIX ?= /usr/local
 BIN := ./$(NAME)
-INSTALED_BIN := $(DESTDIR)/$(PREFIX)/bin/$(NAME)
+INSTALLED_BIN := $(DESTDIR)/$(PREFIX)/bin/$(NAME)
 COMPLETIONS_DIR := ./scripts/completion
 BASH_COMPLETION := $(COMPLETIONS_DIR)/bash
 ZSH_COMPLETION := $(COMPLETIONS_DIR)/zsh
 INSTALLED_BASH_COMPLETION := $(DESTDIR)$(PREFIX)/share/bash-completion/completions/$(NAME)
 INSTALLED_ZSH_COMPLETION := $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_$(NAME)
+
+GENERATE ?= 1
+
+CREATE_SYSTEM_RESOURCES ?= 1
+ROOT_DIRS := /var/cache/alr /etc/alr
 
 ADD_LICENSE_BIN := go run github.com/google/addlicense@4caba19b7ed7818bb86bc4cd20411a246aa4a524
 GOLANGCI_LINT_BIN := go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.63.4
@@ -21,7 +26,11 @@ build: check-no-root $(BIN)
 
 export CGO_ENABLED := 0
 $(BIN):
+ifeq ($(GENERATE),1)
 	go generate ./...
+else
+	@echo "Skipping go generate (GENERATE=0)"
+endif
 	go build -ldflags="-X 'gitea.plemya-x.ru/Plemya-x/ALR/internal/config.Version=$(GIT_VERSION)'" -o $@
 
 check-no-root:
@@ -32,20 +41,26 @@ check-no-root:
 	fi
 
 install: \
-	$(INSTALED_BIN) \
+	$(INSTALLED_BIN) \
 	$(INSTALLED_BASH_COMPLETION) \
 	$(INSTALLED_ZSH_COMPLETION)
 	@echo "Installation done!"
 
-$(INSTALED_BIN): $(BIN)
+$(INSTALLED_BIN): $(BIN)
 	install -Dm755 $< $@
-	setcap cap_setuid,cap_setgid+ep $(INSTALED_BIN)
+ifeq ($(CREATE_SYSTEM_RESOURCES),1)
+	setcap cap_setuid,cap_setgid+ep $(INSTALLED_BIN)
 	@if id alr >/dev/null 2>&1; then \
 		echo "User 'alr' already exists. Skipping."; \
 	else \
 		useradd -r -s /usr/sbin/nologin alr; \
 	fi
-	install -d -o alr -g alr -m 755 /var/cache/alr /etc/alr
+	@for dir in $(ROOT_DIRS); do \
+		install -d -o alr -g alr -m 755 $$dir; \
+	done
+else
+	@echo "Skipping user and root dir creation (CREATE_SYSTEM_RESOURCES=0)"
+endif
 
 $(INSTALLED_BASH_COMPLETION): $(BASH_COMPLETION)
 	install -Dm755 $< $@
@@ -55,7 +70,7 @@ $(INSTALLED_ZSH_COMPLETION): $(ZSH_COMPLETION)
 
 uninstall:
 	rm -f \
-		$(INSTALED_BIN) \
+		$(INSTALLED_BIN) \
 		$(INSTALLED_BASH_COMPLETION) \
 		$(INSTALLED_ZSH_COMPLETION)
 
