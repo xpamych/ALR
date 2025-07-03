@@ -240,39 +240,10 @@ func createFirejailedBinary(
 		return nil, fmt.Errorf("failed to create wrapper script: %w", err)
 	}
 
-	profile, err := getContentFromPath(dest, dirs.PkgDir)
-	if err != nil {
-		return nil, err
-	}
-
-	bin, err := getContentFromPath(origFilePath, dirs.PkgDir)
-	if err != nil {
-		return nil, err
-	}
-
-	return []*files.Content{
-		bin,
-		profile,
-	}, nil
-}
-
-func getContentFromPath(path, base string) (*files.Content, error) {
-	absPath := filepath.Join(base, path)
-
-	fi, err := os.Lstat(absPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get file info: %w", err)
-	}
-
-	return &files.Content{
-		Source:      absPath,
-		Destination: path,
-		FileInfo: &files.ContentFileInfo{
-			MTime: fi.ModTime(),
-			Mode:  fi.Mode(),
-			Size:  fi.Size(),
-		},
-	}, nil
+	return buildContents(pkg, dirs, &[]string{
+		origFilePath,
+		dest,
+	})
 }
 
 func generateSafeName(destination string) (string, error) {
