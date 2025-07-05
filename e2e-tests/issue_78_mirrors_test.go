@@ -21,33 +21,29 @@ package e2etests_test
 import (
 	"testing"
 
-	"github.com/efficientgo/e2e"
+	"go.alt-gnome.ru/capytest"
 )
 
 func TestE2EIssue78Mirrors(t *testing.T) {
-	dockerMultipleRun(
-		t,
-		"issue-78-mirrors",
-		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
-			defaultPrepare(t, r)
-			execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "add", REPO_NAME_FOR_E2E_TESTS, "https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git")
-			execShouldNoError(t, r, "sudo", "alr", "repo", "set-url", REPO_NAME_FOR_E2E_TESTS, "https://example.com")
-			execShouldNoError(t, r, "sudo", "alr", "ref")
-			execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "clear", REPO_NAME_FOR_E2E_TESTS)
-			execShouldError(t, r, "sudo", "alr", "ref")
+	runMatrixSuite(t, "issue-78-mirrors", COMMON_SYSTEMS, func(t *testing.T, r capytest.Runner) {
+		defaultPrepare(t, r)
+		execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "add", REPO_NAME_FOR_E2E_TESTS, "https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git")
+		execShouldNoError(t, r, "sudo", "alr", "repo", "set-url", REPO_NAME_FOR_E2E_TESTS, "https://example.com")
+		execShouldNoError(t, r, "sudo", "alr", "ref")
+		execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "clear", REPO_NAME_FOR_E2E_TESTS)
+		execShouldError(t, r, "sudo", "alr", "ref")
 
-			execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "add", REPO_NAME_FOR_E2E_TESTS, "https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git")
-			execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "rm", "--partial", REPO_NAME_FOR_E2E_TESTS, "gitea.plemya-x.ru/Maks1mS")
-			execShouldError(t, r, "sudo", "alr", "ref")
+		execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "add", REPO_NAME_FOR_E2E_TESTS, "https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git")
+		execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "rm", "--partial", REPO_NAME_FOR_E2E_TESTS, "gitea.plemya-x.ru/Maks1mS")
+		execShouldError(t, r, "sudo", "alr", "ref")
 
-			execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "add", REPO_NAME_FOR_E2E_TESTS, "https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git")
-			execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "rm", REPO_NAME_FOR_E2E_TESTS, "https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git")
-			execShouldError(t, r, "sudo", "alr", "ref")
+		execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "add", REPO_NAME_FOR_E2E_TESTS, "https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git")
+		execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "rm", REPO_NAME_FOR_E2E_TESTS, "https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git")
+		execShouldError(t, r, "sudo", "alr", "ref")
 
-			execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "add", REPO_NAME_FOR_E2E_TESTS, "https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git")
-			execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "rm", REPO_NAME_FOR_E2E_TESTS, "https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git")
-			execShouldError(t, r, "sudo", "alr", "ref")
-		},
+		execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "add", REPO_NAME_FOR_E2E_TESTS, "https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git")
+		execShouldNoError(t, r, "sudo", "alr", "repo", "mirror", "rm", REPO_NAME_FOR_E2E_TESTS, "https://gitea.plemya-x.ru/Maks1mS/repo-for-tests.git")
+		execShouldError(t, r, "sudo", "alr", "ref")
+	},
 	)
 }

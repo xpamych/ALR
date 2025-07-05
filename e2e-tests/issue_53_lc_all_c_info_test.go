@@ -21,15 +21,15 @@ package e2etests_test
 import (
 	"testing"
 
-	"github.com/efficientgo/e2e"
+	"go.alt-gnome.ru/capytest"
 )
 
 func TestE2EIssue53LcAllCInfo(t *testing.T) {
-	dockerMultipleRun(
+	runMatrixSuite(
 		t,
 		"issue-53-lc-all-c-info",
 		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
+		func(t *testing.T, r capytest.Runner) {
 			defaultPrepare(t, r)
 			execShouldNoError(t, r, "bash", "-c", "LANG=C alr info foo-pkg")
 		},

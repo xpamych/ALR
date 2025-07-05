@@ -21,15 +21,15 @@ package e2etests_test
 import (
 	"testing"
 
-	"github.com/efficientgo/e2e"
+	"go.alt-gnome.ru/capytest"
 )
 
 func TestE2EIssue32Interactive(t *testing.T) {
-	dockerMultipleRun(
+	runMatrixSuite(
 		t,
 		"issue-32-interactive",
 		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
+		func(t *testing.T, r capytest.Runner) {
 			execShouldNoError(t, r, "alr", "--interactive=false", "remove", "ca-certificates")
 			execShouldNoError(t, r, "sudo", "alr", "--interactive=false", "remove", "openssl")
 			execShouldNoError(t, r, "alr", "fix")

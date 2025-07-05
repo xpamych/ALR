@@ -21,15 +21,15 @@ package e2etests_test
 import (
 	"testing"
 
-	"github.com/efficientgo/e2e"
+	"go.alt-gnome.ru/capytest"
 )
 
 func TestE2EIssue41AutoreqSkiplist(t *testing.T) {
-	dockerMultipleRun(
+	runMatrixSuite(
 		t,
 		"issue-41-autoreq-skiplist",
 		AUTOREQ_AUTOPROV_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
+		func(t *testing.T, r capytest.Runner) {
 			defaultPrepare(t, r)
 			execShouldNoError(t, r, "alr", "build", "-p", "alr-repo/test-autoreq-autoprov")
 			execShouldNoError(t, r, "sh", "-c", "rpm -qp --requires *.rpm | grep \"^/bin/sh$\"")

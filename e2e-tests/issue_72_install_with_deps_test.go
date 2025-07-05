@@ -21,15 +21,15 @@ package e2etests_test
 import (
 	"testing"
 
-	"github.com/efficientgo/e2e"
+	"go.alt-gnome.ru/capytest"
 )
 
 func TestE2EIssue72InstallWithDeps(t *testing.T) {
-	dockerMultipleRun(
+	runMatrixSuite(
 		t,
 		"issue-72-install-with-deps",
 		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
+		func(t *testing.T, r capytest.Runner) {
 			defaultPrepare(t, r)
 			execShouldNoError(t, r, "sudo", "alr", "in", "test-app-with-lib")
 		},

@@ -19,54 +19,24 @@
 package e2etests_test
 
 import (
-	"bytes"
 	"testing"
 
-	"github.com/efficientgo/e2e"
-	"github.com/stretchr/testify/assert"
+	"go.alt-gnome.ru/capytest"
 )
 
 func TestE2EAlrAddRepo(t *testing.T) {
-	dockerMultipleRun(
+	runMatrixSuite(
 		t,
 		"add-repo-remove-repo",
 		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
-			err := r.Exec(e2e.NewCommand(
-				"sudo",
-				"alr",
-				"addrepo",
-				"--name",
-				"alr-repo",
-				"--url",
-				"https://gitea.plemya-x.ru/Plemya-x/alr-repo.git",
-			))
-			assert.NoError(t, err)
+		func(t *testing.T, r capytest.Runner) {
+			execShouldNoError(t, r, "sudo", "alr", "addrepo", "--name", "alr-repo", "--url", "https://gitea.plemya-x.ru/Plemya-x/alr-repo.git")
+			execShouldNoError(t, r, "bash", "-c", "cat /etc/alr/alr.toml")
+			execShouldNoError(t, r, "sudo", "alr", "removerepo", "--name", "alr-repo")
 
-			err = r.Exec(e2e.NewCommand(
-				"bash",
-				"-c",
-				"cat /etc/alr/alr.toml",
-			))
-			assert.NoError(t, err)
-
-			err = r.Exec(e2e.NewCommand(
-				"sudo",
-				"alr",
-				"removerepo",
-				"--name",
-				"alr-repo",
-			))
-			assert.NoError(t, err)
-
-			var buf bytes.Buffer
-			err = r.Exec(e2e.NewCommand(
-				"bash",
-				"-c",
-				"cat /etc/alr/alr.toml",
-			), e2e.WithExecOptionStdout(&buf))
-			assert.NoError(t, err)
-			assert.Contains(t, buf.String(), "repo = []")
+			r.Command("bash", "-c", "cat /etc/alr/alr.toml").
+				ExpectStdoutContains("repo = []").
+				Run(t)
 		},
 	)
 }

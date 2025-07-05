@@ -21,15 +21,15 @@ package e2etests_test
 import (
 	"testing"
 
-	"github.com/efficientgo/e2e"
+	"go.alt-gnome.ru/capytest"
 )
 
 func TestE2EIssue81MultiplePackages(t *testing.T) {
-	dockerMultipleRun(
+	runMatrixSuite(
 		t,
 		"issue-81-multiple-packages",
 		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
+		func(t *testing.T, r capytest.Runner) {
 			defaultPrepare(t, r)
 			execShouldNoError(t, r, "sudo", "alr", "in", "first-package-with-dashes")
 			execShouldNoError(t, r, "cat", "/opt/first-package")

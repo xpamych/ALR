@@ -1,8 +1,6 @@
 module gitea.plemya-x.ru/Plemya-x/ALR
 
-go 1.23.0
-
-toolchain go1.24.2
+go 1.24.4
 
 require (
 	gitea.plemya-x.ru/Plemya-x/fakeroot v0.0.2-0.20250408104831-427aaa7713c3
@@ -14,7 +12,6 @@ require (
 	github.com/charmbracelet/bubbletea v1.2.4
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/charmbracelet/log v0.4.0
-	github.com/efficientgo/e2e v0.14.1-0.20240418111536-97db25a0c6c0
 	github.com/go-git/go-billy/v5 v5.6.0
 	github.com/go-git/go-git/v5 v5.13.0
 	github.com/goccy/go-yaml v1.18.0
@@ -35,9 +32,10 @@ require (
 	github.com/muesli/reflow v0.3.0
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/stretchr/testify v1.10.0
-	github.com/tailscale/goexpect v0.0.0-20210902213824-6e8c725cea41
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/vmihailenco/msgpack/v5 v5.3.5
+	go.alt-gnome.ru/capytest v0.0.2
+	go.alt-gnome.ru/capytest/providers/podman v0.0.2
 	go.elara.ws/vercmp v0.0.0-20230622214216-0b2b067575c4
 	golang.org/x/crypto v0.36.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
@@ -75,7 +73,6 @@ require (
 	github.com/dlclark/regexp2 v1.10.0 // indirect
 	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/efficientgo/core v1.0.0-rc.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/fatih/color v1.7.0 // indirect
@@ -88,7 +85,6 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/goterm v0.0.0-20190703233501-fc88cf888a3f // indirect
 	github.com/google/rpmpack v0.6.1-0.20240329070804-c2247cbb881a // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/goreleaser/chglog v0.6.1 // indirect
@@ -139,7 +135,6 @@ require (
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/net v0.38.0 // indirect
-	golang.org/x/oauth2 v0.25.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/term v0.30.0 // indirect
 	golang.org/x/tools v0.23.0 // indirect

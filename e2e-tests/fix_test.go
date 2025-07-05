@@ -20,24 +20,15 @@ package e2etests_test
 
 import (
 	"testing"
-	"time"
 
-	"github.com/efficientgo/e2e"
-	expect "github.com/tailscale/goexpect"
+	"go.alt-gnome.ru/capytest"
 )
 
 func TestE2EAlrFix(t *testing.T) {
-	dockerMultipleRun(
-		t,
-		"run-fix",
-		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
-			runTestCommands(t, r, time.Second*30, []expect.Batcher{
-				&expect.BSnd{S: "alr fix\n"},
-				&expect.BExp{R: `--> Done`},
-				&expect.BSnd{S: "echo $?\n"},
-				&expect.BExp{R: `^0\n$`},
-			})
-		},
-	)
+	runMatrixSuite(t, "run-fix", COMMON_SYSTEMS, func(t *testing.T, r capytest.Runner) {
+		r.Command("alr", "fix").
+			ExpectStderrContains("--> Done").
+			ExpectSuccess().
+			Run(t)
+	})
 }

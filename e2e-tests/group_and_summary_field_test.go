@@ -21,15 +21,15 @@ package e2etests_test
 import (
 	"testing"
 
-	"github.com/efficientgo/e2e"
+	"go.alt-gnome.ru/capytest"
 )
 
 func TestE2EGroupAndSummaryField(t *testing.T) {
-	dockerMultipleRun(
+	runMatrixSuite(
 		t,
 		"group-and-summary-field",
 		RPM_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
+		func(t *testing.T, r capytest.Runner) {
 			defaultPrepare(t, r)
 			execShouldNoError(t, r, "sh", "-c", "alr search --name test-group-and-summary --format \"{{.Group.Resolved}}\" | grep ^System/Base$")
 			execShouldNoError(t, r, "sh", "-c", "alr search --name test-group-and-summary --format \"{{.Summary.Resolved}}\" | grep \"^Custom summary$\"")

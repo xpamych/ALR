@@ -22,15 +22,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/efficientgo/e2e"
+	"go.alt-gnome.ru/capytest"
 )
 
 func TestE2EFirejailedPackage(t *testing.T) {
-	dockerMultipleRun(
+	runMatrixSuite(
 		t,
 		"firejailed-package",
 		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
+		func(t *testing.T, r capytest.Runner) {
 			defaultPrepare(t, r)
 			execShouldNoError(t, r, "alr", "build", "-p", fmt.Sprintf("%s/firejailed-pkg", REPO_NAME_FOR_E2E_TESTS))
 			execShouldError(t, r, "alr", "build", "-p", fmt.Sprintf("%s/firejailed-pkg-incorrect", REPO_NAME_FOR_E2E_TESTS))

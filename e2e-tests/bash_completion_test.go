@@ -21,15 +21,15 @@ package e2etests_test
 import (
 	"testing"
 
-	"github.com/efficientgo/e2e"
+	"go.alt-gnome.ru/capytest"
 )
 
 func TestE2EBashCompletion(t *testing.T) {
-	dockerMultipleRun(
+	runMatrixSuite(
 		t,
 		"bash-completion",
 		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
+		func(t *testing.T, r capytest.Runner) {
 			execShouldNoError(t, r, "alr", "install", "--generate-bash-completion")
 		},
 	)

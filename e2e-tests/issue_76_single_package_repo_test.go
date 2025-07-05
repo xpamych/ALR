@@ -21,15 +21,15 @@ package e2etests_test
 import (
 	"testing"
 
-	"github.com/efficientgo/e2e"
+	"go.alt-gnome.ru/capytest"
 )
 
 func Test75SinglePackageRepo(t *testing.T) {
-	dockerMultipleRun(
+	runMatrixSuite(
 		t,
 		"issue-76-single-package-repo",
 		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
+		func(t *testing.T, r capytest.Runner) {
 			execShouldNoError(t, r,
 				"sudo",
 				"alr",
@@ -38,8 +38,9 @@ func Test75SinglePackageRepo(t *testing.T) {
 				REPO_NAME_FOR_E2E_TESTS,
 				"https://gitea.plemya-x.ru/Maks1mS/test-single-package-alr-repo.git",
 			)
+			execShouldNoError(t, r, "sudo", "alr", "ref")
 			execShouldNoError(t, r, "sudo", "alr", "repo", "set-ref", REPO_NAME_FOR_E2E_TESTS, "1075c918be")
-			execShouldNoError(t, r, "alr", "ref")
+			execShouldNoError(t, r, "alr", "fix")
 			execShouldNoError(t, r, "sudo", "alr", "in", "test-single-repo")
 			execShouldNoError(t, r, "sh", "-c", "alr list -U")
 			execShouldNoError(t, r, "sh", "-c", "test $(alr list -U | wc -l) -eq 0 || exit 1")

@@ -23,27 +23,26 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/efficientgo/e2e"
 	"github.com/stretchr/testify/assert"
+	"go.alt-gnome.ru/capytest"
 )
 
 func TestE2EIssue94TwiceBuild(t *testing.T) {
-	dockerMultipleRun(
+	runMatrixSuite(
 		t,
 		"issue-94-twice-build",
 		COMMON_SYSTEMS,
-		func(t *testing.T, r e2e.Runnable) {
+		func(t *testing.T, r capytest.Runner) {
 			defaultPrepare(t, r)
 
 			var stderr bytes.Buffer
-			err := r.Exec(
-				e2e.NewCommand("sudo", "alr", "in", "test-94-app"),
-				e2e.WithExecOptionStderr(&stderr),
-			)
-			assert.NoError(t, err, "command failed")
 
-			output := stderr.String()
-			assert.Equal(t, 1, strings.Count(output, "Building package name=test-94-dep"))
+			r.Command("sudo", "alr", "in", "test-94-app").
+				WithCaptureStderr(&stderr).
+				ExpectSuccess().
+				Run(t)
+
+			assert.Equal(t, 1, strings.Count(stderr.String(), "Building package name=test-94-dep"))
 		},
 	)
 }
