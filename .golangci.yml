@@ -36,11 +36,14 @@ linters:
     - unused
     - errcheck
     - typecheck
-#    - forbidigo
+    - wrapcheck
 
 issues:
   fix: true
   exclude-rules:
+    - linters:
+        - wrapcheck
+      path-except: "internal/repos/find.go"
     - path: _test\.go
       linters:
         - errcheck

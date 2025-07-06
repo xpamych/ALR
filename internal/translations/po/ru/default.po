@@ -16,52 +16,52 @@ msgstr ""
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 48.0\n"
 
-#: build.go:42
+#: build.go:41
 msgid "Build a local package"
 msgstr "Сборка локального пакета"
 
-#: build.go:48
+#: build.go:47
 msgid "Path to the build script"
 msgstr "Путь к скрипту сборки"
 
-#: build.go:53
+#: build.go:52
 msgid "Specify subpackage in script (for multi package script only)"
 msgstr "Укажите подпакет в скрипте (только для многопакетного скрипта)"
 
-#: build.go:58
+#: build.go:57
 msgid "Name of the package to build and its repo (example: default/go-bin)"
 msgstr "Имя пакета для сборки и его репозиторий (пример: default/go-bin)"
 
-#: build.go:63
+#: build.go:62
 msgid ""
 "Build package from scratch even if there's an already built package available"
 msgstr "Создайте пакет с нуля, даже если уже имеется готовый пакет"
 
-#: build.go:73
+#: build.go:72
 msgid "Error getting working directory"
 msgstr "Ошибка при получении рабочего каталога"
 
-#: build.go:118
+#: build.go:117
 msgid "Cannot get absolute script path"
 msgstr "Невозможно получить абсолютный путь к скрипту"
 
-#: build.go:152
+#: build.go:143
 msgid "Package not found"
 msgstr "Пакет не найден"
 
-#: build.go:165
+#: build.go:156
 msgid "Nothing to build"
 msgstr "Нечего собирать"
 
-#: build.go:222
+#: build.go:213
 msgid "Error building package"
 msgstr "Ошибка при сборке пакета"
 
-#: build.go:229
+#: build.go:220
 msgid "Error moving the package"
 msgstr "Ошибка при перемещении пакета"
 
-#: build.go:233
+#: build.go:224
 msgid "Done"
 msgstr "Сделано"
 

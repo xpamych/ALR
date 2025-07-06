@@ -23,7 +23,6 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
@@ -133,15 +132,7 @@ func BuildCmd() *cli.Command {
 				// TODO: handle multiple packages
 				packageInput := c.String("package")
 
-				arr := strings.Split(packageInput, "/")
-				var packageSearch string
-				if len(arr) == 2 {
-					packageSearch = arr[1]
-				} else {
-					packageSearch = arr[0]
-				}
-
-				pkgs, _, err := deps.Repos.FindPkgs(ctx, []string{packageSearch})
+				pkgs, _, err := deps.Repos.FindPkgs(ctx, []string{packageInput})
 				if err != nil {
 					return cliutils.FormatCliExit("failed to find pkgs", err)
 				}

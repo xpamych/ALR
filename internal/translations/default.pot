@@ -9,52 +9,52 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: build.go:42
+#: build.go:41
 msgid "Build a local package"
 msgstr ""
 
-#: build.go:48
+#: build.go:47
 msgid "Path to the build script"
 msgstr ""
 
-#: build.go:53
+#: build.go:52
 msgid "Specify subpackage in script (for multi package script only)"
 msgstr ""
 
-#: build.go:58
+#: build.go:57
 msgid "Name of the package to build and its repo (example: default/go-bin)"
 msgstr ""
 
-#: build.go:63
+#: build.go:62
 msgid ""
 "Build package from scratch even if there's an already built package available"
 msgstr ""
 
-#: build.go:73
+#: build.go:72
 msgid "Error getting working directory"
 msgstr ""
 
-#: build.go:118
+#: build.go:117
 msgid "Cannot get absolute script path"
 msgstr ""
 
-#: build.go:152
+#: build.go:143
 msgid "Package not found"
 msgstr ""
 
-#: build.go:165
+#: build.go:156
 msgid "Nothing to build"
 msgstr ""
 
-#: build.go:222
+#: build.go:213
 msgid "Error building package"
 msgstr ""
 
-#: build.go:229
+#: build.go:220
 msgid "Error moving the package"
 msgstr ""
 
-#: build.go:233
+#: build.go:224
 msgid "Done"
 msgstr ""
 

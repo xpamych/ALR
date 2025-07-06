@@ -21,44 +21,58 @@ package repos
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 func (rs *Repos) FindPkgs(ctx context.Context, pkgs []string) (map[string][]alrsh.Package, []string, error) {
-	found := map[string][]alrsh.Package{}
-	notFound := []string(nil)
+	found := make(map[string][]alrsh.Package)
+	var notFound []string
 
 	for _, pkgName := range pkgs {
 		if pkgName == "" {
 			continue
 		}
 
-		result, err := rs.db.GetPkgs(ctx, "json_array_contains(provides, ?)", pkgName)
-		if err != nil {
-			return nil, nil, err
-		}
+		var result []alrsh.Package
+		var err error
 
-		added := 0
-		for _, pkg := range result {
-			added++
-			found[pkgName] = append(found[pkgName], pkg)
-		}
+		switch {
+		case strings.Contains(pkgName, "/"):
+			// repo/pkg
+			parts := strings.SplitN(pkgName, "/", 2)
+			repo := parts[0]
+			name := parts[1]
+			result, err = rs.db.GetPkgs(ctx, "name = ? AND repository = ?", name, repo)
 
-		if added == 0 {
-			result, err := rs.db.GetPkgs(ctx, "name LIKE ?", pkgName)
+		case strings.Contains(pkgName, "+alr-"):
+			// pkg+alr-repo
+			parts := strings.SplitN(pkgName, "+alr-", 2)
+			name := parts[0]
+			repo := parts[1]
+			result, err = rs.db.GetPkgs(ctx, "name = ? AND repository = ?", name, repo)
+
+		default:
+			result, err = rs.db.GetPkgs(ctx, "json_array_contains(provides, ?)", pkgName)
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, fmt.Errorf("FindPkgs: get by provides: %w", err)
 			}
 
-			for _, pkg := range result {
-				added++
-				found[pkgName] = append(found[pkgName], pkg)
+			if len(result) == 0 {
+				result, err = rs.db.GetPkgs(ctx, "name LIKE ?", pkgName)
 			}
 		}
 
-		if added == 0 {
+		if err != nil {
+			return nil, nil, fmt.Errorf("FindPkgs: lookup for %q failed: %w", pkgName, err)
+		}
+
+		if len(result) == 0 {
 			notFound = append(notFound, pkgName)
+		} else {
+			found[pkgName] = result
 		}
 	}
 
