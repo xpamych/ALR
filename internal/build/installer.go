@@ -17,6 +17,8 @@
 package build
 
 import (
+	"context"
+
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 )
 
@@ -28,19 +30,19 @@ func NewInstaller(mgr manager.Manager) *Installer {
 
 type Installer struct{ mgr manager.Manager }
 
-func (i *Installer) InstallLocal(paths []string, opts *manager.Opts) error {
+func (i *Installer) InstallLocal(ctx context.Context, paths []string, opts *manager.Opts) error {
 	return i.mgr.InstallLocal(opts, paths...)
 }
 
-func (i *Installer) Install(pkgs []string, opts *manager.Opts) error {
+func (i *Installer) Install(ctx context.Context, pkgs []string, opts *manager.Opts) error {
 	return i.mgr.Install(opts, pkgs...)
 }
 
-func (i *Installer) Remove(pkgs []string, opts *manager.Opts) error {
+func (i *Installer) Remove(ctx context.Context, pkgs []string, opts *manager.Opts) error {
 	return i.mgr.Remove(opts, pkgs...)
 }
 
-func (i *Installer) RemoveAlreadyInstalled(pkgs []string) ([]string, error) {
+func (i *Installer) RemoveAlreadyInstalled(ctx context.Context, pkgs []string) ([]string, error) {
 	filteredPackages := []string{}
 
 	for _, dep := range pkgs {

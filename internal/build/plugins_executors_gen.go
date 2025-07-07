@@ -1,0 +1,318 @@
+// DO NOT EDIT MANUALLY. This file is generated.
+
+// ALR - Any Linux Repository
+// Copyright (C) 2025 The ALR Authors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+package build
+
+import (
+	"net/rpc"
+
+	"context"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
+	"github.com/hashicorp/go-plugin"
+)
+
+type InstallerExecutorPlugin struct {
+	Impl InstallerExecutor
+}
+
+type InstallerExecutorRPCServer struct {
+	Impl InstallerExecutor
+}
+
+type InstallerExecutorRPC struct {
+	client *rpc.Client
+}
+
+func (p *InstallerExecutorPlugin) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, error) {
+	return &InstallerExecutorRPC{client: c}, nil
+}
+
+func (p *InstallerExecutorPlugin) Server(*plugin.MuxBroker) (interface{}, error) {
+	return &InstallerExecutorRPCServer{Impl: p.Impl}, nil
+}
+
+type ScriptExecutorPlugin struct {
+	Impl ScriptExecutor
+}
+
+type ScriptExecutorRPCServer struct {
+	Impl ScriptExecutor
+}
+
+type ScriptExecutorRPC struct {
+	client *rpc.Client
+}
+
+func (p *ScriptExecutorPlugin) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, error) {
+	return &ScriptExecutorRPC{client: c}, nil
+}
+
+func (p *ScriptExecutorPlugin) Server(*plugin.MuxBroker) (interface{}, error) {
+	return &ScriptExecutorRPCServer{Impl: p.Impl}, nil
+}
+
+type InstallerExecutorInstallLocalArgs struct {
+	Paths []string
+	Opts  *manager.Opts
+}
+
+type InstallerExecutorInstallLocalResp struct {
+}
+
+func (s *InstallerExecutorRPC) InstallLocal(ctx context.Context, paths []string, opts *manager.Opts) error {
+	var resp *InstallerExecutorInstallLocalResp
+	err := s.client.Call("Plugin.InstallLocal", &InstallerExecutorInstallLocalArgs{
+		Paths: paths,
+		Opts:  opts,
+	}, &resp)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *InstallerExecutorRPCServer) InstallLocal(args *InstallerExecutorInstallLocalArgs, resp *InstallerExecutorInstallLocalResp) error {
+	err := s.Impl.InstallLocal(context.Background(), args.Paths, args.Opts)
+	if err != nil {
+		return err
+	}
+	*resp = InstallerExecutorInstallLocalResp{}
+	return nil
+}
+
+type InstallerExecutorInstallArgs struct {
+	Pkgs []string
+	Opts *manager.Opts
+}
+
+type InstallerExecutorInstallResp struct {
+}
+
+func (s *InstallerExecutorRPC) Install(ctx context.Context, pkgs []string, opts *manager.Opts) error {
+	var resp *InstallerExecutorInstallResp
+	err := s.client.Call("Plugin.Install", &InstallerExecutorInstallArgs{
+		Pkgs: pkgs,
+		Opts: opts,
+	}, &resp)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *InstallerExecutorRPCServer) Install(args *InstallerExecutorInstallArgs, resp *InstallerExecutorInstallResp) error {
+	err := s.Impl.Install(context.Background(), args.Pkgs, args.Opts)
+	if err != nil {
+		return err
+	}
+	*resp = InstallerExecutorInstallResp{}
+	return nil
+}
+
+type InstallerExecutorRemoveArgs struct {
+	Pkgs []string
+	Opts *manager.Opts
+}
+
+type InstallerExecutorRemoveResp struct {
+}
+
+func (s *InstallerExecutorRPC) Remove(ctx context.Context, pkgs []string, opts *manager.Opts) error {
+	var resp *InstallerExecutorRemoveResp
+	err := s.client.Call("Plugin.Remove", &InstallerExecutorRemoveArgs{
+		Pkgs: pkgs,
+		Opts: opts,
+	}, &resp)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *InstallerExecutorRPCServer) Remove(args *InstallerExecutorRemoveArgs, resp *InstallerExecutorRemoveResp) error {
+	err := s.Impl.Remove(context.Background(), args.Pkgs, args.Opts)
+	if err != nil {
+		return err
+	}
+	*resp = InstallerExecutorRemoveResp{}
+	return nil
+}
+
+type InstallerExecutorRemoveAlreadyInstalledArgs struct {
+	Pkgs []string
+}
+
+type InstallerExecutorRemoveAlreadyInstalledResp struct {
+	Result0 []string
+}
+
+func (s *InstallerExecutorRPC) RemoveAlreadyInstalled(ctx context.Context, pkgs []string) ([]string, error) {
+	var resp *InstallerExecutorRemoveAlreadyInstalledResp
+	err := s.client.Call("Plugin.RemoveAlreadyInstalled", &InstallerExecutorRemoveAlreadyInstalledArgs{
+		Pkgs: pkgs,
+	}, &resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result0, nil
+}
+
+func (s *InstallerExecutorRPCServer) RemoveAlreadyInstalled(args *InstallerExecutorRemoveAlreadyInstalledArgs, resp *InstallerExecutorRemoveAlreadyInstalledResp) error {
+	result0, err := s.Impl.RemoveAlreadyInstalled(context.Background(), args.Pkgs)
+	if err != nil {
+		return err
+	}
+	*resp = InstallerExecutorRemoveAlreadyInstalledResp{
+		Result0: result0,
+	}
+	return nil
+}
+
+type ScriptExecutorReadScriptArgs struct {
+	ScriptPath string
+}
+
+type ScriptExecutorReadScriptResp struct {
+	Result0 *alrsh.ScriptFile
+}
+
+func (s *ScriptExecutorRPC) ReadScript(ctx context.Context, scriptPath string) (*alrsh.ScriptFile, error) {
+	var resp *ScriptExecutorReadScriptResp
+	err := s.client.Call("Plugin.ReadScript", &ScriptExecutorReadScriptArgs{
+		ScriptPath: scriptPath,
+	}, &resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result0, nil
+}
+
+func (s *ScriptExecutorRPCServer) ReadScript(args *ScriptExecutorReadScriptArgs, resp *ScriptExecutorReadScriptResp) error {
+	result0, err := s.Impl.ReadScript(context.Background(), args.ScriptPath)
+	if err != nil {
+		return err
+	}
+	*resp = ScriptExecutorReadScriptResp{
+		Result0: result0,
+	}
+	return nil
+}
+
+type ScriptExecutorExecuteFirstPassArgs struct {
+	Input *BuildInput
+	Sf    *alrsh.ScriptFile
+}
+
+type ScriptExecutorExecuteFirstPassResp struct {
+	Result0 string
+	Result1 []*alrsh.Package
+}
+
+func (s *ScriptExecutorRPC) ExecuteFirstPass(ctx context.Context, input *BuildInput, sf *alrsh.ScriptFile) (string, []*alrsh.Package, error) {
+	var resp *ScriptExecutorExecuteFirstPassResp
+	err := s.client.Call("Plugin.ExecuteFirstPass", &ScriptExecutorExecuteFirstPassArgs{
+		Input: input,
+		Sf:    sf,
+	}, &resp)
+	if err != nil {
+		return "", nil, err
+	}
+	return resp.Result0, resp.Result1, nil
+}
+
+func (s *ScriptExecutorRPCServer) ExecuteFirstPass(args *ScriptExecutorExecuteFirstPassArgs, resp *ScriptExecutorExecuteFirstPassResp) error {
+	result0, result1, err := s.Impl.ExecuteFirstPass(context.Background(), args.Input, args.Sf)
+	if err != nil {
+		return err
+	}
+	*resp = ScriptExecutorExecuteFirstPassResp{
+		Result0: result0,
+		Result1: result1,
+	}
+	return nil
+}
+
+type ScriptExecutorPrepareDirsArgs struct {
+	Input   *BuildInput
+	BasePkg string
+}
+
+type ScriptExecutorPrepareDirsResp struct {
+}
+
+func (s *ScriptExecutorRPC) PrepareDirs(ctx context.Context, input *BuildInput, basePkg string) error {
+	var resp *ScriptExecutorPrepareDirsResp
+	err := s.client.Call("Plugin.PrepareDirs", &ScriptExecutorPrepareDirsArgs{
+		Input:   input,
+		BasePkg: basePkg,
+	}, &resp)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *ScriptExecutorRPCServer) PrepareDirs(args *ScriptExecutorPrepareDirsArgs, resp *ScriptExecutorPrepareDirsResp) error {
+	err := s.Impl.PrepareDirs(context.Background(), args.Input, args.BasePkg)
+	if err != nil {
+		return err
+	}
+	*resp = ScriptExecutorPrepareDirsResp{}
+	return nil
+}
+
+type ScriptExecutorExecuteSecondPassArgs struct {
+	Input          *BuildInput
+	Sf             *alrsh.ScriptFile
+	VarsOfPackages []*alrsh.Package
+	RepoDeps       []string
+	BuiltDeps      []*BuiltDep
+	BasePkg        string
+}
+
+type ScriptExecutorExecuteSecondPassResp struct {
+	Result0 []*BuiltDep
+}
+
+func (s *ScriptExecutorRPC) ExecuteSecondPass(ctx context.Context, input *BuildInput, sf *alrsh.ScriptFile, varsOfPackages []*alrsh.Package, repoDeps []string, builtDeps []*BuiltDep, basePkg string) ([]*BuiltDep, error) {
+	var resp *ScriptExecutorExecuteSecondPassResp
+	err := s.client.Call("Plugin.ExecuteSecondPass", &ScriptExecutorExecuteSecondPassArgs{
+		Input:          input,
+		Sf:             sf,
+		VarsOfPackages: varsOfPackages,
+		RepoDeps:       repoDeps,
+		BuiltDeps:      builtDeps,
+		BasePkg:        basePkg,
+	}, &resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result0, nil
+}
+
+func (s *ScriptExecutorRPCServer) ExecuteSecondPass(args *ScriptExecutorExecuteSecondPassArgs, resp *ScriptExecutorExecuteSecondPassResp) error {
+	result0, err := s.Impl.ExecuteSecondPass(context.Background(), args.Input, args.Sf, args.VarsOfPackages, args.RepoDeps, args.BuiltDeps, args.BasePkg)
+	if err != nil {
+		return err
+	}
+	*resp = ScriptExecutorExecuteSecondPassResp{
+		Result0: result0,
+	}
+	return nil
+}

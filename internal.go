@@ -125,7 +125,7 @@ func InternalInstallCmd() *cli.Command {
 			plugin.Serve(&plugin.ServeConfig{
 				HandshakeConfig: build.HandshakeConfig,
 				Plugins: map[string]plugin.Plugin{
-					"installer": &build.InstallerPlugin{
+					"installer": &build.InstallerExecutorPlugin{
 						Impl: build.NewInstaller(
 							manager.Detect(),
 						),

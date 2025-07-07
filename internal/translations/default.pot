@@ -218,23 +218,23 @@ msgstr ""
 msgid "Error removing packages"
 msgstr ""
 
-#: internal/build/build.go:378
+#: internal/build/build.go:351
 msgid "Building package"
 msgstr ""
 
-#: internal/build/build.go:407
+#: internal/build/build.go:380
 msgid "The checksums array must be the same length as sources"
 msgstr ""
 
-#: internal/build/build.go:449
+#: internal/build/build.go:422
 msgid "Downloading sources"
 msgstr ""
 
-#: internal/build/build.go:495
+#: internal/build/build.go:468
 msgid "Would you like to remove the build dependencies?"
 msgstr ""
 
-#: internal/build/build.go:571
+#: internal/build/build.go:546
 msgid "Installing dependencies"
 msgstr ""
 

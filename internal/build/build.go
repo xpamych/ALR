@@ -176,25 +176,6 @@ type ScriptResolverExecutor interface {
 	ResolveScript(ctx context.Context, pkg *alrsh.Package) *ScriptInfo
 }
 
-type ScriptExecutor interface {
-	ReadScript(ctx context.Context, scriptPath string) (*alrsh.ScriptFile, error)
-	ExecuteFirstPass(ctx context.Context, input *BuildInput, sf *alrsh.ScriptFile) (string, []*alrsh.Package, error)
-	PrepareDirs(
-		ctx context.Context,
-		input *BuildInput,
-		basePkg string,
-	) error
-	ExecuteSecondPass(
-		ctx context.Context,
-		input *BuildInput,
-		sf *alrsh.ScriptFile,
-		varsOfPackages []*alrsh.Package,
-		repoDeps []string,
-		builtDeps []*BuiltDep,
-		basePkg string,
-	) ([]*BuiltDep, error)
-}
-
 type CacheExecutor interface {
 	CheckForBuiltPackage(ctx context.Context, input *BuildInput, vars *alrsh.Package) (string, bool, error)
 }
@@ -209,14 +190,6 @@ type CheckerExecutor interface {
 		input *BuildInput,
 		vars *alrsh.Package,
 	) (bool, error)
-}
-
-type InstallerExecutor interface {
-	InstallLocal(paths []string, opts *manager.Opts) error
-	Install(pkgs []string, opts *manager.Opts) error
-	Remove(pkgs []string, opts *manager.Opts) error
-
-	RemoveAlreadyInstalled(pkgs []string) ([]string, error)
 }
 
 type SourcesInput struct {
@@ -499,6 +472,7 @@ func (b *Builder) removeBuildDeps(ctx context.Context, input interface {
 
 		if remove {
 			err = b.installerExecutor.Remove(
+				ctx,
 				deps,
 				&manager.Opts{
 					NoConfirm: !input.BuildOpts().Interactive,
@@ -545,6 +519,7 @@ func (b *Builder) InstallALRPackages(
 		}
 
 		err = b.installerExecutor.InstallLocal(
+			ctx,
 			GetBuiltPaths(res),
 			&manager.Opts{
 				NoConfirm: !input.BuildOpts().Interactive,
@@ -645,7 +620,7 @@ func (i *Builder) installBuildDeps(
 	var deps []string
 	var err error
 	if len(pkgs) > 0 {
-		deps, err = i.installerExecutor.RemoveAlreadyInstalled(pkgs)
+		deps, err = i.installerExecutor.RemoveAlreadyInstalled(ctx, pkgs)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -668,7 +643,7 @@ func (i *Builder) installOptDeps(
 	pkgs []string,
 ) ([]*BuiltDep, error) {
 	var builtDeps []*BuiltDep
-	optDeps, err := i.installerExecutor.RemoveAlreadyInstalled(pkgs)
+	optDeps, err := i.installerExecutor.RemoveAlreadyInstalled(ctx, pkgs)
 	if err != nil {
 		return nil, err
 	}
@@ -710,7 +685,7 @@ func (i *Builder) InstallPkgs(
 	}
 
 	if len(builtDeps) > 0 {
-		err = i.installerExecutor.InstallLocal(GetBuiltPaths(builtDeps), &manager.Opts{
+		err = i.installerExecutor.InstallLocal(ctx, GetBuiltPaths(builtDeps), &manager.Opts{
 			NoConfirm: !input.BuildOpts().Interactive,
 		})
 		if err != nil {
@@ -719,7 +694,7 @@ func (i *Builder) InstallPkgs(
 	}
 
 	if len(repoDeps) > 0 {
-		err = i.installerExecutor.Install(repoDeps, &manager.Opts{
+		err = i.installerExecutor.Install(ctx, repoDeps, &manager.Opts{
 			NoConfirm: !input.BuildOpts().Interactive,
 		})
 		if err != nil {
