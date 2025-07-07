@@ -68,7 +68,7 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 	}
 
 	for _, repo := range repos {
-		err := rs.pullRepo(ctx, repo)
+		err := rs.pullRepo(ctx, &repo, false)
 		if err != nil {
 			return err
 		}
@@ -77,7 +77,16 @@ func (rs *Repos) Pull(ctx context.Context, repos []types.Repo) error {
 	return nil
 }
 
-func (rs *Repos) pullRepo(ctx context.Context, repo types.Repo) error {
+func (rs *Repos) PullOneAndUpdateFromConfig(ctx context.Context, repo *types.Repo) error {
+	err := rs.pullRepo(ctx, repo, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (rs *Repos) pullRepo(ctx context.Context, repo *types.Repo, updateRepoFromToml bool) error {
 	urls := []string{repo.URL}
 	urls = append(urls, repo.Mirrors...)
 
@@ -88,7 +97,7 @@ func (rs *Repos) pullRepo(ctx context.Context, repo types.Repo) error {
 			slog.Info(gotext.Get("Trying mirror"), "repo", repo.Name, "mirror", repoURL)
 		}
 
-		err := rs.pullRepoFromURL(ctx, repoURL, repo)
+		err := rs.pullRepoFromURL(ctx, repoURL, repo, updateRepoFromToml)
 		if err != nil {
 			lastErr = err
 			slog.Warn(gotext.Get("Failed to pull from URL"), "repo", repo.Name, "url", repoURL, "error", err)
@@ -149,7 +158,7 @@ func readGitRepo(repoDir, repoUrl string) (*git.Repository, bool, error) {
 	return r, true, nil
 }
 
-func (rs *Repos) pullRepoFromURL(ctx context.Context, rawRepoUrl string, repo types.Repo) error {
+func (rs *Repos) pullRepoFromURL(ctx context.Context, rawRepoUrl string, repo *types.Repo, update bool) error {
 	repoURL, err := url.Parse(rawRepoUrl)
 	if err != nil {
 		return fmt.Errorf("invalid URL %s: %w", rawRepoUrl, err)
@@ -214,12 +223,12 @@ func (rs *Repos) pullRepoFromURL(ctx context.Context, rawRepoUrl string, repo ty
 	// empty. In this case, we need to update the DB fully
 	// rather than just incrementally.
 	if rs.db.IsEmpty() || freshGit {
-		err = rs.processRepoFull(ctx, repo, repoDir)
+		err = rs.processRepoFull(ctx, *repo, repoDir)
 		if err != nil {
 			return err
 		}
 	} else {
-		err = rs.processRepoChanges(ctx, repo, r, w, old, new)
+		err = rs.processRepoChanges(ctx, *repo, r, w, old, new)
 		if err != nil {
 			return err
 		}
@@ -244,6 +253,18 @@ func (rs *Repos) pullRepoFromURL(ctx context.Context, rawRepoUrl string, repo ty
 	if strings.HasPrefix(config.Version, "v") {
 		if vercmp.Compare(config.Version, repoCfg.Repo.MinVersion) == -1 {
 			slog.Warn(gotext.Get("ALR repo's minimum ALR version is greater than the current version. Try updating ALR if something doesn't work."), "repo", repo.Name)
+		}
+	}
+
+	if update {
+		if repoCfg.Repo.URL != "" {
+			repo.URL = repoCfg.Repo.URL
+		}
+		if repoCfg.Repo.Ref != "" {
+			repo.Ref = repoCfg.Repo.Ref
+		}
+		if len(repoCfg.Repo.Mirrors) > 0 {
+			repo.Mirrors = repoCfg.Repo.Mirrors
 		}
 	}
 

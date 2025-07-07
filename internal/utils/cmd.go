@@ -131,11 +131,11 @@ func EnsureIsAlrUser() error {
 	}
 	newUid := syscall.Getuid()
 	if newUid != uid {
-		return errors.New("new uid don't matches requested")
+		return errors.New("uid don't matches requested")
 	}
 	newGid := syscall.Getgid()
 	if newGid != gid {
-		return errors.New("new gid don't matches requested")
+		return errors.New("gid don't matches requested")
 	}
 	return nil
 }

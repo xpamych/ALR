@@ -84,6 +84,43 @@ func InternalBuildCmd() *cli.Command {
 	}
 }
 
+func InternalReposCmd() *cli.Command {
+	return &cli.Command{
+		Name:     "_internal-repos",
+		HideHelp: true,
+		Hidden:   true,
+		Action: utils.RootNeededAction(func(ctx *cli.Context) error {
+			logger.SetupForGoPlugin()
+
+			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
+				return err
+			}
+
+			deps, err := appbuilder.
+				New(ctx.Context).
+				WithConfig().
+				WithDB().
+				WithReposNoPull().
+				Build()
+			if err != nil {
+				return err
+			}
+			defer deps.Defer()
+
+			pluginCfg := build.GetPluginServeCommonConfig()
+			pluginCfg.Plugins = map[string]plugin.Plugin{
+				"repos": &build.ReposExecutorPlugin{
+					Impl: build.NewRepos(
+						deps.Repos,
+					),
+				},
+			}
+			plugin.Serve(pluginCfg)
+			return nil
+		}),
+	}
+}
+
 func InternalInstallCmd() *cli.Command {
 	return &cli.Command{
 		Name:     "_internal-installer",

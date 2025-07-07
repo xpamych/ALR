@@ -22,6 +22,7 @@ package dl
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/url"
 	"path"
 	"strconv"
@@ -149,6 +150,7 @@ func (d *GitDownloader) Update(opts Options) (bool, error) {
 	u.Scheme = strings.TrimPrefix(u.Scheme, "git+")
 
 	query := u.Query()
+	rev := query.Get("~rev")
 	query.Del("~rev")
 
 	depthStr := query.Get("~depth")
@@ -177,25 +179,65 @@ func (d *GitDownloader) Update(opts Options) (bool, error) {
 		}
 	}
 
-	po := &git.PullOptions{
-		Depth:             depth,
-		Progress:          opts.Progress,
-		RecurseSubmodules: git.NoRecurseSubmodules,
-	}
-
-	if recursive == "true" {
-		po.RecurseSubmodules = git.DefaultSubmoduleRecursionDepth
+	// First, we do a fetch to get all the revisions.
+	fo := &git.FetchOptions{
+		Depth:    depth,
+		Progress: opts.Progress,
 	}
 
 	m, err := getManifest(opts.Destination)
 	manifestOK := err == nil
 
-	err = w.Pull(po)
-	if err != nil {
-		if errors.Is(err, git.NoErrAlreadyUpToDate) {
-			return false, nil
-		}
+	err = r.Fetch(fo)
+	if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
 		return false, err
+	}
+
+	// If a revision is specified, switch to it.
+	if rev != "" {
+		// We are trying to find the revision as a hash of the commit
+		hash, err := r.ResolveRevision(plumbing.Revision(rev))
+		if err != nil {
+			return false, fmt.Errorf("failed to resolve revision %s: %w", rev, err)
+		}
+
+		err = w.Checkout(&git.CheckoutOptions{
+			Hash: *hash,
+		})
+		if err != nil {
+			return false, fmt.Errorf("failed to checkout revision %s: %w", rev, err)
+		}
+
+		if recursive == "true" {
+			submodules, err := w.Submodules()
+			if err == nil {
+				err = submodules.Update(&git.SubmoduleUpdateOptions{
+					Init: true,
+				})
+				if err != nil {
+					return false, fmt.Errorf("failed to update submodules %s: %w", rev, err)
+				}
+			}
+		}
+	} else {
+		// If the revision is not specified, we do a regular pull.
+		po := &git.PullOptions{
+			Depth:             depth,
+			Progress:          opts.Progress,
+			RecurseSubmodules: git.NoRecurseSubmodules,
+		}
+
+		if recursive == "true" {
+			po.RecurseSubmodules = git.DefaultSubmoduleRecursionDepth
+		}
+
+		err = w.Pull(po)
+		if err != nil {
+			if errors.Is(err, git.NoErrAlreadyUpToDate) {
+				return false, nil
+			}
+			return false, err
+		}
 	}
 
 	err = VerifyHashFromLocal("", opts)

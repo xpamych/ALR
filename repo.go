@@ -29,6 +29,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"golang.org/x/exp/slices"
 
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/build"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
@@ -169,31 +170,30 @@ func AddRepoCmd() *cli.Command {
 					return cliutils.FormatCliExit(gotext.Get("Repo \"%s\" already exists", repo.Name), nil)
 				}
 			}
-			reposSlice = append(reposSlice, types.Repo{
+
+			newRepo := types.Repo{
 				Name: name,
 				URL:  repoURL,
-			})
+			}
+
+			r, close, err := build.GetSafeReposExecutor()
+			if err != nil {
+				return err
+			}
+			defer close()
+
+			newRepo, err = r.PullOneAndUpdateFromConfig(c.Context, &newRepo)
+			if err != nil {
+				return err
+			}
+
+			reposSlice = append(reposSlice, newRepo)
 			cfg.SetRepos(reposSlice)
 
 			err = cfg.System.Save()
 			if err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error saving config"), err)
 			}
-
-			if err := utils.ExitIfCantDropCapsToAlrUserNoPrivs(); err != nil {
-				return err
-			}
-
-			deps, err = appbuilder.
-				New(ctx).
-				UseConfig(cfg).
-				WithDB().
-				WithReposForcePull().
-				Build()
-			if err != nil {
-				return err
-			}
-			defer deps.Defer()
 
 			return nil
 		}),

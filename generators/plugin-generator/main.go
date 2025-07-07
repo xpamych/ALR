@@ -27,6 +27,7 @@ import (
 	"os"
 	"strings"
 	"text/template"
+	"unicode"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -252,6 +253,8 @@ func argsGen(buf *bytes.Buffer, methods []MethodInfo) {
 			return strings.ToLower(s[:1]) + s[1:]
 		},
 		"zeroValue": func(typeName string) string {
+			typeName = strings.TrimSpace(typeName)
+
 			switch typeName {
 			case "string":
 				return "\"\""
@@ -263,9 +266,32 @@ func argsGen(buf *bytes.Buffer, methods []MethodInfo) {
 				return "0.0"
 			case "bool":
 				return "false"
-			default:
+			}
+
+			if strings.HasPrefix(typeName, "*") {
 				return "nil"
 			}
+			if strings.HasPrefix(typeName, "[]") ||
+				strings.HasPrefix(typeName, "map[") ||
+				strings.HasPrefix(typeName, "chan ") {
+				return "nil"
+			}
+
+			if typeName == "interface{}" {
+				return "nil"
+			}
+
+			// If external type: pkg.Type
+			if strings.Contains(typeName, ".") {
+				return typeName + "{}"
+			}
+
+			// If starts with uppercase — likely struct
+			if len(typeName) > 0 && unicode.IsUpper(rune(typeName[0])) {
+				return typeName + "{}"
+			}
+
+			return "nil"
 		},
 	}
 

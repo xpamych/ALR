@@ -1,6 +1,3 @@
-// This file was originally part of the project "LURE - Linux User REpository", created by Elara Musayelyan.
-// It has been modified as part of "ALR - Any Linux Repository" by the ALR Authors.
-//
 // ALR - Any Linux Repository
 // Copyright (C) 2025 The ALR Authors
 //
@@ -17,14 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-package types
+package build
 
-// RepoConfig represents a ALR repo's alr-repo.toml file.
-type RepoConfig struct {
-	Repo struct {
-		MinVersion string   `toml:"minVersion"`
-		URL        string   `toml:"url"`
-		Ref        string   `toml:"ref"`
-		Mirrors    []string `toml:"mirrors"`
+import (
+	"context"
+
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/repos"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
+)
+
+type reposExecutor struct{ r *repos.Repos }
+
+func NewRepos(r *repos.Repos) ReposExecutor {
+	return &reposExecutor{r}
+}
+
+func (r *reposExecutor) PullOneAndUpdateFromConfig(ctx context.Context, repo *types.Repo) (types.Repo, error) {
+	if err := r.r.PullOneAndUpdateFromConfig(ctx, repo); err != nil {
+		return *repo, err
 	}
+	return *repo, nil
 }

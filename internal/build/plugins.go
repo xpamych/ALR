@@ -24,6 +24,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/logger"
@@ -32,6 +33,7 @@ import (
 var pluginMap = map[string]plugin.Plugin{
 	"script-executor": &ScriptExecutorPlugin{},
 	"installer":       &InstallerExecutorPlugin{},
+	"repos":           &ReposExecutorPlugin{},
 }
 
 var HandshakeConfig = plugin.HandshakeConfig{
@@ -57,12 +59,29 @@ func setCommonCmdEnv(cmd *exec.Cmd) {
 	}
 }
 
+func GetPluginServeCommonConfig() *plugin.ServeConfig {
+	return &plugin.ServeConfig{
+		HandshakeConfig: HandshakeConfig,
+		Logger: hclog.New(&hclog.LoggerOptions{
+			Name:        "plugin",
+			Output:      os.Stderr,
+			Level:       hclog.Trace,
+			JSONFormat:  true,
+			DisableTime: true,
+		}),
+	}
+}
+
 func GetSafeInstaller() (InstallerExecutor, func(), error) {
 	return getSafeExecutor[InstallerExecutor]("_internal-installer", "installer")
 }
 
 func GetSafeScriptExecutor() (ScriptExecutor, func(), error) {
 	return getSafeExecutor[ScriptExecutor]("_internal-safe-script-executor", "script-executor")
+}
+
+func GetSafeReposExecutor() (ReposExecutor, func(), error) {
+	return getSafeExecutor[ReposExecutor]("_internal-repos", "repos")
 }
 
 func getSafeExecutor[T any](subCommand, pluginName string) (T, func(), error) {

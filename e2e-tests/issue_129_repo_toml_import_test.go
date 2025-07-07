@@ -1,6 +1,3 @@
-// This file was originally part of the project "LURE - Linux User REpository", created by Elara Musayelyan.
-// It has been modified as part of "ALR - Any Linux Repository" by the ALR Authors.
-//
 // ALR - Any Linux Repository
 // Copyright (C) 2025 The ALR Authors
 //
@@ -17,14 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-package types
+//go:build e2e
 
-// RepoConfig represents a ALR repo's alr-repo.toml file.
-type RepoConfig struct {
-	Repo struct {
-		MinVersion string   `toml:"minVersion"`
-		URL        string   `toml:"url"`
-		Ref        string   `toml:"ref"`
-		Mirrors    []string `toml:"mirrors"`
-	}
+package e2etests_test
+
+import (
+	"testing"
+
+	"go.alt-gnome.ru/capytest"
+)
+
+func TestE2EIssue129RepoTomlImportTest(t *testing.T) {
+	runMatrixSuite(
+		t,
+		"issue-129-repo-toml-import-test",
+		COMMON_SYSTEMS,
+		func(t *testing.T, r capytest.Runner) {
+			defaultPrepare(t, r)
+
+			r.Command("alr", "config", "get", "repos").
+				ExpectStdoutMatchesSnapshot().
+				Run(t)
+		},
+	)
 }

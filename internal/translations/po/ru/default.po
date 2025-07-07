@@ -421,27 +421,27 @@ msgstr ""
 msgid "ERROR"
 msgstr "ОШИБКА"
 
-#: internal/repos/pull.go:88
+#: internal/repos/pull.go:97
 msgid "Trying mirror"
 msgstr "Пробую зеркало"
 
-#: internal/repos/pull.go:94
+#: internal/repos/pull.go:103
 msgid "Failed to pull from URL"
 msgstr "Не удалось извлечь из URL"
 
-#: internal/repos/pull.go:158
+#: internal/repos/pull.go:167
 msgid "Pulling repository"
 msgstr "Скачивание репозитория"
 
-#: internal/repos/pull.go:195
+#: internal/repos/pull.go:204
 msgid "Repository up to date"
 msgstr "Репозиторий уже обновлён"
 
-#: internal/repos/pull.go:230
+#: internal/repos/pull.go:239
 msgid "Git repository does not appear to be a valid ALR repo"
 msgstr "Репозиторий Git не поддерживается репозиторием ALR"
 
-#: internal/repos/pull.go:246
+#: internal/repos/pull.go:255
 msgid ""
 "ALR repo's minimum ALR version is greater than the current version. Try "
 "updating ALR if something doesn't work."
@@ -497,11 +497,11 @@ msgstr "Аргументы, которые будут переданы мене�
 msgid "Enable interactive questions and prompts"
 msgstr "Включение интерактивных вопросов и запросов"
 
-#: main.go:147
+#: main.go:148
 msgid "Show help"
 msgstr "Показать справку"
 
-#: main.go:151
+#: main.go:152
 msgid "Error while running app"
 msgstr "Ошибка при запуске приложения"
 
@@ -533,44 +533,44 @@ msgstr "%s %s загружается — %s/с\n"
 msgid "Pull all repositories that have changed"
 msgstr "Скачать все изменённые репозитории"
 
-#: repo.go:41
+#: repo.go:42
 msgid "Manage repos"
 msgstr "Управление репозиториями"
 
-#: repo.go:55 repo.go:625
+#: repo.go:56 repo.go:625
 msgid "Remove an existing repository"
 msgstr "Удалить существующий репозиторий"
 
-#: repo.go:57 repo.go:521
+#: repo.go:58 repo.go:521
 msgid "<name>"
 msgstr "<имя>"
 
-#: repo.go:102 repo.go:465 repo.go:568
+#: repo.go:103 repo.go:465 repo.go:568
 msgid "Repo \"%s\" does not exist"
 msgstr "Репозитория \"%s\" не существует"
 
-#: repo.go:109
+#: repo.go:110
 msgid "Error removing repo directory"
 msgstr "Ошибка при удалении каталога репозитория"
 
-#: repo.go:113 repo.go:180 repo.go:253 repo.go:316 repo.go:389 repo.go:504
+#: repo.go:114 repo.go:195 repo.go:253 repo.go:316 repo.go:389 repo.go:504
 #: repo.go:576
 msgid "Error saving config"
 msgstr "Ошибка при сохранении конфигурации"
 
-#: repo.go:132
+#: repo.go:133
 msgid "Error removing packages from database"
 msgstr "Ошибка при удалении пакетов из базы данных"
 
-#: repo.go:143 repo.go:595
+#: repo.go:144 repo.go:595
 msgid "Add a new repository"
 msgstr "Добавить новый репозиторий"
 
-#: repo.go:144 repo.go:270 repo.go:345 repo.go:402
+#: repo.go:145 repo.go:270 repo.go:345 repo.go:402
 msgid "<name> <url>"
 msgstr "<имя> <url>"
 
-#: repo.go:169
+#: repo.go:170
 msgid "Repo \"%s\" already exists"
 msgstr "Репозиторий \"%s\" уже существует"
 

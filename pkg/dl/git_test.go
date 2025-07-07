@@ -153,7 +153,7 @@ func TestGitDownloaderUpdate(t *testing.T) {
 		assert.NoError(t, err)
 
 		updated, err := d.Update(dl.Options{
-			URL:           "git+https://gitea.plemya-x.ru/Plemya-x/repo-for-tests.git~rev=test-update-git-downloader",
+			URL:           "git+https://gitea.plemya-x.ru/Plemya-x/repo-for-tests.git?~rev=test-update-git-downloader",
 			Destination:   dest,
 			Hash:          hsh,
 			HashAlgorithm: "sha256",

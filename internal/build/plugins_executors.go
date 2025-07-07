@@ -21,9 +21,10 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
 
-//go:generate go run ../../generators/plugin-generator InstallerExecutor ScriptExecutor
+//go:generate go run ../../generators/plugin-generator InstallerExecutor ScriptExecutor ReposExecutor
 
 // The Executors interfaces must use context.Context as the first parameter,
 // because the plugin-generator cannot generate code without it.
@@ -52,4 +53,8 @@ type ScriptExecutor interface {
 		builtDeps []*BuiltDep,
 		basePkg string,
 	) ([]*BuiltDep, error)
+}
+
+type ReposExecutor interface {
+	PullOneAndUpdateFromConfig(ctx context.Context, repo *types.Repo) (types.Repo, error)
 }

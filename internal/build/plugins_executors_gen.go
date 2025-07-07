@@ -24,6 +24,7 @@ import (
 	"context"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 	"github.com/hashicorp/go-plugin"
 )
 
@@ -65,6 +66,26 @@ func (p *ScriptExecutorPlugin) Client(b *plugin.MuxBroker, c *rpc.Client) (inter
 
 func (p *ScriptExecutorPlugin) Server(*plugin.MuxBroker) (interface{}, error) {
 	return &ScriptExecutorRPCServer{Impl: p.Impl}, nil
+}
+
+type ReposExecutorPlugin struct {
+	Impl ReposExecutor
+}
+
+type ReposExecutorRPCServer struct {
+	Impl ReposExecutor
+}
+
+type ReposExecutorRPC struct {
+	client *rpc.Client
+}
+
+func (p *ReposExecutorPlugin) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, error) {
+	return &ReposExecutorRPC{client: c}, nil
+}
+
+func (p *ReposExecutorPlugin) Server(*plugin.MuxBroker) (interface{}, error) {
+	return &ReposExecutorRPCServer{Impl: p.Impl}, nil
 }
 
 type InstallerExecutorInstallLocalArgs struct {
@@ -312,6 +333,36 @@ func (s *ScriptExecutorRPCServer) ExecuteSecondPass(args *ScriptExecutorExecuteS
 		return err
 	}
 	*resp = ScriptExecutorExecuteSecondPassResp{
+		Result0: result0,
+	}
+	return nil
+}
+
+type ReposExecutorPullOneAndUpdateFromConfigArgs struct {
+	Repo *types.Repo
+}
+
+type ReposExecutorPullOneAndUpdateFromConfigResp struct {
+	Result0 types.Repo
+}
+
+func (s *ReposExecutorRPC) PullOneAndUpdateFromConfig(ctx context.Context, repo *types.Repo) (types.Repo, error) {
+	var resp *ReposExecutorPullOneAndUpdateFromConfigResp
+	err := s.client.Call("Plugin.PullOneAndUpdateFromConfig", &ReposExecutorPullOneAndUpdateFromConfigArgs{
+		Repo: repo,
+	}, &resp)
+	if err != nil {
+		return types.Repo{}, err
+	}
+	return resp.Result0, nil
+}
+
+func (s *ReposExecutorRPCServer) PullOneAndUpdateFromConfig(args *ReposExecutorPullOneAndUpdateFromConfigArgs, resp *ReposExecutorPullOneAndUpdateFromConfigResp) error {
+	result0, err := s.Impl.PullOneAndUpdateFromConfig(context.Background(), args.Repo)
+	if err != nil {
+		return err
+	}
+	*resp = ReposExecutorPullOneAndUpdateFromConfigResp{
 		Result0: result0,
 	}
 	return nil
