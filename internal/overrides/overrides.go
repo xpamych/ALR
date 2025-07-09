@@ -22,6 +22,7 @@ package overrides
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"golang.org/x/exp/slices"
@@ -181,4 +182,19 @@ func ReleasePlatformSpecific(release int, info *distro.OSRelease) string {
 	}
 
 	return fmt.Sprintf("%d", release)
+}
+
+func ParseReleasePlatformSpecific(s string, info *distro.OSRelease) (int, error) {
+	if info.ID == "altlinux" {
+		if strings.HasPrefix(s, "alt") {
+			return strconv.Atoi(s[3:])
+		}
+	}
+
+	if info.ID == "fedora" || slices.Contains(info.Like, "fedora") {
+		parts := strings.SplitN(s, ".", 2)
+		return strconv.Atoi(parts[0])
+	}
+
+	return strconv.Atoi(s)
 }

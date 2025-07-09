@@ -5,15 +5,15 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: unnamed project\n"
-"PO-Revision-Date: 2025-06-29 21:05+0300\n"
+"PO-Revision-Date: 2025-07-09 20:38+0300\n"
 "Last-Translator: Maxim Slipenko <maks1ms@alt-gnome.ru>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 48.0\n"
 
 #: build.go:41
@@ -404,8 +404,8 @@ msgid ""
 "This command is deprecated and would be removed in the future, use \"%s\" "
 "instead!"
 msgstr ""
-"Эта команда устарела и будет удалена в будущем, используйте вместо нее \"%s"
-"\"!"
+"Эта команда устарела и будет удалена в будущем, используйте вместо нее "
+"\"%s\"!"
 
 #: internal/db/db.go:76
 msgid "Database version mismatch; resetting"
@@ -461,29 +461,33 @@ msgstr "Вы должны быть членом %s чтобы выполнить
 msgid "You need to be root to perform this action"
 msgstr "Вы должны быть root чтобы выполнить это"
 
-#: list.go:43
+#: list.go:45
 msgid "List ALR repo packages"
 msgstr "Список пакетов репозитория ALR"
 
-#: list.go:57
+#: list.go:59
 msgid "Format output using a Go template"
 msgstr "Формат выходных данных с использованием шаблона Go"
 
-#: list.go:89
+#: list.go:91
 msgid "Error getting packages for upgrade"
 msgstr "Ошибка при получении пакетов для обновления"
 
-#: list.go:92
+#: list.go:94
 msgid "No packages for upgrade"
 msgstr "Нет пакетов к обновлению"
 
-#: list.go:102 list.go:184
+#: list.go:104 list.go:201
 msgid "Error parsing format template"
 msgstr "Ошибка при разборе шаблона"
 
-#: list.go:108 list.go:188
+#: list.go:110 list.go:205
 msgid "Error executing template"
 msgstr "Ошибка при выполнении шаблона"
+
+#: list.go:164
+msgid "Failed to parse release"
+msgstr "Не удалось разобрать релиз"
 
 #: main.go:45
 msgid "Print the current ALR version and exit"

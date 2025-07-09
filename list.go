@@ -24,6 +24,7 @@ import (
 	"log/slog"
 	"os"
 	"slices"
+	"strings"
 	"text/template"
 
 	"github.com/leonelquinteros/gotext"
@@ -33,6 +34,7 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 )
@@ -126,7 +128,12 @@ func ListCmd() *cli.Command {
 				return cliutils.FormatCliExit(gotext.Get("Error getting packages"), err)
 			}
 
-			installedAlrPackages := map[string]string{}
+			type verInfo struct {
+				Version string
+				Release int
+			}
+
+			installedAlrPackages := map[string]verInfo{}
 			if c.Bool("installed") {
 				mgr := manager.Detect()
 				if mgr == nil {
@@ -144,40 +151,50 @@ func ListCmd() *cli.Command {
 					if matches != nil {
 						packageName := matches[build.RegexpALRPackageName.SubexpIndex("package")]
 						repoName := matches[build.RegexpALRPackageName.SubexpIndex("repo")]
-						installedAlrPackages[fmt.Sprintf("%s/%s", repoName, packageName)] = version
+
+						verInfo := verInfo{
+							Version: version,
+							Release: 0,
+						}
+
+						if i := strings.LastIndex(version, "-"); i != -1 {
+							verInfo.Version = version[:i]
+							verInfo.Release, err = overrides.ParseReleasePlatformSpecific(version[i+1:], info)
+							if err != nil {
+								slog.Error(gotext.Get("Failed to parse release"), "err", err)
+								return cli.Exit(err, 1)
+							}
+						}
+
+						installedAlrPackages[fmt.Sprintf("%s/%s", repoName, packageName)] = verInfo
 					}
 				}
 			}
 
 			for _, pkg := range result {
-				if err != nil {
-					return cli.Exit(err, 1)
-				}
-
 				if slices.Contains(cfg.IgnorePkgUpdates(), pkg.Name) {
 					continue
 				}
 
 				type packageInfo struct {
 					Package *alrsh.Package
-					Version string
 				}
 
 				pkgInfo := &packageInfo{}
 				pkgInfo.Package = &pkg
-				pkgInfo.Version = pkg.Version
 				if c.Bool("installed") {
 					instVersion, ok := installedAlrPackages[fmt.Sprintf("%s/%s", pkg.Repository, pkg.Name)]
 					if !ok {
 						continue
 					} else {
-						pkgInfo.Version = instVersion
+						pkg.Version = instVersion.Version
+						pkg.Release = instVersion.Release
 					}
 				}
 
 				format := c.String("format")
 				if format == "" {
-					format = "{{.Package.Repository}}/{{.Package.Name}} {{.Version}}\n"
+					format = "{{.Package.Repository}}/{{.Package.Name}} {{.Package.Version}}-{{.Package.Release}}\n"
 				}
 				tmpl, err := template.New("format").Parse(format)
 				if err != nil {

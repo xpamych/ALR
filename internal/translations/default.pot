@@ -445,28 +445,32 @@ msgstr ""
 msgid "You need to be root to perform this action"
 msgstr ""
 
-#: list.go:43
+#: list.go:45
 msgid "List ALR repo packages"
 msgstr ""
 
-#: list.go:57
+#: list.go:59
 msgid "Format output using a Go template"
 msgstr ""
 
-#: list.go:89
+#: list.go:91
 msgid "Error getting packages for upgrade"
 msgstr ""
 
-#: list.go:92
+#: list.go:94
 msgid "No packages for upgrade"
 msgstr ""
 
-#: list.go:102 list.go:184
+#: list.go:104 list.go:201
 msgid "Error parsing format template"
 msgstr ""
 
-#: list.go:108 list.go:188
+#: list.go:110 list.go:205
 msgid "Error executing template"
+msgstr ""
+
+#: list.go:164
+msgid "Failed to parse release"
 msgstr ""
 
 #: main.go:45

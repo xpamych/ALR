@@ -233,5 +233,8 @@ func TestReleasePlatformSpecific(t *testing.T) {
 		},
 	} {
 		assert.Equal(t, tc.expected, overrides.ReleasePlatformSpecific(1, tc.info))
+		release, err := overrides.ParseReleasePlatformSpecific(tc.expected, tc.info)
+		assert.NoError(t, err)
+		assert.Equal(t, 1, release)
 	}
 }
