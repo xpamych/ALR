@@ -10,7 +10,7 @@
 ALR - это независимая от дистрибутива система сборки для Linux (форк [LURE](https://github.com/lure-sh/lure), аналогичная [AUR](https://wiki.archlinux.org/title/Arch_User_Repository). В настоящее время она находится в стадии бета-тестирования. Исправлено большинство основных ошибок и добавлено большинство важных функций. ALR готов к общему использованию, но все еще может время от времени ломаться или изменяться.
 
 ALR написан на чистом Go и после сборки не имеет зависимостей. Для повышения привилегий ALR требуется команда, такая как `sudo`, `doas` и т.д., а также поддерживаемый менеджер пакетов. В настоящее время ALR поддерживает `apt`, `apt-get` `pacman`, `apk`, `dnf`, `yum`, and `zypper`. Если в вашей системе используется поддерживаемый менеджер пакетов, то он будет обнаружен и использован автоматически.
-
+Plemya-x/
 ---
 
 ## Установка
@@ -44,7 +44,7 @@ ALR был создан потому, что упаковка программн
 
 ## Документация
 
-Документация находится в [Wiki](https://disc.plemya-x.ru/c/alr/wiki-alr).
+Документация находится в [Wiki](https://alr.plemya-x.ru/wiki/ALR).
 
 ---
 
@@ -52,23 +52,21 @@ ALR был создан потому, что упаковка программн
 
 Репозитории alr - это git-хранилища, которые содержат каталог для каждого пакета с файлом `alr.sh` внутри. Файл `alr.sh` содержит все инструкции по сборке пакета и информацию о нем. Скрипты `alr.sh` аналогичны скриптам Aur PKGBUILD. 
 
-Например, репозиторий с ALR [Plemya-x/alr-default](https://gitea.plemya-x.ru/Plemya-x/alr-default.git)
+Например, репозиторий с ALR [alr-default](https://gitea.plemya-x.ru/Plemya-x/alr-default.git)
 ```
 alr repo add alr-default https://gitea.plemya-x.ru/Plemya-x/alr-default.git
 ```
-Репозиторий пакетов [Plemya-x/alr-repo](https://gitea.plemya-x.ru/Plemya-x/alr-repo.git) можно подключить так:
+Репозиторий пакетов [alr-repo](https://gitea.plemya-x.ru/Plemya-x/alr-repo.git) можно подключить так:
 ```
 alr repo add  alr-repo https://gitea.plemya-x.ru/Plemya-x/alr-repo.git
 ```
-Репозиторий Linux-Gaming [Plemya-x/alr-LG](https://gitea.plemya-x.ru/Plemya-x/alr-LG.git) можно подключить так:
+Репозиторий Linux-Gaming [alr-LG](https://gitea.plemya-x.ru/Plemya-x/alr-LG.git) можно подключить так:
 ```
-alr repo add alr-LG https://gitea.plemya-x.ru/Plemya-x/alr-LG.git
+alr repo add alr-LG https://git.linux-gaming.ru/Linux-Gaming/alr-LG.git
 ```
 
 ---
 ## Соцсети
-VK - https://vk.com/plemya_kh
-
 Telegram - https://t.me/plemyakh
 
 ## Спасибы
