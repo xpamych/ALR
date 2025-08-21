@@ -61,6 +61,29 @@ func GenCmd() *cli.Command {
 					})
 				},
 			},
+			{
+				Name:  "aur",
+				Usage: gotext.Get("Generate a ALR script for an AUR package"),
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "name",
+						Aliases:  []string{"n"},
+						Required: true,
+						Usage:    gotext.Get("Name of the AUR package"),
+					},
+					&cli.StringFlag{
+						Name:    "version",
+						Aliases: []string{"v"},
+						Usage:   gotext.Get("Version of the package (optional, uses latest if not specified)"),
+					},
+				},
+				Action: func(c *cli.Context) error {
+					return gen.AUR(os.Stdout, gen.AUROptions{
+						Name:    c.String("name"),
+						Version: c.String("version"),
+					})
+				},
+			},
 		},
 	}
 }
