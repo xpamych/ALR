@@ -25,7 +25,6 @@ import (
 	"path/filepath"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 )
 
 type Config interface {
@@ -62,8 +61,8 @@ func (dc *DownloadCache) New(ctx context.Context, id string) (string, error) {
 		}
 	}
 
-	// Используем специальную функцию для создания каталогов с setgid битом
-	err = utils.EnsureTempDirWithRootOwner(itemPath, 0o2775)
+	// Создаем директорию с правильными правами (различается для prod и тестов)
+	err = createDir(itemPath, 0o2775)
 	if err != nil {
 		return "", err
 	}

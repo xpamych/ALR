@@ -88,7 +88,7 @@ i18n:
 	bash scripts/i18n-badge.sh
 
 test-coverage:
-	go test ./... -v -coverpkg=./... -coverprofile=coverage.out
+	go test -tags=test ./... -v -coverpkg=./... -coverprofile=coverage.out
 	bash scripts/coverage-badge.sh
 
 update-deps-cve:

@@ -26,7 +26,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
