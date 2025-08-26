@@ -1,3 +1,4 @@
+#!/bin/bash
 # ALR - Any Linux Repository
 # Copyright (C) 2025 The ALR Authors
 #
@@ -14,30 +15,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-repos:
-  - repo: local
-    hooks:
-      - id: test-coverage
-        name: Run test coverage
-        entry: bash scripts/test-coverage-precommit.sh
-        language: system
-        pass_filenames: false
+set -e
 
-      - id: fmt
-        name: Format code
-        entry: bash scripts/fmt-precommit.sh
-        language: system
-        pass_filenames: false
+# Запускаем тесты с покрытием
+make test-coverage
 
-      - id: update-license
-        name: Update license
-        entry: make update-license
-        language: system
-        pass_filenames: false
+# Если coverage.out был изменен, добавляем его
+if git diff --quiet coverage.out 2>/dev/null; then
+    echo "Coverage unchanged"
+else
+    git add coverage.out 2>/dev/null || true
+    echo "Coverage updated and staged"
+fi
 
-      - id: i18n
-        name: Update i18n
-        entry: bash scripts/i18n-precommit.sh
-        language: system
-        pass_filenames: false
-        always_run: true
+# Всегда возвращаем успех если тесты прошли
+exit 0
