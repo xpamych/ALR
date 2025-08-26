@@ -32,12 +32,20 @@ error() {
 
 installPkg() {
   rootCmd=""
-  if command -v doas &>/dev/null; then
-    rootCmd="doas"
-  elif command -v sudo &>/dev/null; then
-    rootCmd="sudo"
+  
+  # Проверяем, запущен ли скрипт от root
+  if [ "$(id -u)" = "0" ]; then
+    # Если root, не используем sudo/doas
+    rootCmd=""
   else
-    warn "Не обнаружена команда повышения привилегий (например, sudo, doas)"
+    # Если не root, ищем команду повышения привилегий
+    if command -v doas &>/dev/null; then
+      rootCmd="doas"
+    elif command -v sudo &>/dev/null; then
+      rootCmd="sudo"
+    else
+      warn "Не обнаружена команда повышения привилегий (например, sudo, doas)"
+    fi
   fi
 
   case $1 in

@@ -39,19 +39,45 @@ func EnsureTempDirWithRootOwner(path string, mode os.FileMode) error {
 			return err
 		}
 		
-		// Все каталоги в /tmp/alr доступны для группы wheel
-		// Устанавливаем setgid бит (2775), чтобы новые файлы наследовали группу
+		// В CI или если мы уже root, не нужно использовать sudo
+		isRoot := os.Geteuid() == 0
+		isCI := os.Getenv("CI") == "true"
+		
+		// Если мы в CI или root, выполняем команды напрямую
+		// В противном случае используем sudo
 		permissions := "2775"
 		group := "wheel"
 		
+		var chmodCmd, chownCmd *exec.Cmd
+		if isRoot || isCI {
+			// Выполняем команды напрямую без sudo
+			chmodCmd = exec.Command("chmod", permissions, path)
+			chownCmd = exec.Command("chown", "root:"+group, path)
+		} else {
+			// Используем sudo для обычных пользователей
+			chmodCmd = exec.Command("sudo", "chmod", permissions, path)
+			chownCmd = exec.Command("sudo", "chown", "root:"+group, path)
+		}
+		
 		// Устанавливаем права с setgid битом
-		err = exec.Command("sudo", "chmod", permissions, path).Run()
+		err = chmodCmd.Run()
 		if err != nil {
-			return err
+			// В CI или для root игнорируем ошибки, если группа wheel не существует
+			if !isRoot && !isCI {
+				return err
+			}
 		}
 		
 		// Устанавливаем владельца root:wheel
-		return exec.Command("sudo", "chown", "root:"+group, path).Run()
+		err = chownCmd.Run()
+		if err != nil {
+			// В CI или для root игнорируем ошибки, если группа wheel не существует
+			if !isRoot && !isCI {
+				return err
+			}
+		}
+		
+		return nil
 	}
 	
 	// Для остальных каталогов обычное создание

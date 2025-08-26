@@ -16,14 +16,30 @@
 
 package manager
 
-import "os/exec"
+import (
+	"os"
+	"os/exec"
+)
 
 type CommonPackageManager struct {
 	noConfirmArg string
 }
 
 func (m *CommonPackageManager) getCmd(opts *Opts, mgrCmd string, args ...string) *exec.Cmd {
-	cmd := exec.Command(mgrCmd)
+	var cmd *exec.Cmd
+	
+	// Проверяем, нужно ли повышение привилегий
+	isRoot := os.Geteuid() == 0
+	isCI := os.Getenv("CI") == "true"
+	
+	if !isRoot && !isCI {
+		// Если не root и не в CI, используем sudo
+		cmd = exec.Command("sudo", mgrCmd)
+	} else {
+		// Если root или в CI, запускаем напрямую
+		cmd = exec.Command(mgrCmd)
+	}
+	
 	cmd.Args = append(cmd.Args, opts.Args...)
 	cmd.Args = append(cmd.Args, args...)
 

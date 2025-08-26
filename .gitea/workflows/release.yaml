@@ -85,10 +85,17 @@ jobs:
           sed -i "s/release='[0-9]\+'/release='1'/g" alr-default/alr-bin/alr.sh
 
       - name: Install alr
+        env:
+          CREATE_SYSTEM_RESOURCES: 0
         run: |
-          groupadd wheel
-          usermod -aG wheel root
           make install
+
+      - name: Prepare directories for ALR
+        run: |
+          # Создаём необходимые директории для работы alr build
+          mkdir -p /tmp/alr/dl /tmp/alr/pkgs /var/cache/alr
+          chmod -R 777 /tmp/alr
+          chmod -R 755 /var/cache/alr
 
       - name: Build packages
         run: |

@@ -34,6 +34,21 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 )
 
+// execWithPrivileges выполняет команду напрямую если root или CI, иначе через sudo
+func execWithPrivileges(name string, args ...string) *exec.Cmd {
+	isRoot := os.Geteuid() == 0
+	isCI := os.Getenv("CI") == "true"
+	
+	if !isRoot && !isCI {
+		// Если не root и не в CI, используем sudo
+		allArgs := append([]string{name}, args...)
+		return exec.Command("sudo", allArgs...)
+	} else {
+		// Если root или в CI, запускаем напрямую
+		return exec.Command(name, args...)
+	}
+}
+
 func FixCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "fix",
@@ -90,7 +105,7 @@ func FixCmd() *cli.Command {
 						// Если не получилось удалить, пробуем через sudo
 						slog.Warn(gotext.Get("Unable to remove cache item (%s) as current user, trying with sudo", entry))
 						
-						sudoCmd := exec.Command("sudo", "rm", "-rf", fullPath)
+						sudoCmd := execWithPrivileges("rm", "-rf", fullPath)
 						if sudoErr := sudoCmd.Run(); sudoErr != nil {
 							// Если и через sudo не получилось, пропускаем с предупреждением
 							slog.Error(gotext.Get("Unable to remove cache item (%s)", entry), "error", err)
@@ -109,7 +124,7 @@ func FixCmd() *cli.Command {
 				if err != nil {
 					// Если не получилось удалить, пробуем через sudo
 					slog.Warn(gotext.Get("Unable to remove temporary directory as current user, trying with sudo"))
-					sudoCmd := exec.Command("sudo", "rm", "-rf", tmpDir)
+					sudoCmd := execWithPrivileges("rm", "-rf", tmpDir)
 					if sudoErr := sudoCmd.Run(); sudoErr != nil {
 						slog.Error(gotext.Get("Unable to remove temporary directory"), "error", err)
 					}
@@ -143,12 +158,12 @@ func FixCmd() *cli.Command {
 				// Проверяем, есть ли файлы в директории
 				entries, err := os.ReadDir(tmpDir)
 				if err == nil && len(entries) > 0 {
-					fixCmd := exec.Command("sudo", "chown", "-R", "root:wheel", tmpDir)
+					fixCmd := execWithPrivileges("chown", "-R", "root:wheel", tmpDir)
 					if fixErr := fixCmd.Run(); fixErr != nil {
 						slog.Warn(gotext.Get("Unable to fix file ownership"), "error", fixErr)
 					}
 					
-					fixCmd = exec.Command("sudo", "chmod", "-R", "2775", tmpDir)
+					fixCmd = execWithPrivileges("chmod", "-R", "2775", tmpDir)
 					if fixErr := fixCmd.Run(); fixErr != nil {
 						slog.Warn(gotext.Get("Unable to fix file permissions"), "error", fixErr)
 					}
@@ -162,18 +177,18 @@ func FixCmd() *cli.Command {
 			if err != nil {
 				// Если не получилось, пробуем через sudo с правильными правами для группы wheel
 				slog.Info(gotext.Get("Creating cache directory with sudo"))
-				sudoCmd := exec.Command("sudo", "mkdir", "-p", paths.CacheDir)
+				sudoCmd := execWithPrivileges("mkdir", "-p", paths.CacheDir)
 				if sudoErr := sudoCmd.Run(); sudoErr != nil {
 					return cliutils.FormatCliExit(gotext.Get("Unable to create new cache directory"), err)
 				}
 				
 				// Устанавливаем права 775 и группу wheel
-				chmodCmd := exec.Command("sudo", "chmod", "775", paths.CacheDir)
+				chmodCmd := execWithPrivileges("chmod", "775", paths.CacheDir)
 				if chmodErr := chmodCmd.Run(); chmodErr != nil {
 					return cliutils.FormatCliExit(gotext.Get("Unable to set cache directory permissions"), chmodErr)
 				}
 				
-				chgrpCmd := exec.Command("sudo", "chgrp", "wheel", paths.CacheDir)
+				chgrpCmd := execWithPrivileges("chgrp", "wheel", paths.CacheDir)
 				if chgrpErr := chgrpCmd.Run(); chgrpErr != nil {
 					return cliutils.FormatCliExit(gotext.Get("Unable to set cache directory group"), chgrpErr)
 				}
