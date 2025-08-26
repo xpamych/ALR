@@ -55,9 +55,6 @@ func UpgradeCmd() *cli.Command {
 			},
 		},
 		Action: utils.RootNeededAction(func(c *cli.Context) error {
-			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
-				return err
-			}
 
 			installer, installerClose, err := build.GetSafeInstaller()
 			if err != nil {
@@ -65,9 +62,6 @@ func UpgradeCmd() *cli.Command {
 			}
 			defer installerClose()
 
-			if err := utils.ExitIfCantSetNoNewPrivs(); err != nil {
-				return err
-			}
 
 			scripter, scripterClose, err := build.GetSafeScriptExecutor()
 			if err != nil {

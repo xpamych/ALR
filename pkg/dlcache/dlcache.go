@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 )
 
 type Config interface {
@@ -61,7 +62,8 @@ func (dc *DownloadCache) New(ctx context.Context, id string) (string, error) {
 		}
 	}
 
-	err = os.MkdirAll(itemPath, 0o755)
+	// Используем специальную функцию для создания каталогов
+	err = utils.EnsureTempDirWithRootOwner(itemPath, 0o755)
 	if err != nil {
 		return "", err
 	}

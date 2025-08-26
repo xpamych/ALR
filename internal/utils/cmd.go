@@ -17,12 +17,9 @@
 package utils
 
 import (
-	"errors"
 	"os"
 	"os/exec"
 	"os/user"
-	"strconv"
-	"syscall"
 
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
@@ -32,114 +29,12 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/constants"
 )
 
-func GetUidGidAlrUserString() (string, string, error) {
-	u, err := user.Lookup("alr")
-	if err != nil {
-		return "", "", err
-	}
-
-	return u.Uid, u.Gid, nil
-}
-
-func GetUidGidAlrUser() (int, int, error) {
-	strUid, strGid, err := GetUidGidAlrUserString()
-	if err != nil {
-		return 0, 0, err
-	}
-
-	uid, err := strconv.Atoi(strUid)
-	if err != nil {
-		return 0, 0, err
-	}
-	gid, err := strconv.Atoi(strGid)
-	if err != nil {
-		return 0, 0, err
-	}
-
-	return uid, gid, nil
-}
-
-func DropCapsToAlrUser() error {
-	uid, gid, err := GetUidGidAlrUser()
-	if err != nil {
-		return err
-	}
-	err = syscall.Setgid(gid)
-	if err != nil {
-		return err
-	}
-	err = syscall.Setuid(uid)
-	if err != nil {
-		return err
-	}
-	return EnsureIsAlrUser()
-}
-
-func ExitIfCantDropGidToAlr() cli.ExitCoder {
-	_, gid, err := GetUidGidAlrUser()
-	if err != nil {
-		return cliutils.FormatCliExit("cannot get gid alr", err)
-	}
-	err = syscall.Setgid(gid)
-	if err != nil {
-		return cliutils.FormatCliExit("cannot get setgid alr", err)
-	}
-	return nil
-}
-
-// ExitIfCantDropCapsToAlrUser attempts to drop capabilities to the already
-// running user. Returns a cli.ExitCoder with an error if the operation fails.
-// See also [ExitIfCantDropCapsToAlrUserNoPrivs] for a version that also applies
-// no-new-privs.
-func ExitIfCantDropCapsToAlrUser() cli.ExitCoder {
-	err := DropCapsToAlrUser()
-	if err != nil {
-		return cliutils.FormatCliExit(gotext.Get("Error on dropping capabilities"), err)
-	}
-	return nil
-}
-
-func ExitIfCantSetNoNewPrivs() cli.ExitCoder {
-	if err := NoNewPrivs(); err != nil {
-		return cliutils.FormatCliExit("error on NoNewPrivs", err)
-	}
-
-	return nil
-}
-
-// ExitIfCantDropCapsToAlrUserNoPrivs combines [ExitIfCantDropCapsToAlrUser] with [ExitIfCantSetNoNewPrivs]
-func ExitIfCantDropCapsToAlrUserNoPrivs() cli.ExitCoder {
-	if err := ExitIfCantDropCapsToAlrUser(); err != nil {
-		return err
-	}
-
-	if err := ExitIfCantSetNoNewPrivs(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
+// IsNotRoot проверяет, что текущий пользователь не является root
 func IsNotRoot() bool {
 	return os.Getuid() != 0
 }
 
-func EnsureIsAlrUser() error {
-	uid, gid, err := GetUidGidAlrUser()
-	if err != nil {
-		return err
-	}
-	newUid := syscall.Getuid()
-	if newUid != uid {
-		return errors.New("uid don't matches requested")
-	}
-	newGid := syscall.Getgid()
-	if newGid != gid {
-		return errors.New("gid don't matches requested")
-	}
-	return nil
-}
-
+// EnuseIsPrivilegedGroupMember проверяет, что пользователь является членом привилегированной группы (wheel)
 func EnuseIsPrivilegedGroupMember() error {
 	currentUser, err := user.Current()
 	if err != nil {
@@ -162,26 +57,6 @@ func EnuseIsPrivilegedGroupMember() error {
 		}
 	}
 	return cliutils.FormatCliExit(gotext.Get("You need to be a %s member to perform this action", constants.PrivilegedGroup), nil)
-}
-
-func EscalateToRootGid() error {
-	return syscall.Setgid(0)
-}
-
-func EscalateToRootUid() error {
-	return syscall.Setuid(0)
-}
-
-func EscalateToRoot() error {
-	err := EscalateToRootUid()
-	if err != nil {
-		return err
-	}
-	err = EscalateToRootGid()
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func RootNeededAction(f cli.ActionFunc) cli.ActionFunc {

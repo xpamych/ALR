@@ -3,11 +3,12 @@
 /cmd/alr-api-server/alr-api-server
 /dist/
 /internal/config/version.txt
-.fleet
-.idea
-.gigaide
+.fleet/
+.idea/
+.gigaide/
 
 *.out
 
 e2e-tests/alr
+CLAUDE.md
 commit_msg.txt

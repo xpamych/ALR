@@ -31,7 +31,6 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
@@ -48,9 +47,6 @@ func InfoCmd() *cli.Command {
 			},
 		},
 		BashComplete: cliutils.BashCompleteWithError(func(c *cli.Context) error {
-			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
-				return err
-			}
 
 			ctx := c.Context
 			deps, err := appbuilder.
@@ -74,9 +70,7 @@ func InfoCmd() *cli.Command {
 			return nil
 		}),
 		Action: func(c *cli.Context) error {
-			if err := utils.ExitIfCantDropCapsToAlrUserNoPrivs(); err != nil {
-				return err
-			}
+			// Запуск от текущего пользователя
 
 			args := c.Args()
 			if args.Len() < 1 {

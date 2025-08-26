@@ -72,12 +72,6 @@ func BuildCmd() *cli.Command {
 				return cliutils.FormatCliExit(gotext.Get("Error getting working directory"), err)
 			}
 
-			wd, wdCleanup, err := Mount(wd)
-			if err != nil {
-				return err
-			}
-			defer wdCleanup()
-
 			ctx := c.Context
 
 			deps, err := appbuilder.
@@ -156,19 +150,9 @@ func BuildCmd() *cli.Command {
 				return cliutils.FormatCliExit(gotext.Get("Nothing to build"), nil)
 			}
 
-			if scriptArgs != nil {
-				scriptFile := filepath.Base(scriptArgs.Script)
-				newScriptDir, scriptDirCleanup, err := Mount(filepath.Dir(scriptArgs.Script))
-				if err != nil {
-					return err
-				}
-				defer scriptDirCleanup()
-				scriptArgs.Script = filepath.Join(newScriptDir, scriptFile)
-			}
 
-			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
-				return err
-			}
+
+
 
 			installer, installerClose, err := build.GetSafeInstaller()
 			if err != nil {
@@ -176,9 +160,7 @@ func BuildCmd() *cli.Command {
 			}
 			defer installerClose()
 
-			if err := utils.ExitIfCantSetNoNewPrivs(); err != nil {
-				return err
-			}
+
 
 			scripter, scripterClose, err := build.GetSafeScriptExecutor()
 			if err != nil {

@@ -19,6 +19,6 @@ package constants
 const (
 	SystemConfigPath = "/etc/alr/alr.toml"
 	SystemCachePath  = "/var/cache/alr"
-	AlrRunDir        = "/var/run/alr"
+	TempDir          = "/tmp/alr"
 	PrivilegedGroup  = "wheel"
 )

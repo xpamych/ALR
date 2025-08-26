@@ -21,6 +21,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/goccy/go-yaml"
@@ -55,7 +56,12 @@ func defaultConfigKoanf() *koanf.Koanf {
 		"ignorePkgUpdates": []string{},
 		"logLevel":         "info",
 		"autoPull":         true,
-		"repos":            []types.Repo{},
+		"repos": []types.Repo{
+			{
+				Name: "alr-default",
+				URL:  "https://gitea.plemya-x.ru/Plemya-x/alr-default.git",
+			},
+		},
 	}
 	if err := k.Load(confmap.Provider(defaults, "."), nil); err != nil {
 		panic(k)
@@ -98,8 +104,15 @@ func (c *ALRConfig) Load() error {
 	c.paths.UserConfigPath = constants.SystemConfigPath
 	c.paths.CacheDir = constants.SystemCachePath
 	c.paths.RepoDir = filepath.Join(c.paths.CacheDir, "repo")
-	c.paths.PkgsDir = filepath.Join(c.paths.CacheDir, "pkgs")
-	c.paths.DBPath = filepath.Join(c.paths.CacheDir, "db")
+	c.paths.PkgsDir = filepath.Join(constants.TempDir, "pkgs")  // Перемещаем в /tmp/alr/pkgs
+	c.paths.DBPath = filepath.Join(c.paths.CacheDir, "alr.db")
+
+	// Проверяем существование кэш-директории, но не пытаемся создать
+	if _, err := os.Stat(c.paths.CacheDir); err != nil {
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("failed to check cache directory: %w", err)
+		}
+	}
 
 	return nil
 }

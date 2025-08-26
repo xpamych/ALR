@@ -21,7 +21,6 @@ import (
 	"github.com/urfave/cli/v2"
 
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 )
 
 func RefreshCmd() *cli.Command {
@@ -30,9 +29,6 @@ func RefreshCmd() *cli.Command {
 		Usage:   gotext.Get("Pull all repositories that have changed"),
 		Aliases: []string{"ref"},
 		Action: func(c *cli.Context) error {
-			if err := utils.ExitIfCantDropCapsToAlrUser(); err != nil {
-				return err
-			}
 
 			ctx := c.Context
 

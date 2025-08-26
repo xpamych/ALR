@@ -47,7 +47,7 @@ jobs:
 
       - name: Prepare for install
         run: |
-          apt-get update && apt-get install -y libcap2-bin bindfs
+          apt-get update
 
       - name: Build alr
         env:

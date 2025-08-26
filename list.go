@@ -35,7 +35,6 @@ import (
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
@@ -60,9 +59,6 @@ func ListCmd() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			if err := utils.ExitIfCantDropCapsToAlrUserNoPrivs(); err != nil {
-				return err
-			}
 
 			ctx := c.Context
 

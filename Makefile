@@ -49,17 +49,12 @@ install: \
 $(INSTALLED_BIN): $(BIN)
 	install -Dm755 $< $@
 ifeq ($(CREATE_SYSTEM_RESOURCES),1)
-	setcap cap_setuid,cap_setgid+ep $(INSTALLED_BIN)
-	@if id alr >/dev/null 2>&1; then \
-		echo "User 'alr' already exists. Skipping."; \
-	else \
-		useradd -r -s /usr/sbin/nologin alr; \
-	fi
 	@for dir in $(ROOT_DIRS); do \
-		install -d -o alr -g alr -m 755 $$dir; \
+		install -d -m 775 $$dir; \
+		chgrp wheel $$dir; \
 	done
 else
-	@echo "Skipping user and root dir creation (CREATE_SYSTEM_RESOURCES=0)"
+	@echo "Skipping root dir creation (CREATE_SYSTEM_RESOURCES=0)"
 endif
 
 $(INSTALLED_BASH_COMPLETION): $(BASH_COMPLETION)

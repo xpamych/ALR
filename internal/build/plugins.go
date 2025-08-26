@@ -44,9 +44,9 @@ var HandshakeConfig = plugin.HandshakeConfig{
 
 func setCommonCmdEnv(cmd *exec.Cmd) {
 	cmd.Env = []string{
-		"HOME=/var/cache/alr",
-		"LOGNAME=alr",
-		"USER=alr",
+		"HOME=" + os.Getenv("HOME"),
+		"LOGNAME=" + os.Getenv("USER"),
+		"USER=" + os.Getenv("USER"),
 		"PATH=/usr/bin:/bin:/usr/local/bin",
 	}
 	for _, env := range os.Environ() {
@@ -102,9 +102,7 @@ func getSafeExecutor[T any](subCommand, pluginName string) (T, func(), error) {
 		Cmd:             cmd,
 		Logger:          logger.GetHCLoggerAdapter(),
 		SkipHostEnv:     true,
-		UnixSocketConfig: &plugin.UnixSocketConfig{
-			Group: "alr",
-		},
+		UnixSocketConfig: &plugin.UnixSocketConfig{},
 		SyncStderr: os.Stderr,
 	})
 	rpcClient, err := client.Client()

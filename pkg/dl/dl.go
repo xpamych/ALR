@@ -280,14 +280,14 @@ func handleCache(cacheDir, dest, name string, t Type) (bool, error) {
 		cd.Close()
 
 		if slices.Contains(names, name) {
-			err = os.Link(filepath.Join(cacheDir, name), dest)
+			err = linkOrCopy(filepath.Join(cacheDir, name), dest)
 			if err != nil {
 				return false, err
 			}
 			return true, nil
 		}
 	case TypeDir:
-		err := linkDir(cacheDir, dest)
+		err := linkOrCopyDir(cacheDir, dest)
 		if err != nil {
 			return false, err
 		}
@@ -296,8 +296,40 @@ func handleCache(cacheDir, dest, name string, t Type) (bool, error) {
 	return false, nil
 }
 
-// Функция linkDir рекурсивно создает жесткие ссылки для файлов из каталога src в каталог dest
-func linkDir(src, dest string) error {
+// linkOrCopy пытается создать жесткую ссылку, а если не получается - копирует файл
+func linkOrCopy(src, dest string) error {
+	err := os.Link(src, dest)
+	if err != nil {
+		// Если не удалось создать ссылку, копируем файл
+		srcFile, err := os.Open(src)
+		if err != nil {
+			return err
+		}
+		defer srcFile.Close()
+
+		destFile, err := os.Create(dest)
+		if err != nil {
+			return err
+		}
+		defer destFile.Close()
+
+		_, err = io.Copy(destFile, srcFile)
+		if err != nil {
+			return err
+		}
+
+		// Копируем права доступа
+		srcInfo, err := srcFile.Stat()
+		if err != nil {
+			return err
+		}
+		return os.Chmod(dest, srcInfo.Mode())
+	}
+	return nil
+}
+
+// linkOrCopyDir рекурсивно создает жесткие ссылки или копирует файлы из каталога src в каталог dest
+func linkOrCopyDir(src, dest string) error {
 	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -317,7 +349,7 @@ func linkDir(src, dest string) error {
 			return os.MkdirAll(newPath, info.Mode())
 		}
 
-		return os.Link(path, newPath)
+		return linkOrCopy(path, newPath)
 	})
 }
 

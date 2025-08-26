@@ -29,7 +29,6 @@ import (
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/search"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
@@ -72,9 +71,6 @@ func SearchCmd() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			if err := utils.ExitIfCantDropCapsToAlrUserNoPrivs(); err != nil {
-				return err
-			}
 
 			ctx := c.Context
 

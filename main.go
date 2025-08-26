@@ -87,7 +87,6 @@ func GetApp() *cli.App {
 			// Internal commands
 			InternalBuildCmd(),
 			InternalInstallCmd(),
-			InternalMountCmd(),
 			InternalReposCmd(),
 		},
 		Before: func(c *cli.Context) error {

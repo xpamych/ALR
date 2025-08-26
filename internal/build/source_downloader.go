@@ -23,6 +23,7 @@ import (
 	"os"
 	"strings"
 
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/constants"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/dl"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/dlcache"
 )
@@ -74,7 +75,9 @@ func (s *SourceDownloader) DownloadSources(
 			}
 		}
 
-		opts.DlCache = dlcache.New(s.cfg.GetPaths().CacheDir)
+		// Используем временную директорию для загрузок
+		// dlcache.New добавит свой подкаталог "dl" внутри
+		opts.DlCache = dlcache.New(constants.TempDir)
 
 		err := dl.Download(ctx, opts)
 		if err != nil {

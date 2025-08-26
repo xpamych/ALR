@@ -16,8 +16,44 @@
 
 package utils
 
-import "golang.org/x/sys/unix"
+import (
+	"os"
+	"os/exec"
+	"strings"
+
+	"golang.org/x/sys/unix"
+)
 
 func NoNewPrivs() error {
 	return unix.Prctl(unix.PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)
+}
+
+// EnsureTempDirWithRootOwner создает каталог в /tmp/alr с правами для группы wheel
+// Все каталоги в /tmp/alr принадлежат root:wheel с правами 775
+// Для других каталогов использует стандартные права
+func EnsureTempDirWithRootOwner(path string, mode os.FileMode) error {
+	if strings.HasPrefix(path, "/tmp/alr") {
+		// Сначала создаем директорию обычным способом
+		err := os.MkdirAll(path, mode)
+		if err != nil {
+			return err
+		}
+		
+		// Все каталоги в /tmp/alr доступны для группы wheel
+		// Устанавливаем setgid бит (2775), чтобы новые файлы наследовали группу
+		permissions := "2775"
+		group := "wheel"
+		
+		// Устанавливаем права с setgid битом
+		err = exec.Command("sudo", "chmod", permissions, path).Run()
+		if err != nil {
+			return err
+		}
+		
+		// Устанавливаем владельца root:wheel
+		return exec.Command("sudo", "chown", "root:"+group, path).Run()
+	}
+	
+	// Для остальных каталогов обычное создание
+	return os.MkdirAll(path, mode)
 }

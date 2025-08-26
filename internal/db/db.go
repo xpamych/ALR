@@ -21,7 +21,10 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
 
 	"github.com/leonelquinteros/gotext"
 	_ "modernc.org/sqlite"
@@ -54,6 +57,21 @@ func New(config Config) *Database {
 
 func (d *Database) Connect() error {
 	dsn := d.config.GetPaths().DBPath
+	
+	// Проверяем директорию для БД
+	dbDir := filepath.Dir(dsn)
+	if _, err := os.Stat(dbDir); err != nil {
+		if os.IsNotExist(err) {
+			// Директория не существует - пытаемся создать
+			if mkErr := os.MkdirAll(dbDir, 0775); mkErr != nil {
+				// Не смогли создать - вернём ошибку, пользователь должен использовать alr fix
+				return fmt.Errorf("cache directory does not exist, please run 'alr fix' to create it: %w", mkErr)
+			}
+		} else {
+			return fmt.Errorf("failed to check database directory: %w", err)
+		}
+	}
+	
 	engine, err := xorm.NewEngine("sqlite", dsn)
 	// engine.SetLogLevel(log.LOG_DEBUG)
 	// engine.ShowSQL(true)

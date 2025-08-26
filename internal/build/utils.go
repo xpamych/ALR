@@ -40,6 +40,7 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
@@ -47,15 +48,21 @@ import (
 
 // Функция prepareDirs подготавливает директории для сборки.
 func prepareDirs(dirs types.Directories) error {
-	err := os.RemoveAll(dirs.BaseDir) // Удаляем базовую директорию, если она существует
+	// Пробуем удалить базовую директорию, если она существует
+	err := os.RemoveAll(dirs.BaseDir)
+	if err != nil {
+		// Если не можем удалить (например, принадлежит root), игнорируем
+		// и попробуем создать новые директории
+	}
+	
+	// Создаем директории с правильным владельцем для /tmp/alr с setgid битом
+	err = utils.EnsureTempDirWithRootOwner(dirs.SrcDir, 0o2775)
 	if err != nil {
 		return err
 	}
-	err = os.MkdirAll(dirs.SrcDir, 0o755) // Создаем директорию для источников
-	if err != nil {
-		return err
-	}
-	return os.MkdirAll(dirs.PkgDir, 0o755) // Создаем директорию для пакетов
+	
+	// Создаем директорию для пакетов с setgid битом
+	return utils.EnsureTempDirWithRootOwner(dirs.PkgDir, 0o2775)
 }
 
 // Функция buildContents создает секцию содержимого пакета, которая содержит файлы,
