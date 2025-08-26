@@ -52,6 +52,17 @@ if ! command -v curl &>/dev/null; then
   error "Этот скрипт требует команду curl. Пожалуйста, установите её и запустите снова."
 fi
 
+# Определение архитектуры системы
+arch=$(uname -m)
+case $arch in
+  x86_64) debArch="amd64"; rpmArch="x86_64" ;;
+  aarch64) debArch="arm64"; rpmArch="aarch64" ;;
+  armv7l) debArch="armhf"; rpmArch="armv7hl" ;;
+  *) error "Неподдерживаемая архитектура: $arch" ;;
+esac
+
+info "Обнаружена архитектура: $arch"
+
 pkgFormat=""
 pkgMgr=""
 if command -v pacman &>/dev/null; then
@@ -88,25 +99,51 @@ else
 fi
 
 if [ -z "$noPkgMgr" ]; then
-  info "Получение списка файлов с https://gitea.plemya-x.ru/Plemya-x/ALR/releases"
+  info "Получение списка релизов через API Gitea"
 
-  # Изменено URL и регулярное выражение для списка файлов
-  pageContent=$(curl -s https://gitea.plemya-x.ru/Plemya-x/ALR/releases)
+  # Используем API для получения последнего релиза
+  releases=$(curl -s "https://gitea.plemya-x.ru/api/v1/repos/Plemya-x/ALR/releases")
 
-  # Извлечение списка файлов из HTML
-  fileList=$(echo "$pageContent" | grep -oP '(?<=href=").*?(?=")' | grep -E 'alr-bin.*\.(pkg.tar.zst|rpm|deb)')
+  if [ -z "$releases" ] || [ "$releases" = "null" ]; then
+    error "Не удалось получить список релизов. Проверьте соединение с интернетом."
+  fi
 
-  echo "Полученный список файлов:"
-  echo "$fileList"
+  # Получаем URL последнего релиза
+  latestReleaseUrl=$(echo "$releases" | grep -o '"browser_download_url":"[^"]*"' | head -1 | cut -d'"' -f4)
+
+  if [ -z "$latestReleaseUrl" ]; then
+    # Fallback на парсинг HTML если API не работает
+    warn "API не доступен, пробуем получить список через HTML"
+    pageContent=$(curl -s https://gitea.plemya-x.ru/Plemya-x/ALR/releases)
+    fileList=$(echo "$pageContent" | grep -oP '(?<=href=")[^"]*alr-bin[^"]*\.(pkg\.tar\.zst|rpm|deb)' | sed 's|^|https://gitea.plemya-x.ru|')
+  else
+    # Получаем список файлов из API
+    latestReleaseId=$(echo "$releases" | grep -o '"id":[0-9]*' | head -1 | cut -d':' -f2)
+    assets=$(curl -s "https://gitea.plemya-x.ru/api/v1/repos/Plemya-x/ALR/releases/$latestReleaseId/assets")
+    # Фильтруем только пакеты, исключая tar.gz архивы
+    fileList=$(echo "$assets" | grep -o '"browser_download_url":"[^"]*"' | cut -d'"' -f4 | grep -v '\.tar\.gz$')
+  fi
+
+  if [ -z "$fileList" ]; then
+    warn "Не найдены готовые пакеты в последнем релизе"
+    warn "Возможно, для вашего дистрибутива нужно собрать пакет из исходников"
+    warn "Инструкции по сборке: https://gitea.plemya-x.ru/Plemya-x/ALR"
+    error "Не удалось получить список пакетов для загрузки"
+  fi
+
+  info "Получен список файлов релиза"
 
   if [ "$pkgMgr" == "pacman" ]; then
-      latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*\.pkg\.tar\.zst' | sort -V | tail -n 1)
+      latestFile=$(echo "$fileList" | grep -E "alr-bin-.*\.pkg\.tar\.zst" | sort -V | tail -n 1)
   elif [ "$pkgMgr" == "apt" ]; then
-      latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*\.amd64\.deb' | sort -V | tail -n 1)
+      latestFile=$(echo "$fileList" | grep -E "alr-bin-.*\.${debArch}\.deb" | sort -V | tail -n 1)
   elif [[ "$pkgMgr" == "dnf" || "$pkgMgr" == "yum" || "$pkgMgr" == "zypper" ]]; then
-      latestFile=$(printf "%s\n" "${fileList[@]}" | grep -E 'alr-bin-.*\.x86_64\.rpm' | grep -v 'alt[0-9]*' | sort -V | tail -n 1)
+      latestFile=$(echo "$fileList" | grep -E "alr-bin-.*\.${rpmArch}\.rpm" | grep -v 'alt[0-9]*' | sort -V | tail -n 1)
   elif [ "$pkgMgr" == "apt-get" ]; then
-      latestFile=$(echo "$fileList" | grep -E 'alr-bin-.*-alt[0-9]+\.x86_64\.rpm' | sort -V | tail -n 1)
+      # ALT Linux использует RPM с особой маркировкой
+      latestFile=$(echo "$fileList" | grep -E "alr-bin-.*-alt[0-9]+\.${rpmArch}\.rpm" | sort -V | tail -n 1)
+  elif [ "$pkgMgr" == "apk" ]; then
+      latestFile=$(echo "$fileList" | grep -E "alr-bin-.*\.apk" | sort -V | tail -n 1)
   else
       error "Не поддерживаемый менеджер пакетов для автоматической установки"
   fi
@@ -119,18 +156,32 @@ if [ -z "$noPkgMgr" ]; then
 
   fname="$(mktemp -u -p /tmp "alr.XXXXXXXXXX").${pkgFormat}"
 
-  info "Загрузка пакета ALR"
-  curl -o $fname -L "$latestFile"
+  # Настраиваем trap для очистки временного файла
+  trap "rm -f $fname" EXIT
 
-  if [ ! -f "$fname" ]; then
-      error "Ошибка загрузки пакета ALR"
+  info "Загрузка пакета ALR"
+  info "URL: $latestFile"
+
+  # Загружаем с проверкой кода возврата
+  if ! curl -f -L -o "$fname" "$latestFile"; then
+      error "Ошибка загрузки пакета ALR. Проверьте подключение к интернету."
   fi
+
+  # Проверяем что файл не пустой
+  if [ ! -s "$fname" ]; then
+      error "Загруженный файл пустой или поврежден"
+  fi
+
+  # Показываем размер загруженного файла
+  fileSize=$(du -h "$fname" | cut -f1)
+  info "Загружен пакет размером $fileSize"
 
   info "Установка пакета ALR"
   installPkg "$pkgMgr" "$fname"
 
   info "Очистка"
-  rm "$fname"
+  rm -f "$fname"
+  trap - EXIT
 
   info "Готово!"
 else
