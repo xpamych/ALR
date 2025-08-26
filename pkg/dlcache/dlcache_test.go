@@ -26,6 +26,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
@@ -45,7 +46,7 @@ func (c *TestALRConfig) GetPaths() *config.Paths {
 func prepare(t *testing.T) *TestALRConfig {
 	t.Helper()
 
-	dir, err := os.MkdirTemp("/tmp", "alr-dlcache-test.*")
+	dir, err := os.MkdirTemp("", "alr-dlcache-test.*")
 	if err != nil {
 		panic(err)
 	}
@@ -57,7 +58,7 @@ func prepare(t *testing.T) *TestALRConfig {
 
 func cleanup(t *testing.T, cfg *TestALRConfig) {
 	t.Helper()
-	os.Remove(cfg.CacheDir)
+	os.RemoveAll(cfg.CacheDir)
 }
 
 func TestNew(t *testing.T) {
