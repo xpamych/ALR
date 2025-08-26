@@ -19,6 +19,7 @@ package build
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -51,8 +52,9 @@ func prepareDirs(dirs types.Directories) error {
 	// Пробуем удалить базовую директорию, если она существует
 	err := os.RemoveAll(dirs.BaseDir)
 	if err != nil {
-		// Если не можем удалить (например, принадлежит root), игнорируем
-		// и попробуем создать новые директории
+		// Если не можем удалить (например, принадлежит root), логируем и продолжаем
+		// Новые директории будут созданы или перезаписаны
+		slog.Debug("Failed to remove base directory", "path", dirs.BaseDir, "error", err)
 	}
 	
 	// Создаем директории с правильным владельцем для /tmp/alr с setgid битом

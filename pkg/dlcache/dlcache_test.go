@@ -82,6 +82,12 @@ func TestNew(t *testing.T) {
 	fi, err := os.Stat(dir)
 	if err != nil {
 		t.Errorf("stat: expected no error, got %s", err)
+		return
+	}
+
+	if fi == nil {
+		t.Errorf("Expected file info to not be nil")
+		return
 	}
 
 	if !fi.IsDir() {

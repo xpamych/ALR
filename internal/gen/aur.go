@@ -206,11 +206,7 @@ func (r aurResult) GenerateInstallCommands() string {
 	
 	// install-license команды
 	for _, license := range r.LicenseFiles {
-		if license == "LICENSE" || license == "./LICENSE" {
-			commands = append(commands, fmt.Sprintf("\tinstall-license %s %s/LICENSE", license, r.Name))
-		} else {
-			commands = append(commands, fmt.Sprintf("\tinstall-license %s %s/LICENSE", license, r.Name))
-		}
+		commands = append(commands, fmt.Sprintf("\tinstall-license %s %s/LICENSE", license, r.Name))
 	}
 	
 	// install-manual команды
@@ -302,7 +298,6 @@ func parseSources(pkgbuild string) []string {
 				source = strings.ReplaceAll(source, "${pkgname}", "${name}")
 				// Обрабатываем другие переменные (упрощенно)
 				source = strings.ReplaceAll(source, "$_commit", "${_commit}")
-				source = strings.ReplaceAll(source, "${_commit}", "${_commit}")
 				sources = append(sources, source)
 			}
 		}

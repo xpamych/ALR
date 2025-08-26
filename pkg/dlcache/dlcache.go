@@ -62,8 +62,8 @@ func (dc *DownloadCache) New(ctx context.Context, id string) (string, error) {
 		}
 	}
 
-	// Используем специальную функцию для создания каталогов
-	err = utils.EnsureTempDirWithRootOwner(itemPath, 0o755)
+	// Используем специальную функцию для создания каталогов с setgid битом
+	err = utils.EnsureTempDirWithRootOwner(itemPath, 0o2775)
 	if err != nil {
 		return "", err
 	}
