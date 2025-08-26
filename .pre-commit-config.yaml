@@ -37,6 +37,7 @@ repos:
 
       - id: i18n
         name: Update i18n
-        entry: make i18n
+        entry: bash scripts/i18n-precommit.sh
         language: system
         pass_filenames: false
+        always_run: true
