@@ -20,13 +20,19 @@ set -e
 # Запускаем тесты с покрытием
 make test-coverage
 
-# Если coverage.out был изменен, добавляем его
-if git diff --quiet coverage.out 2>/dev/null; then
-    echo "Coverage unchanged"
-else
-    git add coverage.out 2>/dev/null || true
-    echo "Coverage updated and staged"
+# coverage.out в .gitignore, не добавляем его
+# Но если скрипт coverage-badge.sh изменил какие-то файлы (например, README с бейджем),
+# они будут добавлены
+CHANGED_FILES=$(git diff --name-only --diff-filter=M | grep -v '\.out$' | grep -v '^coverage' || true)
+
+if [ ! -z "$CHANGED_FILES" ]; then
+    echo "Test coverage updated the following files:"
+    echo "$CHANGED_FILES"
+    # Добавляем только измененные файлы, которые уже отслеживаются
+    echo "$CHANGED_FILES" | xargs -r git add
+    echo "Files were updated and staged"
 fi
 
+echo "Tests completed successfully"
 # Всегда возвращаем успех если тесты прошли
 exit 0

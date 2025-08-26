@@ -17,38 +17,21 @@
 
 set -e
 
-# Сохраняем хеши файлов до форматирования
-TEMP_DIR=$(mktemp -d)
-find . -name "*.go" -type f | while read file; do
-    if [ -f "$file" ]; then
-        md5sum "$file" > "$TEMP_DIR/$(basename $file).md5" 2>/dev/null || true
-    fi
-done
-
 # Запускаем форматирование
 make fmt || true
 
-# Проверяем, были ли изменения
-CHANGED=false
-find . -name "*.go" -type f | while read file; do
-    if [ -f "$file" ] && [ -f "$TEMP_DIR/$(basename $file).md5" ]; then
-        OLD_MD5=$(cat "$TEMP_DIR/$(basename $file).md5" | awk '{print $1}')
-        NEW_MD5=$(md5sum "$file" | awk '{print $1}')
-        if [ "$OLD_MD5" != "$NEW_MD5" ]; then
-            CHANGED=true
-            break
-        fi
-    fi
-done
-
-# Удаляем временную директорию
-rm -rf "$TEMP_DIR"
+# Проверяем какие файлы были изменены (только те, что отслеживаются git)
+CHANGED_FILES=$(git diff --name-only --diff-filter=M | grep '\.go$' || true)
 
 # Если файлы были изменены, добавляем их в git
-if [ "$CHANGED" = true ]; then
-    git add -u
+if [ ! -z "$CHANGED_FILES" ]; then
+    echo "Formatting changed the following files:"
+    echo "$CHANGED_FILES"
+    # Добавляем только измененные файлы, которые уже отслеживаются
+    echo "$CHANGED_FILES" | xargs -r git add
     echo "Files were formatted and staged"
 fi
 
+echo "Formatting completed"
 # Всегда возвращаем успех
 exit 0
