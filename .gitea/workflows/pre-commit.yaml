@@ -19,7 +19,7 @@ name: Pre-commit
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
 
 
@@ -44,7 +44,7 @@ jobs:
           python-version: '3.12'
       
       - name: Install deps
-        run: apt-get update && apt-get install -y gettext bc
+        run: sudo apt-get update && sudo apt-get install -y gettext bc
 
       - run: pip install pre-commit
       - run: pre-commit install
