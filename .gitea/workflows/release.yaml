@@ -105,28 +105,11 @@ jobs:
           ALR_PKG_FORMAT=deb alr build -s "$SCRIPT_PATH"
           ALR_PKG_FORMAT=archlinux alr build -s "$SCRIPT_PATH"
 
-      - name: Collect built packages
-        id: collect_files
-        run: |
-          echo "Looking for packages in /tmp/alr/pkgs/:"
-          find /tmp/alr/pkgs/ -name "*.deb" -o -name "*.rpm" -o -name "*.pkg.tar.zst" 2>/dev/null | head -10
-          
-          # Копируем пакеты в текущую директорию
-          find /tmp/alr/pkgs/ -name "*.deb" -exec cp {} . \; 2>/dev/null || true
-          find /tmp/alr/pkgs/ -name "*.rpm" -exec cp {} . \; 2>/dev/null || true  
-          find /tmp/alr/pkgs/ -name "*.pkg.tar.zst" -exec cp {} . \; 2>/dev/null || true
-          
-          # Проверяем что получилось
-          echo "Package files in current directory:"
-          ls -la *.deb *.rpm *.pkg.tar.zst 2>/dev/null || echo "No package files found in current dir"
-          
-          # Сохраняем список файлов для загрузки
-          echo "files<<EOF" >> $GITHUB_OUTPUT
-          ls -1 *.deb *.rpm *.pkg.tar.zst 2>/dev/null || true
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Upload assets
         uses: akkuman/gitea-release-action@v1
         with:
           body: ${{ steps.changes.outputs.changes }}
-          files: ${{ steps.collect_files.outputs.files }}
+          files: |-
+            alr-bin*.deb
+            alr-bin*.rpm
+            alr-bin*.pkg.tar.zst
