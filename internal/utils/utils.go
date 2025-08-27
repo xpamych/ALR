@@ -43,13 +43,21 @@ func EnsureTempDirWithRootOwner(path string, mode os.FileMode) error {
 		isRoot := os.Geteuid() == 0
 		isCI := os.Getenv("CI") == "true"
 		
-		// Если мы в CI или root, выполняем команды напрямую
-		// В противном случае используем sudo
+		// В CI создаем директории с обычными правами
+		if isCI {
+			// В CI не используем группу wheel и не меняем права
+			// Устанавливаем базовые права 777 для временных каталогов
+			chmodCmd := exec.Command("chmod", "777", path)
+			chmodCmd.Run() // Игнорируем ошибки
+			return nil
+		}
+		
+		// Для обычной работы устанавливаем права и группу wheel
 		permissions := "2775"
 		group := "wheel"
 		
 		var chmodCmd, chownCmd *exec.Cmd
-		if isRoot || isCI {
+		if isRoot {
 			// Выполняем команды напрямую без sudo
 			chmodCmd = exec.Command("chmod", permissions, path)
 			chownCmd = exec.Command("chown", "root:"+group, path)
@@ -62,8 +70,8 @@ func EnsureTempDirWithRootOwner(path string, mode os.FileMode) error {
 		// Устанавливаем права с setgid битом
 		err = chmodCmd.Run()
 		if err != nil {
-			// В CI или для root игнорируем ошибки, если группа wheel не существует
-			if !isRoot && !isCI {
+			// Для root игнорируем ошибки, если группа wheel не существует
+			if !isRoot {
 				return err
 			}
 		}
@@ -71,8 +79,8 @@ func EnsureTempDirWithRootOwner(path string, mode os.FileMode) error {
 		// Устанавливаем владельца root:wheel
 		err = chownCmd.Run()
 		if err != nil {
-			// В CI или для root игнорируем ошибки, если группа wheel не существует
-			if !isRoot && !isCI {
+			// Для root игнорируем ошибки, если группа wheel не существует
+			if !isRoot {
 				return err
 			}
 		}

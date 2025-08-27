@@ -114,12 +114,3 @@ jobs:
             alr-bin+alr-default-${{ env.VERSION }}-1-x86_64.pkg.tar.zst
             alr-bin+alr-default-${{ env.VERSION }}-1.red80.x86_64.rpm
             alr-bin+alr-default-${{ env.VERSION }}-alt1.x86_64.rpm
-
-      - name: Commit changes
-        run: |
-          cd alr-default
-          git config user.name "gitea"
-          git config user.email "admin@plemya-x.ru"
-          git add .
-          git commit -m "Обновление версии до ${{ env.VERSION }}"
-          git push
