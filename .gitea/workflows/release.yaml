@@ -104,13 +104,21 @@ jobs:
           ALR_PKG_FORMAT=rpm alr build -s "$SCRIPT_PATH"
           ALR_PKG_FORMAT=deb alr build -s "$SCRIPT_PATH"
           ALR_PKG_FORMAT=archlinux alr build -s "$SCRIPT_PATH"
+          
+      - name: Collect built packages
+        id: collect_files
+        run: |
+          # Собираем все созданные пакеты в многострочном формате
+          echo "Found package files:"
+          ls -1 *.deb *.rpm *.pkg.tar.zst 2>/dev/null || echo "No package files found"
+          
+          # Сохраняем список файлов для загрузки
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          ls -1 *.deb *.rpm *.pkg.tar.zst 2>/dev/null || true
+          echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Upload assets
+      - name: Upload assets  
         uses: akkuman/gitea-release-action@v1
         with:
           body: ${{ steps.changes.outputs.changes }}
-          files: |-
-            alr-bin+alr-default_${{ env.VERSION }}-1.red80_amd64.deb
-            alr-bin+alr-default-${{ env.VERSION }}-1-x86_64.pkg.tar.zst
-            alr-bin+alr-default-${{ env.VERSION }}-1.red80.x86_64.rpm
-            alr-bin+alr-default-${{ env.VERSION }}-alt1.x86_64.rpm
+          files: ${{ steps.collect_files.outputs.files }}
