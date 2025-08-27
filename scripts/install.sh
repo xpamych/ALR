@@ -142,16 +142,15 @@ if [ -z "$noPkgMgr" ]; then
   info "Получен список файлов релиза"
 
   if [ "$pkgMgr" == "pacman" ]; then
-      latestFile=$(echo "$fileList" | grep -E "alr-bin-.*\.pkg\.tar\.zst" | sort -V | tail -n 1)
+      latestFile=$(echo "$fileList" | grep -E "alr-bin.*\.pkg\.tar\.zst" | sort -V | tail -n 1)
   elif [ "$pkgMgr" == "apt" ]; then
-      latestFile=$(echo "$fileList" | grep -E "alr-bin-.*\.${debArch}\.deb" | sort -V | tail -n 1)
+      latestFile=$(echo "$fileList" | grep -E "alr-bin.*\.${debArch}\.deb" | sort -V | tail -n 1)
   elif [[ "$pkgMgr" == "dnf" || "$pkgMgr" == "yum" || "$pkgMgr" == "zypper" ]]; then
-      latestFile=$(echo "$fileList" | grep -E "alr-bin-.*\.${rpmArch}\.rpm" | grep -v 'alt[0-9]*' | sort -V | tail -n 1)
+      latestFile=$(echo "$fileList" | grep -E "alr-bin.*\.${rpmArch}\.rpm" | grep -v 'alt[0-9]*' | sort -V | tail -n 1)
   elif [ "$pkgMgr" == "apt-get" ]; then
-      # ALT Linux использует RPM с особой маркировкой
-      latestFile=$(echo "$fileList" | grep -E "alr-bin-.*-alt[0-9]+\.${rpmArch}\.rpm" | sort -V | tail -n 1)
+      latestFile=$(echo "$fileList" | grep -E "alr-bin.*-alt[0-9]+\.${rpmArch}\.rpm" | sort -V | tail -n 1)
   elif [ "$pkgMgr" == "apk" ]; then
-      latestFile=$(echo "$fileList" | grep -E "alr-bin-.*\.apk" | sort -V | tail -n 1)
+      latestFile=$(echo "$fileList" | grep -E "alr-bin.*\.apk" | sort -V | tail -n 1)
   else
       error "Не поддерживаемый менеджер пакетов для автоматической установки"
   fi
