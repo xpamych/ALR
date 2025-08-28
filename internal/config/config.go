@@ -56,6 +56,7 @@ func defaultConfigKoanf() *koanf.Koanf {
 		"ignorePkgUpdates": []string{},
 		"logLevel":         "info",
 		"autoPull":         true,
+		"updateSystemOnUpgrade": false,
 		"repos": []types.Repo{
 			{
 				Name: "alr-default",
@@ -114,6 +115,11 @@ func (c *ALRConfig) Load() error {
 		}
 	}
 
+	// Выполняем миграцию конфигурации при необходимости
+	if err := c.migrateConfig(); err != nil {
+		return fmt.Errorf("failed to migrate config: %w", err)
+	}
+
 	return nil
 }
 
@@ -125,6 +131,45 @@ func (c *ALRConfig) ToYAML() (string, error) {
 	return string(data), nil
 }
 
+func (c *ALRConfig) migrateConfig() error {
+	// Проверяем, существует ли конфигурационный файл
+	if _, err := os.Stat(constants.SystemConfigPath); os.IsNotExist(err) {
+		// Если файла нет, но конфигурация уже загружена (из defaults или env),
+		// создаем файл с настройкой по умолчанию
+		needsCreation := false
+		
+		// Проверяем, установлена ли переменная окружения ALR_UPDATESYSTEMONUPGRADE
+		if os.Getenv("ALR_UPDATESYSTEMONUPGRADE") == "" {
+			// Если переменная не установлена, проверяем наличие пакетов ALR
+			// чтобы определить, нужно ли включить эту опцию для обновления
+			needsCreation = true
+		}
+		
+		if needsCreation {
+			// Устанавливаем значение false по умолчанию для новой опции
+			c.System.SetUpdateSystemOnUpgrade(false)
+			// Сохраняем конфигурацию
+			if err := c.System.Save(); err != nil {
+				// Если не удается сохранить - это не критично, продолжаем работу
+				return nil
+			}
+		}
+	} else {
+		// Если файл существует, проверяем, есть ли в нем новая опция
+		if !c.System.k.Exists("updateSystemOnUpgrade") {
+			// Если опции нет, добавляем ее со значением по умолчанию
+			c.System.SetUpdateSystemOnUpgrade(false)
+			// Сохраняем обновленную конфигурацию
+			if err := c.System.Save(); err != nil {
+				// Если не удается сохранить - это не критично, продолжаем работу
+				return nil
+			}
+		}
+	}
+	
+	return nil
+}
+
 func (c *ALRConfig) RootCmd() string             { return c.cfg.RootCmd }
 func (c *ALRConfig) PagerStyle() string          { return c.cfg.PagerStyle }
 func (c *ALRConfig) AutoPull() bool              { return c.cfg.AutoPull }
@@ -133,4 +178,5 @@ func (c *ALRConfig) SetRepos(repos []types.Repo) { c.System.SetRepos(repos) }
 func (c *ALRConfig) IgnorePkgUpdates() []string  { return c.cfg.IgnorePkgUpdates }
 func (c *ALRConfig) LogLevel() string            { return c.cfg.LogLevel }
 func (c *ALRConfig) UseRootCmd() bool            { return c.cfg.UseRootCmd }
+func (c *ALRConfig) UpdateSystemOnUpgrade() bool { return c.cfg.UpdateSystemOnUpgrade }
 func (c *ALRConfig) GetPaths() *Paths            { return c.paths }

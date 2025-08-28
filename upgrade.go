@@ -84,6 +84,19 @@ func UpgradeCmd() *cli.Command {
 			}
 			defer deps.Defer()
 
+			// Обновляем систему, если это включено в конфигурации
+			if deps.Cfg.UpdateSystemOnUpgrade() {
+				slog.Info(gotext.Get("Updating system packages..."))
+				err = deps.Manager.UpgradeAll(&manager.Opts{
+					NoConfirm: !c.Bool("interactive"),
+					Args:      manager.Args,
+				})
+				if err != nil {
+					return cliutils.FormatCliExit(gotext.Get("Error updating system packages"), err)
+				}
+				slog.Info(gotext.Get("System packages updated successfully"))
+			}
+
 			builder, err := build.NewMainBuilder(
 				deps.Cfg,
 				deps.Manager,

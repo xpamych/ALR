@@ -142,3 +142,10 @@ func (c *SystemConfig) SetRepos(v []types.Repo) {
 		panic(err)
 	}
 }
+
+func (c *SystemConfig) SetUpdateSystemOnUpgrade(v bool) {
+	err := c.k.Set("updateSystemOnUpgrade", v)
+	if err != nil {
+		panic(err)
+	}
+}
