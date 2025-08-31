@@ -56,6 +56,31 @@ installPkg() {
   esac
 }
 
+trackInstallation() {
+  # Отправить статистику установки (не критично если не получится)
+  if command -v curl &>/dev/null; then
+    # Генерируем уникальный отпечаток на основе hostname и даты
+    fingerprint=$(echo "$(hostname)_$(date +%Y-%m-%d)" | sha256sum 2>/dev/null | cut -d' ' -f1 || echo "$(hostname)_$(date +%Y-%m-%d)")
+    
+    # Пробуем разные домены/порты для отправки статистики
+    for api_url in "https://alr.plemya-x.ru/api/packages/track-install" "http://localhost:3001/api/packages/track-install"; do
+      curl -s -m 5 -X POST "$api_url" \
+        -H "Content-Type: application/json" \
+        -H "User-Agent: ALR-InstallScript/1.0" \
+        -d "{
+          \"packageName\": \"alr-bin\",
+          \"installType\": \"script\",
+          \"userAgent\": \"ALR-InstallScript/1.0\",
+          \"fingerprint\": \"$fingerprint\"
+        }" >/dev/null 2>&1
+      # Если один запрос удался, не пробуем остальные
+      if [ $? -eq 0 ]; then
+        break
+      fi
+    done
+  fi
+}
+
 if ! command -v curl &>/dev/null; then
   error "Этот скрипт требует команду curl. Пожалуйста, установите её и запустите снова."
 fi
@@ -185,6 +210,9 @@ if [ -z "$noPkgMgr" ]; then
 
   info "Установка пакета ALR"
   installPkg "$pkgMgr" "$fname"
+
+  # Отправляем статистику установки
+  trackInstallation
 
   info "Очистка"
   rm -f "$fname"

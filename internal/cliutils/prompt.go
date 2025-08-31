@@ -103,20 +103,60 @@ func ShowScript(path, name, style string) error {
 // FlattenPkgs attempts to flatten the a map of slices of packages into a single slice
 // of packages by prompting the user if multiple packages match.
 func FlattenPkgs(ctx context.Context, found map[string][]alrsh.Package, verb string, interactive bool) []alrsh.Package {
+	return FlattenPkgsWithContext(ctx, found, verb, interactive, false)
+}
+
+// FlattenPkgsWithContext расширенная версия FlattenPkgs с контекстом обработки зависимостей
+func FlattenPkgsWithContext(ctx context.Context, found map[string][]alrsh.Package, verb string, interactive bool, isDependency bool) []alrsh.Package {
 	var outPkgs []alrsh.Package
 	for _, pkgs := range found {
-		if len(pkgs) > 1 && interactive {
-			choice, err := PkgPrompt(ctx, pkgs, verb, interactive)
-			if err != nil {
-				slog.Error(gotext.Get("Error prompting for choice of package"))
-				os.Exit(1)
+		if len(pkgs) > 1 {
+			// Проверяем, являются ли пакеты подпакетами одного мультипакета
+			if isMultiPackage(pkgs) && verb == "install" {
+				// Для мультипакетов при установке ВСЕГДА берем все подпакеты без выбора
+				// Это правильное поведение как для прямой установки, так и для зависимостей
+				outPkgs = append(outPkgs, pkgs...)
+			} else if interactive {
+				// Для разных пакетов с одинаковым именем - показываем меню выбора
+				choice, err := PkgPrompt(ctx, pkgs, verb, interactive)
+				if err != nil {
+					slog.Error(gotext.Get("Error prompting for choice of package"))
+					os.Exit(1)
+				}
+				outPkgs = append(outPkgs, choice)
+			} else {
+				// Если не интерактивный режим - берем первый
+				outPkgs = append(outPkgs, pkgs[0])
 			}
-			outPkgs = append(outPkgs, choice)
-		} else if len(pkgs) == 1 || !interactive {
+		} else {
+			// Если только один пакет - берем его
 			outPkgs = append(outPkgs, pkgs[0])
 		}
 	}
 	return outPkgs
+}
+
+// isMultiPackage проверяет, являются ли пакеты подпакетами одного мультипакета
+func isMultiPackage(pkgs []alrsh.Package) bool {
+	if len(pkgs) <= 1 {
+		return false
+	}
+	
+	// Проверяем, что у всех пакетов одинаковый BasePkgName и Repository
+	firstBasePkg := pkgs[0].BasePkgName
+	firstRepo := pkgs[0].Repository
+	
+	if firstBasePkg == "" {
+		return false // Не мультипакет
+	}
+	
+	for _, pkg := range pkgs[1:] {
+		if pkg.BasePkgName != firstBasePkg || pkg.Repository != firstRepo {
+			return false
+		}
+	}
+	
+	return true
 }
 
 // PkgPrompt asks the user to choose between multiple packages.

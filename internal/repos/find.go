@@ -61,6 +61,13 @@ func (rs *Repos) FindPkgs(ctx context.Context, pkgs []string) (map[string][]alrs
 			}
 
 			if len(result) == 0 {
+				result, err = rs.db.GetPkgs(ctx, "basepkg_name = ?", pkgName)
+				if err != nil {
+					return nil, nil, fmt.Errorf("FindPkgs: get by basepkg_name: %w", err)
+				}
+			}
+
+			if len(result) == 0 {
 				result, err = rs.db.GetPkgs(ctx, "name LIKE ?", pkgName)
 			}
 		}

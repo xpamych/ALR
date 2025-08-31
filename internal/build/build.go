@@ -32,6 +32,7 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/stats"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
@@ -401,9 +402,19 @@ func (b *Builder) BuildPackage(
 
 	// We filter so as not to re-build what has already been built at the `installBuildDeps` stage.
 	var filteredDepends []string
+	
+	// Создаем набор подпакетов текущего мультипакета для исключения циклических зависимостей
+	currentPackageNames := make(map[string]struct{})
+	for _, pkg := range input.packages {
+		currentPackageNames[pkg] = struct{}{}
+	}
+	
 	for _, d := range depends {
 		if _, found := depNames[d]; !found {
-			filteredDepends = append(filteredDepends, d)
+			// Исключаем зависимости, которые являются подпакетами текущего мультипакета
+			if _, isCurrentPackage := currentPackageNames[d]; !isCurrentPackage {
+				filteredDepends = append(filteredDepends, d)
+			}
 		}
 	}
 
@@ -528,6 +539,13 @@ func (b *Builder) InstallALRPackages(
 		if err != nil {
 			return err
 		}
+		
+		// Отслеживание установки ALR пакетов
+		for _, dep := range res {
+			if stats.ShouldTrackPackage(dep.Name) {
+				stats.TrackInstallation(ctx, dep.Name, "upgrade")
+			}
+		}
 	}
 
 	return nil
@@ -552,11 +570,13 @@ func (b *Builder) BuildALRDeps(
 		repoDeps = notFound
 
 		// Если для некоторых пакетов есть несколько опций, упрощаем их все в один срез
-		pkgs := cliutils.FlattenPkgs(
+		// Для зависимостей указываем isDependency = true
+		pkgs := cliutils.FlattenPkgsWithContext(
 			ctx,
 			found,
 			"install",
 			input.BuildOpts().Interactive,
+			true,
 		)
 		type item struct {
 			pkg      *alrsh.Package
@@ -691,6 +711,13 @@ func (i *Builder) InstallPkgs(
 		if err != nil {
 			return nil, err
 		}
+		
+		// Отслеживание установки локальных пакетов
+		for _, dep := range builtDeps {
+			if stats.ShouldTrackPackage(dep.Name) {
+				stats.TrackInstallation(ctx, dep.Name, "install")
+			}
+		}
 	}
 
 	if len(repoDeps) > 0 {
@@ -699,6 +726,13 @@ func (i *Builder) InstallPkgs(
 		})
 		if err != nil {
 			return nil, err
+		}
+		
+		// Отслеживание установки пакетов из репозитория
+		for _, pkg := range repoDeps {
+			if stats.ShouldTrackPackage(pkg) {
+				stats.TrackInstallation(ctx, pkg, "install")
+			}
 		}
 	}
 
