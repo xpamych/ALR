@@ -320,9 +320,9 @@ func (b *Builder) BuildPackage(
 	}
 
 	var builtDeps []*BuiltDep
+	var remainingVars []*alrsh.Package
 
 	if !input.opts.Clean {
-		var remainingVars []*alrsh.Package
 		for _, vars := range varsOfPackages {
 			builtPkgPath, ok, err := b.cacheExecutor.CheckForBuiltPackage(ctx, input, vars)
 			if err != nil {
@@ -331,6 +331,7 @@ func (b *Builder) BuildPackage(
 			if ok {
 				builtDeps = append(builtDeps, &BuiltDep{
 					Path: builtPkgPath,
+					Name: vars.Name,
 				})
 			} else {
 				remainingVars = append(remainingVars, vars)
@@ -338,8 +339,12 @@ func (b *Builder) BuildPackage(
 		}
 
 		if len(remainingVars) == 0 {
+			slog.Info(gotext.Get("Using cached package"), "name", basePkg)
 			return builtDeps, nil
 		}
+		
+		// Обновляем varsOfPackages только теми пакетами, которые нужно собрать
+		varsOfPackages = remainingVars
 	}
 
 	slog.Debug("ViewScript")
