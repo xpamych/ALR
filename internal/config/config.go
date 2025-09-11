@@ -22,11 +22,13 @@ package config
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/goccy/go-yaml"
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/v2"
+	ktoml "github.com/knadh/koanf/parsers/toml/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/constants"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
@@ -134,25 +136,12 @@ func (c *ALRConfig) ToYAML() (string, error) {
 func (c *ALRConfig) migrateConfig() error {
 	// Проверяем, существует ли конфигурационный файл
 	if _, err := os.Stat(constants.SystemConfigPath); os.IsNotExist(err) {
-		// Если файла нет, но конфигурация уже загружена (из defaults или env),
-		// создаем файл с настройкой по умолчанию
-		needsCreation := false
-		
-		// Проверяем, установлена ли переменная окружения ALR_UPDATESYSTEMONUPGRADE
-		if os.Getenv("ALR_UPDATESYSTEMONUPGRADE") == "" {
-			// Если переменная не установлена, проверяем наличие пакетов ALR
-			// чтобы определить, нужно ли включить эту опцию для обновления
-			needsCreation = true
-		}
-		
-		if needsCreation {
-			// Устанавливаем значение false по умолчанию для новой опции
-			c.System.SetUpdateSystemOnUpgrade(false)
-			// Сохраняем конфигурацию
-			if err := c.System.Save(); err != nil {
-				// Если не удается сохранить - это не критично, продолжаем работу
-				return nil
-			}
+		// Если файла нет, создаем полный конфигурационный файл с дефолтными значениями
+		if err := c.createDefaultConfig(); err != nil {
+			// Если не удается создать конфиг, это не критично - продолжаем работу
+			// но выводим предупреждение
+			fmt.Fprintf(os.Stderr, "Предупреждение: не удалось создать конфигурационный файл %s: %v\n", constants.SystemConfigPath, err)
+			return nil
 		}
 	} else {
 		// Если файл существует, проверяем, есть ли в нем новая опция
@@ -165,6 +154,100 @@ func (c *ALRConfig) migrateConfig() error {
 				return nil
 			}
 		}
+	}
+	
+	return nil
+}
+
+func (c *ALRConfig) createDefaultConfig() error {
+	// Проверяем, запущен ли процесс от root
+	if os.Getuid() != 0 {
+		// Если не root, пытаемся запустить создание конфига с повышением привилегий
+		return c.createDefaultConfigWithPrivileges()
+	}
+	
+	// Если уже root, создаем конфиг напрямую
+	return c.doCreateDefaultConfig()
+}
+
+func (c *ALRConfig) createDefaultConfigWithPrivileges() error {
+	// Если useRootCmd отключен, просто пытаемся создать без повышения привилегий
+	if !c.cfg.UseRootCmd {
+		return c.doCreateDefaultConfig()
+	}
+	
+	// Определяем команду для повышения привилегий
+	rootCmd := c.cfg.RootCmd
+	if rootCmd == "" {
+		rootCmd = "sudo" // fallback
+	}
+	
+	// Создаем временный файл с дефолтной конфигурацией
+	tmpFile, err := os.CreateTemp("", "alr-config-*.toml")
+	if err != nil {
+		return fmt.Errorf("не удалось создать временный файл: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+	defer tmpFile.Close()
+	
+	// Генерируем дефолтную конфигурацию во временный файл
+	defaults := defaultConfigKoanf()
+	tempSystemConfig := &SystemConfig{k: defaults}
+	
+	bytes, err := tempSystemConfig.k.Marshal(ktoml.Parser())
+	if err != nil {
+		return fmt.Errorf("не удалось сериализовать конфигурацию: %w", err)
+	}
+	
+	if _, err := tmpFile.Write(bytes); err != nil {
+		return fmt.Errorf("не удалось записать во временный файл: %w", err)
+	}
+	tmpFile.Close()
+	
+	// Используем команду повышения привилегий для создания директории и копирования файла
+	
+	// Создаем директорию с правами
+	configDir := filepath.Dir(constants.SystemConfigPath)
+	mkdirCmd := exec.Command(rootCmd, "mkdir", "-p", configDir)
+	if err := mkdirCmd.Run(); err != nil {
+		return fmt.Errorf("не удалось создать директорию %s: %w", configDir, err)
+	}
+	
+	// Копируем файл в нужное место
+	cpCmd := exec.Command(rootCmd, "cp", tmpFile.Name(), constants.SystemConfigPath)
+	if err := cpCmd.Run(); err != nil {
+		return fmt.Errorf("не удалось скопировать конфигурацию в %s: %w", constants.SystemConfigPath, err)
+	}
+	
+	// Устанавливаем правильные права доступа
+	chmodCmd := exec.Command(rootCmd, "chmod", "644", constants.SystemConfigPath)
+	if err := chmodCmd.Run(); err != nil {
+		// Не критично, продолжаем
+		fmt.Fprintf(os.Stderr, "Предупреждение: не удалось установить права доступа для %s: %v\n", constants.SystemConfigPath, err)
+	}
+	
+	return nil
+}
+
+func (c *ALRConfig) doCreateDefaultConfig() error {
+	// Проверяем, существует ли директория для конфига
+	configDir := filepath.Dir(constants.SystemConfigPath)
+	if _, err := os.Stat(configDir); os.IsNotExist(err) {
+		// Пытаемся создать директорию
+		if err := os.MkdirAll(configDir, 0755); err != nil {
+			return fmt.Errorf("не удалось создать директорию %s: %w", configDir, err)
+		}
+	}
+
+	// Загружаем дефолтную конфигурацию
+	defaults := defaultConfigKoanf()
+	
+	// Копируем все дефолтные значения в системную конфигурацию
+	c.System.k = defaults
+	
+	// Сохраняем конфигурацию в файл
+	if err := c.System.Save(); err != nil {
+		return fmt.Errorf("не удалось сохранить конфигурацию в %s: %w", constants.SystemConfigPath, err)
 	}
 	
 	return nil
