@@ -78,11 +78,30 @@ jobs:
           token: ${{ secrets.GITEAPUBLIC }}
           path: alr-default
 
-      - name: Update version in alr-bin
+      - name: Calculate checksum
         run: |
-          # Замените значения в файле с конфигурацией
+          # Вычисляем SHA256 контрольную сумму архива
+          CHECKSUM=$(sha256sum alr-${{ env.VERSION }}-linux-x86_64.tar.gz | awk '{print $1}')
+          echo "Archive checksum: $CHECKSUM"
+          echo "CHECKSUM=$CHECKSUM" >> $GITHUB_ENV
+
+      - name: Update version and checksum in alr-bin
+        run: |
+          # Обновляем версию
           sed -i "s/version='[0-9]\+\.[0-9]\+\.[0-9]\+'/version='${{ env.VERSION }}'/g" alr-default/alr-bin/alr.sh
           sed -i "s/release='[0-9]\+'/release='1'/g" alr-default/alr-bin/alr.sh
+
+          # Обновляем контрольную сумму
+          sed -i "s/checksums=('[^']*')/checksums=('${{ env.CHECKSUM }}')/g" alr-default/alr-bin/alr.sh
+
+      - name: Commit and push changes to alr-default
+        run: |
+          cd alr-default
+          git config user.name "gitea"
+          git config user.email "admin@plemya-x.ru"
+          git add alr-bin/alr.sh
+          git commit -m "Обновление alr-bin до версии ${{ env.VERSION }}"
+          git push
 
       - name: Install alr
         env:
