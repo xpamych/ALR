@@ -26,7 +26,6 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
 	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/constants"
 )
 
 // IsNotRoot проверяет, что текущий пользователь не является root
@@ -51,7 +50,8 @@ func EnuseIsPrivilegedGroupMember() error {
 		return err
 	}
 
-	group, err := user.LookupGroup(constants.PrivilegedGroup)
+	privilegedGroup := GetPrivilegedGroup()
+	group, err := user.LookupGroup(privilegedGroup)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func EnuseIsPrivilegedGroupMember() error {
 			return nil
 		}
 	}
-	return cliutils.FormatCliExit(gotext.Get("You need to be a %s member to perform this action", constants.PrivilegedGroup), nil)
+	return cliutils.FormatCliExit(gotext.Get("You need to be a %s member to perform this action", privilegedGroup), nil)
 }
 
 func RootNeededAction(f cli.ActionFunc) cli.ActionFunc {

@@ -20,5 +20,6 @@ const (
 	SystemConfigPath = "/etc/alr/alr.toml"
 	SystemCachePath  = "/var/cache/alr"
 	TempDir          = "/tmp/alr"
-	PrivilegedGroup  = "wheel"
+	// PrivilegedGroup - устарело, используйте GetPrivilegedGroup()
+	PrivilegedGroup  = "wheel" // оставлено для обратной совместимости
 )

@@ -28,8 +28,8 @@ func NoNewPrivs() error {
 	return unix.Prctl(unix.PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)
 }
 
-// EnsureTempDirWithRootOwner создает каталог в /tmp/alr с правами для группы wheel
-// Все каталоги в /tmp/alr принадлежат root:wheel с правами 775
+// EnsureTempDirWithRootOwner создает каталог в /tmp/alr с правами для привилегированной группы
+// Все каталоги в /tmp/alr принадлежат root:привилегированная_группа с правами 775
 // Для других каталогов использует стандартные права
 func EnsureTempDirWithRootOwner(path string, mode os.FileMode) error {
 	if strings.HasPrefix(path, "/tmp/alr") {
@@ -52,9 +52,9 @@ func EnsureTempDirWithRootOwner(path string, mode os.FileMode) error {
 			return nil
 		}
 		
-		// Для обычной работы устанавливаем права и группу wheel
+		// Для обычной работы устанавливаем права и привилегированную группу
 		permissions := "2775"
-		group := "wheel"
+		group := GetPrivilegedGroup()
 		
 		var chmodCmd, chownCmd *exec.Cmd
 		if isRoot {
@@ -70,7 +70,7 @@ func EnsureTempDirWithRootOwner(path string, mode os.FileMode) error {
 		// Устанавливаем права с setgid битом
 		err = chmodCmd.Run()
 		if err != nil {
-			// Для root игнорируем ошибки, если группа wheel не существует
+			// Для root игнорируем ошибки, если группа не существует
 			if !isRoot {
 				return err
 			}
@@ -79,7 +79,7 @@ func EnsureTempDirWithRootOwner(path string, mode os.FileMode) error {
 		// Устанавливаем владельца root:wheel
 		err = chownCmd.Run()
 		if err != nil {
-			// Для root игнорируем ошибки, если группа wheel не существует
+			// Для root игнорируем ошибки, если группа не существует
 			if !isRoot {
 				return err
 			}
