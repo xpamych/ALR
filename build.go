@@ -63,7 +63,7 @@ func BuildCmd() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			if err := utils.EnuseIsPrivilegedGroupMember(); err != nil {
+			if err := utils.CheckUserPrivileges(); err != nil {
 				return err
 			}
 

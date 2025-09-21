@@ -19,7 +19,6 @@ package utils
 import (
 	"os"
 	"os/exec"
-	"os/user"
 
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
@@ -33,40 +32,10 @@ func IsNotRoot() bool {
 	return os.Getuid() != 0
 }
 
-// EnuseIsPrivilegedGroupMember проверяет, что пользователь является членом привилегированной группы (wheel)
+// EnuseIsPrivilegedGroupMember проверяет, что пользователь является членом привилегированной группы (wheel/sudo)
+// DEPRECATED: используйте CheckUserPrivileges() из utils.go
 func EnuseIsPrivilegedGroupMember() error {
-	// В CI пропускаем проверку группы wheel
-	if os.Getenv("CI") == "true" {
-		return nil
-	}
-	
-	// Если пользователь root, пропускаем проверку
-	if os.Geteuid() == 0 {
-		return nil
-	}
-	
-	currentUser, err := user.Current()
-	if err != nil {
-		return err
-	}
-
-	privilegedGroup := GetPrivilegedGroup()
-	group, err := user.LookupGroup(privilegedGroup)
-	if err != nil {
-		return err
-	}
-
-	groups, err := currentUser.GroupIds()
-	if err != nil {
-		return err
-	}
-
-	for _, gid := range groups {
-		if gid == group.Gid {
-			return nil
-		}
-	}
-	return cliutils.FormatCliExit(gotext.Get("You need to be a %s member to perform this action", privilegedGroup), nil)
+	return CheckUserPrivileges()
 }
 
 func RootNeededAction(f cli.ActionFunc) cli.ActionFunc {
