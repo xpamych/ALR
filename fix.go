@@ -131,22 +131,22 @@ func FixCmd() *cli.Command {
 				}
 			}
 
-			// Создаем базовый каталог /tmp/alr с владельцем root:wheel и правами 775
-			err = utils.EnsureTempDirWithRootOwner(tmpDir, 0o775)
+			// Создаем базовый каталог /tmp/alr с владельцем root:wheel и правами 2775
+			err = utils.EnsureTempDirWithRootOwner(tmpDir, 0o2775)
 			if err != nil {
 				slog.Warn(gotext.Get("Unable to create temporary directory"), "error", err)
 			}
 
 			// Создаем каталог dl с правами для группы wheel
 			dlDir := filepath.Join(tmpDir, "dl")
-			err = utils.EnsureTempDirWithRootOwner(dlDir, 0o775)
+			err = utils.EnsureTempDirWithRootOwner(dlDir, 0o2775)
 			if err != nil {
 				slog.Warn(gotext.Get("Unable to create download directory"), "error", err)
 			}
 
 			// Создаем каталог pkgs с правами для группы wheel
 			pkgsDir := filepath.Join(tmpDir, "pkgs")
-			err = utils.EnsureTempDirWithRootOwner(pkgsDir, 0o775)
+			err = utils.EnsureTempDirWithRootOwner(pkgsDir, 0o2775)
 			if err != nil {
 				slog.Warn(gotext.Get("Unable to create packages directory"), "error", err)
 			}
@@ -158,7 +158,8 @@ func FixCmd() *cli.Command {
 				// Проверяем, есть ли файлы в директории
 				entries, err := os.ReadDir(tmpDir)
 				if err == nil && len(entries) > 0 {
-					fixCmd := execWithPrivileges("chown", "-R", "root:wheel", tmpDir)
+					group := utils.GetPrivilegedGroup()
+					fixCmd := execWithPrivileges("chown", "-R", "root:"+group, tmpDir)
 					if fixErr := fixCmd.Run(); fixErr != nil {
 						slog.Warn(gotext.Get("Unable to fix file ownership"), "error", fixErr)
 					}
@@ -172,26 +173,11 @@ func FixCmd() *cli.Command {
 
 			slog.Info(gotext.Get("Rebuilding cache"))
 
-			// Пробуем создать директорию кэша
-			err = os.MkdirAll(paths.CacheDir, 0o775)
+			// Создаем директорию кэша с правильными правами
+			slog.Info(gotext.Get("Creating cache directory"))
+			err = utils.EnsureTempDirWithRootOwner(paths.CacheDir, 0o2775)
 			if err != nil {
-				// Если не получилось, пробуем через sudo с правильными правами для группы wheel
-				slog.Info(gotext.Get("Creating cache directory with sudo"))
-				sudoCmd := execWithPrivileges("mkdir", "-p", paths.CacheDir)
-				if sudoErr := sudoCmd.Run(); sudoErr != nil {
-					return cliutils.FormatCliExit(gotext.Get("Unable to create new cache directory"), err)
-				}
-				
-				// Устанавливаем права 775 и группу wheel
-				chmodCmd := execWithPrivileges("chmod", "775", paths.CacheDir)
-				if chmodErr := chmodCmd.Run(); chmodErr != nil {
-					return cliutils.FormatCliExit(gotext.Get("Unable to set cache directory permissions"), chmodErr)
-				}
-				
-				chgrpCmd := execWithPrivileges("chgrp", "wheel", paths.CacheDir)
-				if chgrpErr := chgrpCmd.Run(); chgrpErr != nil {
-					return cliutils.FormatCliExit(gotext.Get("Unable to set cache directory group"), chgrpErr)
-				}
+				return cliutils.FormatCliExit(gotext.Get("Unable to create new cache directory"), err)
 			}
 
 			deps, err = appbuilder.
