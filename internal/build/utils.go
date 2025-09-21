@@ -176,8 +176,13 @@ func getBasePkgInfo(vars *alrsh.Package, input interface {
 	OsInfoProvider
 },
 ) *nfpm.Info {
+	repo := input.Repository()
+	// Избегаем дублирования "alr-" префикса
+	if strings.HasPrefix(repo, "alr-") {
+		repo = repo[4:] // убираем "alr-" префикс
+	}
 	return &nfpm.Info{
-		Name:    fmt.Sprintf("%s+alr-%s", vars.Name, input.Repository()),
+		Name:    fmt.Sprintf("%s+alr-%s", vars.Name, repo),
 		Arch:    cpu.Arch(),
 		Version: vars.Version,
 		Release: overrides.ReleasePlatformSpecific(vars.Release, input.OSRelease()),
