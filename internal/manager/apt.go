@@ -140,16 +140,19 @@ func (a *APT) ListInstalled(opts *Opts) (map[string]string, error) {
 }
 
 func (a *APT) IsInstalled(pkg string) (bool, error) {
-	cmd := exec.Command("dpkg-query", "-l", pkg)
+	cmd := exec.Command("dpkg-query", "-f", "${Status}", "-W", pkg)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
-			// Exit code 1 means the package is not installed
+			// Код выхода 1 означает что пакет не найден
 			if exitErr.ExitCode() == 1 {
 				return false, nil
 			}
 		}
 		return false, fmt.Errorf("apt: isinstalled: %w, output: %s", err, output)
 	}
-	return true, nil
+
+	status := strings.TrimSpace(string(output))
+	// Проверяем что пакет действительно установлен (статус должен содержать "install ok installed")
+	return strings.Contains(status, "install ok installed"), nil
 }
