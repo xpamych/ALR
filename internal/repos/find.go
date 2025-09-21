@@ -47,9 +47,9 @@ func (rs *Repos) FindPkgs(ctx context.Context, pkgs []string) (map[string][]alrs
 			name := parts[1]
 			result, err = rs.db.GetPkgs(ctx, "name = ? AND repository = ?", name, repo)
 
-		case strings.Contains(pkgName, "+alr-"):
-			// pkg+alr-repo
-			parts := strings.SplitN(pkgName, "+alr-", 2)
+		case strings.Contains(pkgName, "+"):
+			// pkg+repo
+			parts := strings.SplitN(pkgName, "+", 2)
 			name := parts[0]
 			repo := parts[1]
 			result, err = rs.db.GetPkgs(ctx, "name = ? AND repository = ?", name, repo)

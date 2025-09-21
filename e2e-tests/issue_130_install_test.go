@@ -45,17 +45,17 @@ func TestE2EIssue130Install(t *testing.T) {
 	)
 	runMatrixSuite(
 		t,
-		"alr install {package}+alr-{repo}",
+		"alr install {package}+{repo}",
 		COMMON_SYSTEMS,
 		func(t *testing.T, r capytest.Runner) {
 			t.Parallel()
 			defaultPrepare(t, r)
 
-			r.Command("sudo", "alr", "in", fmt.Sprintf("foo-pkg+alr-%s", REPO_NAME_FOR_E2E_TESTS)).
+			r.Command("sudo", "alr", "in", fmt.Sprintf("foo-pkg+%s", REPO_NAME_FOR_E2E_TESTS)).
 				ExpectSuccess().
 				Run(t)
 
-			r.Command("sudo", "alr", "in", fmt.Sprintf("bar-pkg+alr-%s", "NOT_REPO_NAME_FOR_E2E_TESTS")).
+			r.Command("sudo", "alr", "in", fmt.Sprintf("bar-pkg+%s", "NOT_REPO_NAME_FOR_E2E_TESTS")).
 				ExpectFailure().
 				Run(t)
 		},

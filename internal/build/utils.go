@@ -56,13 +56,19 @@ func prepareDirs(dirs types.Directories) error {
 		// Новые директории будут созданы или перезаписаны
 		slog.Debug("Failed to remove base directory", "path", dirs.BaseDir, "error", err)
 	}
-	
+
+	// Создаем базовую директорию для пакета с setgid битом
+	err = utils.EnsureTempDirWithRootOwner(dirs.BaseDir, 0o2775)
+	if err != nil {
+		return err
+	}
+
 	// Создаем директории с правильным владельцем для /tmp/alr с setgid битом
 	err = utils.EnsureTempDirWithRootOwner(dirs.SrcDir, 0o2775)
 	if err != nil {
 		return err
 	}
-	
+
 	// Создаем директорию для пакетов с setgid битом
 	return utils.EnsureTempDirWithRootOwner(dirs.PkgDir, 0o2775)
 }
@@ -169,7 +175,7 @@ func normalizeContents(contents []*files.Content) {
 	}
 }
 
-var RegexpALRPackageName = regexp.MustCompile(`^(?P<package>[^+]+)\+alr-(?P<repo>.+)$`)
+var RegexpALRPackageName = regexp.MustCompile(`^(?P<package>[^+]+)\+(?P<repo>.+)$`)
 
 func getBasePkgInfo(vars *alrsh.Package, input interface {
 	RepositoryProvider
@@ -177,12 +183,8 @@ func getBasePkgInfo(vars *alrsh.Package, input interface {
 },
 ) *nfpm.Info {
 	repo := input.Repository()
-	// Избегаем дублирования "alr-" префикса
-	if strings.HasPrefix(repo, "alr-") {
-		repo = repo[4:] // убираем "alr-" префикс
-	}
 	return &nfpm.Info{
-		Name:    fmt.Sprintf("%s+alr-%s", vars.Name, repo),
+		Name:    fmt.Sprintf("%s+%s", vars.Name, repo),
 		Arch:    cpu.Arch(),
 		Version: vars.Version,
 		Release: overrides.ReleasePlatformSpecific(vars.Release, input.OSRelease()),
