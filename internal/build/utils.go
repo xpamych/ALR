@@ -49,12 +49,15 @@ import (
 
 // Функция prepareDirs подготавливает директории для сборки.
 func prepareDirs(dirs types.Directories) error {
-	// Пробуем удалить базовую директорию, если она существует
-	err := os.RemoveAll(dirs.BaseDir)
+	// Удаляем только директории источников и упаковки, не трогаем файлы пакетов в BaseDir
+	err := os.RemoveAll(dirs.SrcDir)
 	if err != nil {
-		// Если не можем удалить (например, принадлежит root), логируем и продолжаем
-		// Новые директории будут созданы или перезаписаны
-		slog.Debug("Failed to remove base directory", "path", dirs.BaseDir, "error", err)
+		slog.Debug("Failed to remove src directory", "path", dirs.SrcDir, "error", err)
+	}
+
+	err = os.RemoveAll(dirs.PkgDir)
+	if err != nil {
+		slog.Debug("Failed to remove pkg directory", "path", dirs.PkgDir, "error", err)
 	}
 
 	// Создаем базовую директорию для пакета с setgid битом

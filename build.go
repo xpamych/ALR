@@ -197,6 +197,13 @@ func BuildCmd() *cli.Command {
 
 			for _, pkg := range res {
 				name := filepath.Base(pkg.Path)
+
+				// Проверяем, существует ли файл перед перемещением
+				if _, err := os.Stat(pkg.Path); os.IsNotExist(err) {
+					slog.Info("Package file already moved or removed, skipping", "path", pkg.Path)
+					continue
+				}
+
 				err = osutils.Move(pkg.Path, filepath.Join(wd, name))
 				if err != nil {
 					return cliutils.FormatCliExit(gotext.Get("Error moving the package"), err)

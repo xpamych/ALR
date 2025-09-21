@@ -167,15 +167,30 @@ func (e *LocalScriptExecutor) ExecuteSecondPass(
 		pkgName := packager.ConventionalFileName(pkgInfo) // Получаем имя файла пакета
 		pkgPath := filepath.Join(dirs.BaseDir, pkgName)   // Определяем путь к пакету
 
+		slog.Info("Creating package file", "path", pkgPath, "name", pkgName)
+
 		pkgFile, err := os.Create(pkgPath)
 		if err != nil {
+			slog.Error("Failed to create package file", "path", pkgPath, "error", err)
+			return nil, err
+		}
+		defer pkgFile.Close()
+
+		slog.Info("Packaging with nfpm", "format", pkgFormat)
+		err = packager.Package(pkgInfo, pkgFile)
+		if err != nil {
+			slog.Error("Failed to create package", "path", pkgPath, "error", err)
 			return nil, err
 		}
 
-		err = packager.Package(pkgInfo, pkgFile)
-		if err != nil {
+		slog.Info("Package created successfully", "path", pkgPath)
+
+		// Проверяем, что файл действительно существует
+		if _, err := os.Stat(pkgPath); err != nil {
+			slog.Error("Package file not found after creation", "path", pkgPath, "error", err)
 			return nil, err
 		}
+		slog.Info("Package file verified to exist", "path", pkgPath)
 
 		builtDeps = append(builtDeps, &BuiltDep{
 			Name: vars.Name,
