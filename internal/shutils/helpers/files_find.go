@@ -177,3 +177,228 @@ func filesFindCmd(hc interp.HandlerContext, cmd string, args []string) error {
 
 	return outputFiles(hc, foundFiles)
 }
+
+func filesFindBinCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*"
+	if len(args) > 0 {
+		namePattern = args[0]
+	}
+
+	binPath := "./usr/bin/"
+	realPath := path.Join(hc.Dir, binPath)
+
+	if err := validateDir(realPath, "files-find-bin"); err != nil {
+		return err
+	}
+
+	var binFiles []string
+	err := filepath.Walk(realPath, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && matchNamePattern(info.Name(), namePattern) {
+			relPath, relErr := makeRelativePath(hc.Dir, p)
+			if relErr != nil {
+				return relErr
+			}
+			binFiles = append(binFiles, relPath)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("files-find-bin: %w", err)
+	}
+
+	return outputFiles(hc, binFiles)
+}
+
+func filesFindLibCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*"
+	if len(args) > 0 {
+		namePattern = args[0]
+	}
+
+	libPaths := []string{"./usr/lib/", "./usr/lib64/"}
+	var libFiles []string
+
+	for _, libPath := range libPaths {
+		realPath := path.Join(hc.Dir, libPath)
+		if _, err := os.Stat(realPath); os.IsNotExist(err) {
+			continue
+		}
+
+		err := filepath.Walk(realPath, func(p string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if !info.IsDir() && matchNamePattern(info.Name(), namePattern) {
+				relPath, relErr := makeRelativePath(hc.Dir, p)
+				if relErr != nil {
+					return relErr
+				}
+				libFiles = append(libFiles, relPath)
+			}
+			return nil
+		})
+		if err != nil {
+			return fmt.Errorf("files-find-lib: %w", err)
+		}
+	}
+
+	return outputFiles(hc, libFiles)
+}
+
+func filesFindIncludeCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*"
+	if len(args) > 0 {
+		namePattern = args[0]
+	}
+
+	includePath := "./usr/include/"
+	realPath := path.Join(hc.Dir, includePath)
+
+	if err := validateDir(realPath, "files-find-include"); err != nil {
+		return err
+	}
+
+	var includeFiles []string
+	err := filepath.Walk(realPath, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && matchNamePattern(info.Name(), namePattern) {
+			relPath, relErr := makeRelativePath(hc.Dir, p)
+			if relErr != nil {
+				return relErr
+			}
+			includeFiles = append(includeFiles, relPath)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("files-find-include: %w", err)
+	}
+
+	return outputFiles(hc, includeFiles)
+}
+
+func filesFindShareCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*"
+	sharePath := "./usr/share/"
+
+	if len(args) > 0 {
+		if len(args) == 1 {
+			sharePath = "./usr/share/" + args[0] + "/"
+		} else {
+			sharePath = "./usr/share/" + args[0] + "/"
+			namePattern = args[1]
+		}
+	}
+
+	realPath := path.Join(hc.Dir, sharePath)
+
+	if err := validateDir(realPath, "files-find-share"); err != nil {
+		return err
+	}
+
+	var shareFiles []string
+	err := filepath.Walk(realPath, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && matchNamePattern(info.Name(), namePattern) {
+			relPath, relErr := makeRelativePath(hc.Dir, p)
+			if relErr != nil {
+				return relErr
+			}
+			shareFiles = append(shareFiles, relPath)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("files-find-share: %w", err)
+	}
+
+	return outputFiles(hc, shareFiles)
+}
+
+func filesFindManCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*"
+	manSection := "*"
+
+	if len(args) > 0 {
+		if len(args) == 1 {
+			manSection = args[0]
+		} else {
+			manSection = args[0]
+			namePattern = args[1]
+		}
+	}
+
+	manPath := "./usr/share/man/man" + manSection + "/"
+	realPath := path.Join(hc.Dir, manPath)
+
+	if err := validateDir(realPath, "files-find-man"); err != nil {
+		return err
+	}
+
+	var manFiles []string
+	err := filepath.Walk(realPath, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && matchNamePattern(info.Name(), namePattern) {
+			relPath, relErr := makeRelativePath(hc.Dir, p)
+			if relErr != nil {
+				return relErr
+			}
+			manFiles = append(manFiles, relPath)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("files-find-man: %w", err)
+	}
+
+	return outputFiles(hc, manFiles)
+}
+
+func filesFindConfigCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*"
+	if len(args) > 0 {
+		namePattern = args[0]
+	}
+
+	configPath := "./etc/"
+	realPath := path.Join(hc.Dir, configPath)
+
+	if err := validateDir(realPath, "files-find-config"); err != nil {
+		return err
+	}
+
+	var configFiles []string
+	err := filepath.Walk(realPath, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && matchNamePattern(info.Name(), namePattern) {
+			relPath, relErr := makeRelativePath(hc.Dir, p)
+			if relErr != nil {
+				return relErr
+			}
+			configFiles = append(configFiles, relPath)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("files-find-config: %w", err)
+	}
+
+	return outputFiles(hc, configFiles)
+}

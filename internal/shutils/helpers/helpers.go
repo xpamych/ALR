@@ -56,18 +56,30 @@ var Helpers = handlers.ExecFuncs{
 	"install-library":      installLibraryCmd,
 	"git-version":          gitVersionCmd,
 
-	"files-find":      filesFindCmd,
-	"files-find-lang": filesFindLangCmd,
-	"files-find-doc":  filesFindDocCmd,
+	"files-find":        filesFindCmd,
+	"files-find-lang":   filesFindLangCmd,
+	"files-find-doc":    filesFindDocCmd,
+	"files-find-bin":    filesFindBinCmd,
+	"files-find-lib":    filesFindLibCmd,
+	"files-find-include": filesFindIncludeCmd,
+	"files-find-share":  filesFindShareCmd,
+	"files-find-man":    filesFindManCmd,
+	"files-find-config": filesFindConfigCmd,
 }
 
 // Restricted contains restricted read-only helper commands
 // that don't modify any state
 var Restricted = handlers.ExecFuncs{
-	"git-version":     gitVersionCmd,
-	"files-find":      filesFindCmd,
-	"files-find-lang": filesFindLangCmd,
-	"files-find-doc":  filesFindDocCmd,
+	"git-version":       gitVersionCmd,
+	"files-find":        filesFindCmd,
+	"files-find-lang":   filesFindLangCmd,
+	"files-find-doc":    filesFindDocCmd,
+	"files-find-bin":    filesFindBinCmd,
+	"files-find-lib":    filesFindLibCmd,
+	"files-find-include": filesFindIncludeCmd,
+	"files-find-share":  filesFindShareCmd,
+	"files-find-man":    filesFindManCmd,
+	"files-find-config": filesFindConfigCmd,
 }
 
 func installHelperCmd(prefix string, perms os.FileMode) handlers.ExecFunc {
