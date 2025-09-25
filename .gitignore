@@ -12,3 +12,5 @@
 e2e-tests/alr
 CLAUDE.md
 commit_msg.txt
+/scripts/.claude/settings.local.json
+/ALR

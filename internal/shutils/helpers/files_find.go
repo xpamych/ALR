@@ -402,3 +402,108 @@ func filesFindConfigCmd(hc interp.HandlerContext, cmd string, args []string) err
 
 	return outputFiles(hc, configFiles)
 }
+
+func filesFindSystemdCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*"
+	if len(args) > 0 {
+		namePattern = args[0]
+	}
+
+	systemdPath := "./usr/lib/systemd/system/"
+	realPath := path.Join(hc.Dir, systemdPath)
+
+	if err := validateDir(realPath, "files-find-systemd"); err != nil {
+		return err
+	}
+
+	var systemdFiles []string
+	err := filepath.Walk(realPath, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && matchNamePattern(info.Name(), namePattern) {
+			relPath, relErr := makeRelativePath(hc.Dir, p)
+			if relErr != nil {
+				return relErr
+			}
+			systemdFiles = append(systemdFiles, relPath)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("files-find-systemd: %w", err)
+	}
+
+	return outputFiles(hc, systemdFiles)
+}
+
+func filesFindSystemdUserCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*"
+	if len(args) > 0 {
+		namePattern = args[0]
+	}
+
+	systemdUserPath := "./usr/lib/systemd/user/"
+	realPath := path.Join(hc.Dir, systemdUserPath)
+
+	if err := validateDir(realPath, "files-find-systemd-user"); err != nil {
+		return err
+	}
+
+	var systemdUserFiles []string
+	err := filepath.Walk(realPath, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && matchNamePattern(info.Name(), namePattern) {
+			relPath, relErr := makeRelativePath(hc.Dir, p)
+			if relErr != nil {
+				return relErr
+			}
+			systemdUserFiles = append(systemdUserFiles, relPath)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("files-find-systemd-user: %w", err)
+	}
+
+	return outputFiles(hc, systemdUserFiles)
+}
+
+func filesFindLicenseCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*"
+	if len(args) > 0 {
+		namePattern = args[0]
+	}
+
+	licensePath := "./usr/share/licenses/"
+	realPath := path.Join(hc.Dir, licensePath)
+
+	if err := validateDir(realPath, "files-find-license"); err != nil {
+		return err
+	}
+
+	var licenseFiles []string
+	err := filepath.Walk(realPath, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && matchNamePattern(info.Name(), namePattern) {
+			relPath, relErr := makeRelativePath(hc.Dir, p)
+			if relErr != nil {
+				return relErr
+			}
+			licenseFiles = append(licenseFiles, relPath)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("files-find-license: %w", err)
+	}
+
+	return outputFiles(hc, licenseFiles)
+}
