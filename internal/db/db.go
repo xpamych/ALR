@@ -31,6 +31,7 @@ import (
 	"xorm.io/xorm"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/fsutils"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
@@ -57,19 +58,21 @@ func New(config Config) *Database {
 
 func (d *Database) Connect() error {
 	dsn := d.config.GetPaths().DBPath
-	
+
 	// Проверяем директорию для БД
 	dbDir := filepath.Dir(dsn)
 	if _, err := os.Stat(dbDir); err != nil {
 		if os.IsNotExist(err) {
-			// Директория не существует - не пытаемся создать
-			// Пользователь должен использовать alr fix для создания системных каталогов
-			return fmt.Errorf("cache directory does not exist, please run 'sudo alr fix' to create it")
+			// Директория не существует - создаем автоматически
+			slog.Info(gotext.Get("Cache directory does not exist, creating it"))
+			if err := fsutils.EnsureTempDirWithRootOwner(dbDir, 0o2775); err != nil {
+				return fmt.Errorf("failed to create cache directory: %w", err)
+			}
 		} else {
 			return fmt.Errorf("failed to check database directory: %w", err)
 		}
 	}
-	
+
 	engine, err := xorm.NewEngine("sqlite", dsn)
 	// engine.SetLogLevel(log.LOG_DEBUG)
 	// engine.ShowSQL(true)

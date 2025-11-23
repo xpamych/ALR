@@ -14,3 +14,4 @@ CLAUDE.md
 commit_msg.txt
 /scripts/.claude/settings.local.json
 /ALR
+.claude/settings.local.json

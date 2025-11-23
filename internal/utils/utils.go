@@ -19,10 +19,9 @@ package utils
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"os/user"
-	"strings"
 
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/fsutils"
 	"golang.org/x/sys/unix"
 )
 
@@ -31,79 +30,15 @@ func NoNewPrivs() error {
 }
 
 // EnsureTempDirWithRootOwner создает каталог в /tmp/alr или /var/cache/alr с правами для привилегированной группы
-// Все каталоги в /tmp/alr и /var/cache/alr принадлежат root:привилегированная_группа с правами 2775
-// Для других каталогов использует стандартные права
+// Обёртка для обратной совместимости, делегирует вызов в fsutils
 func EnsureTempDirWithRootOwner(path string, mode os.FileMode) error {
-	needsElevation := strings.HasPrefix(path, "/tmp/alr") || strings.HasPrefix(path, "/var/cache/alr")
+	return fsutils.EnsureTempDirWithRootOwner(path, mode)
+}
 
-	if needsElevation {
-		// В CI или если мы уже root, не нужно использовать sudo
-		isRoot := os.Geteuid() == 0
-		isCI := os.Getenv("CI") == "true"
-
-		// В CI создаем директории с обычными правами
-		if isCI {
-			err := os.MkdirAll(path, mode)
-			if err != nil {
-				return err
-			}
-			// В CI не используем группу wheel и не меняем права
-			// Устанавливаем базовые права 777 для временных каталогов
-			chmodCmd := exec.Command("chmod", "777", path)
-			chmodCmd.Run() // Игнорируем ошибки
-			return nil
-		}
-
-		// Для обычной работы устанавливаем права и привилегированную группу
-		permissions := "2775"
-		group := GetPrivilegedGroup()
-
-		var mkdirCmd, chmodCmd, chownCmd *exec.Cmd
-		if isRoot {
-			// Выполняем команды напрямую без sudo
-			mkdirCmd = exec.Command("mkdir", "-p", path)
-			chmodCmd = exec.Command("chmod", permissions, path)
-			chownCmd = exec.Command("chown", "root:"+group, path)
-		} else {
-			// Используем sudo для всех операций с привилегированными каталогами
-			mkdirCmd = exec.Command("sudo", "mkdir", "-p", path)
-			chmodCmd = exec.Command("sudo", "chmod", permissions, path)
-			chownCmd = exec.Command("sudo", "chown", "root:"+group, path)
-		}
-
-		// Создаем директорию через sudo если нужно
-		err := mkdirCmd.Run()
-		if err != nil {
-			// Игнорируем ошибку если директория уже существует
-			if !isRoot {
-				// Проверяем существует ли директория
-				if _, statErr := os.Stat(path); statErr != nil {
-					return fmt.Errorf("не удалось создать директорию %s: %w", path, err)
-				}
-			}
-		}
-
-		// Устанавливаем права с setgid битом для наследования группы
-		err = chmodCmd.Run()
-		if err != nil {
-			if !isRoot {
-				return fmt.Errorf("не удалось установить права на %s: %w", path, err)
-			}
-		}
-
-		// Устанавливаем владельца root:группа
-		err = chownCmd.Run()
-		if err != nil {
-			if !isRoot {
-				return fmt.Errorf("не удалось установить владельца на %s: %w", path, err)
-			}
-		}
-
-		return nil
-	}
-
-	// Для остальных каталогов обычное создание
-	return os.MkdirAll(path, mode)
+// GetPrivilegedGroup возвращает привилегированную группу для текущей системы
+// Обёртка для обратной совместимости, делегирует вызов в fsutils
+func GetPrivilegedGroup() string {
+	return fsutils.GetPrivilegedGroup()
 }
 
 // IsUserInGroup проверяет, состоит ли пользователь в указанной группе
@@ -149,7 +84,7 @@ func CheckUserPrivileges() error {
 		return fmt.Errorf("не удалось получить информацию о текущем пользователе: %w", err)
 	}
 
-	privilegedGroup := GetPrivilegedGroup()
+	privilegedGroup := fsutils.GetPrivilegedGroup()
 
 	// Проверяем членство в привилегированной группе
 	if !IsUserInGroup(currentUser.Username, privilegedGroup) {
