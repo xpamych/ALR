@@ -50,6 +50,22 @@ func VersionCmd() *cli.Command {
 	}
 }
 
+func HelpCmd() *cli.Command {
+	return &cli.Command{
+		Name:      "help",
+		Aliases:   []string{"h"},
+		Usage:     gotext.Get("Shows a list of commands or help for one command"),
+		ArgsUsage: "[command]",
+		Action: func(cCtx *cli.Context) error {
+			args := cCtx.Args()
+			if args.Present() {
+				return cli.ShowCommandHelp(cCtx, args.First())
+			}
+			return cli.ShowAppHelp(cCtx)
+		},
+	}
+}
+
 func GetApp() *cli.App {
 	return &cli.App{
 		Name:  "alr",
@@ -88,6 +104,7 @@ func GetApp() *cli.App {
 			InternalBuildCmd(),
 			InternalInstallCmd(),
 			InternalReposCmd(),
+			HelpCmd(),
 		},
 		Before: func(c *cli.Context) error {
 			if trimmed := strings.TrimSpace(c.String("pm-args")); trimmed != "" {
@@ -144,6 +161,7 @@ func main() {
 	// Make the application more internationalized
 	cli.AppHelpTemplate = cliutils.GetAppCliTemplate()
 	cli.CommandHelpTemplate = cliutils.GetCommandHelpTemplate()
+	cli.SubcommandHelpTemplate = cliutils.GetSubcommandHelpTemplate()
 	cli.HelpFlag.(*cli.BoolFlag).Usage = gotext.Get("Show help")
 
 	err = app.RunContext(ctx, os.Args)

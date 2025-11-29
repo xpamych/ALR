@@ -36,7 +36,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/leonelquinteros/gotext"
 	"github.com/pelletier/go-toml/v2"
-	"go.elara.ws/vercmp"
+	"gitea.plemya-x.ru/xpamych/vercmp"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
@@ -420,13 +420,13 @@ func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git
 		case actionDelete:
 			scriptFl, err := oldCommit.File(action.File)
 			if err != nil {
-				slog.Warn("Failed to get deleted file from old commit", "file", action.File, "error", err)
+				slog.Warn(gotext.Get("Failed to get deleted file from old commit"), "file", action.File, "error", err)
 				continue
 			}
 
 			r, err := scriptFl.Reader()
 			if err != nil {
-				slog.Warn("Failed to read deleted file", "file", action.File, "error", err)
+				slog.Warn(gotext.Get("Failed to read deleted file"), "file", action.File, "error", err)
 				continue
 			}
 
@@ -445,13 +445,13 @@ func (rs *Repos) processRepoChanges(ctx context.Context, repo types.Repo, r *git
 		case actionUpdate:
 			scriptFl, err := newCommit.File(action.File)
 			if err != nil {
-				slog.Warn("Failed to get updated file from new commit", "file", action.File, "error", err)
+				slog.Warn(gotext.Get("Failed to get updated file from new commit"), "file", action.File, "error", err)
 				continue
 			}
 
 			r, err := scriptFl.Reader()
 			if err != nil {
-				slog.Warn("Failed to read updated file", "file", action.File, "error", err)
+				slog.Warn(gotext.Get("Failed to read updated file"), "file", action.File, "error", err)
 				continue
 			}
 
@@ -505,7 +505,7 @@ func (rs *Repos) processRepoFull(ctx context.Context, repo types.Repo, repoDir s
 	}
 
 	if len(matches) == 0 {
-		slog.Warn("No alr.sh files found in repository", "repo", repo.Name)
+		slog.Warn(gotext.Get("No alr.sh files found in repository"), "repo", repo.Name)
 		return nil
 	}
 

@@ -24,6 +24,7 @@ import (
 	"context"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 	"github.com/hashicorp/go-plugin"
 )
@@ -200,6 +201,38 @@ func (s *InstallerExecutorRPCServer) RemoveAlreadyInstalled(args *InstallerExecu
 		return err
 	}
 	*resp = InstallerExecutorRemoveAlreadyInstalledResp{
+		Result0: result0,
+	}
+	return nil
+}
+
+type InstallerExecutorFilterPackagesByVersionArgs struct {
+	Packages  []alrsh.Package
+	OsRelease *distro.OSRelease
+}
+
+type InstallerExecutorFilterPackagesByVersionResp struct {
+	Result0 []alrsh.Package
+}
+
+func (s *InstallerExecutorRPC) FilterPackagesByVersion(ctx context.Context, packages []alrsh.Package, osRelease *distro.OSRelease) ([]alrsh.Package, error) {
+	var resp *InstallerExecutorFilterPackagesByVersionResp
+	err := s.client.Call("Plugin.FilterPackagesByVersion", &InstallerExecutorFilterPackagesByVersionArgs{
+		Packages:  packages,
+		OsRelease: osRelease,
+	}, &resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result0, nil
+}
+
+func (s *InstallerExecutorRPCServer) FilterPackagesByVersion(args *InstallerExecutorFilterPackagesByVersionArgs, resp *InstallerExecutorFilterPackagesByVersionResp) error {
+	result0, err := s.Impl.FilterPackagesByVersion(context.Background(), args.Packages, args.OsRelease)
+	if err != nil {
+		return err
+	}
+	*resp = InstallerExecutorFilterPackagesByVersionResp{
 		Result0: result0,
 	}
 	return nil

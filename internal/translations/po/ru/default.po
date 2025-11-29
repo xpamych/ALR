@@ -341,7 +341,7 @@ msgstr "Выберите, какой пакет использовать для 
 
 #: internal/cliutils/prompt.go:156
 msgid "Choose which optional package(s) to install"
-msgstr "Выберите, какой дополнительный пакет(ы) следует установить"
+msgstr "Выберите дополнительные пакеты для установки"
 
 #: internal/cliutils/template.go:74 internal/cliutils/template.go:93
 msgid "NAME"
@@ -501,9 +501,13 @@ msgstr "Аргументы, которые будут переданы мене�
 msgid "Enable interactive questions and prompts"
 msgstr "Включение интерактивных вопросов и запросов"
 
-#: main.go:148
+#: main.go:147
 msgid "Show help"
 msgstr "Показать справку"
+
+#: main.go:148
+msgid "Shows a list of commands or help for one command"
+msgstr "Показывает список команд или справку по одной команде"
 
 #: main.go:152
 msgid "Error while running app"
@@ -551,7 +555,7 @@ msgstr "<имя>"
 
 #: repo.go:103 repo.go:465 repo.go:568
 msgid "Repo \"%s\" does not exist"
-msgstr "Репозитория \"%s\" не существует"
+msgstr "Репозиторий \"%s\" не существует"
 
 #: repo.go:110
 msgid "Error removing repo directory"
@@ -620,7 +624,7 @@ msgstr "URL \"%s\" не существует в репозитории \"%s\""
 
 #: repo.go:508 repo.go:580
 msgid "Removed %d mirrors from repo \"%s\"\n"
-msgstr "Удалены зеркала %d из репозитория \"%s\"\n"
+msgstr "Удалено %d зеркал из репозитория \"%s\"\n"
 
 #: repo.go:520
 msgid "Remove all mirrors from the repository"
@@ -636,7 +640,7 @@ msgstr "URL-адрес нового репозитория"
 
 #: repo.go:632
 msgid "Name of the repo to be deleted"
-msgstr "Название репозитория  удалён"
+msgstr "Название репозитория для удаления"
 
 #: search.go:40
 msgid "Search packages"
@@ -656,7 +660,7 @@ msgstr "Искать по репозиторию"
 
 #: search.go:66
 msgid "Search by provides"
-msgstr "Иcкать по provides"
+msgstr "Искать по provides"
 
 #: search.go:130
 msgid "Error while executing search"
@@ -672,7 +676,107 @@ msgstr "Ошибка при проверке обновлений"
 
 #: upgrade.go:126
 msgid "There is nothing to do."
-msgstr "Здесь нечего делать."
+msgstr "Действия не требуются."
+
+#: internal/build/installer.go:88
+msgid "Package %s is installed with older version %s, will rebuild with version %s"
+msgstr "Пакет %s установлен с устаревшей версией %s, будет пересобран с версией %s"
+
+#: internal/build/installer.go:96
+msgid "Package %s is already installed with version %s, skipping build"
+msgstr "Пакет %s уже установлен с версией %s, пропуск сборки"
+
+#: internal/build/installer.go:102
+msgid "Package %s is installed with newer version %s (repo has %s), skipping build"
+msgstr "Пакет %s установлен с более новой версией %s (в репозитории %s), пропуск сборки"
+
+#: internal/build/script_executor.go:170
+msgid "Creating package file"
+msgstr "Создание файла пакета"
+
+#: internal/build/script_executor.go:174
+msgid "Failed to create package file"
+msgstr "Не удалось создать файл пакета"
+
+#: internal/build/script_executor.go:179
+msgid "Packaging with nfpm"
+msgstr "Упаковка с помощью nfpm"
+
+#: internal/build/script_executor.go:182
+msgid "Failed to create package"
+msgstr "Не удалось создать пакет"
+
+#: internal/build/script_executor.go:186
+msgid "Package created successfully"
+msgstr "Пакет успешно создан"
+
+#: internal/build/script_executor.go:190
+msgid "Package file not found after creation"
+msgstr "Файл пакета не найден после создания"
+
+#: internal/build/script_executor.go:193
+msgid "Package file verified to exist"
+msgstr "Наличие файла пакета подтверждено"
+
+#: internal/repos/pull.go:423
+msgid "Failed to get deleted file from old commit"
+msgstr "Не удалось получить удалённый файл из старого коммита"
+
+#: internal/repos/pull.go:429
+msgid "Failed to read deleted file"
+msgstr "Не удалось прочитать удалённый файл"
+
+#: internal/repos/pull.go:448
+msgid "Failed to get updated file from new commit"
+msgstr "Не удалось получить обновлённый файл из нового коммита"
+
+#: internal/repos/pull.go:454
+msgid "Failed to read updated file"
+msgstr "Не удалось прочитать обновлённый файл"
+
+#: internal/repos/pull.go:508
+msgid "No alr.sh files found in repository"
+msgstr "Файлы alr.sh не найдены в репозитории"
+
+#: internal/cliutils/app_builder/builder.go:45
+msgid "failed to close db"
+msgstr "не удалось закрыть БД"
+
+#: internal/build/build.go:342
+msgid "Using cached package"
+msgstr "Используется кешированный пакет"
+
+#: upgrade.go:89
+msgid "Updating system packages..."
+msgstr "Обновление системных пакетов..."
+
+#: upgrade.go:97
+msgid "System packages updated successfully"
+msgstr "Системные пакеты успешно обновлены"
+
+#: build.go:203
+msgid "Package file already moved or removed, skipping"
+msgstr "Файл пакета уже перемещён или удалён, пропускаем"
+
+#: fix.go:75
+msgid "Clearing cache and temporary directories"
+msgstr "Очистка кэша и временных директорий"
+
+#: fix.go:119
+msgid "Clearing temporary directory"
+msgstr "Очистка временной директории"
+
+#: fix.go:126
+msgid "Unable to remove temporary directory as current user, trying with sudo"
+msgstr "Невозможно удалить временную директорию от текущего пользователя, попытка через sudo"
+
+#: fix.go:156
+msgid "Fixing permissions on temporary files"
+msgstr "Исправление прав доступа к временным файлам"
+
+#: fix.go:177
+msgid "Creating cache directory"
+msgstr "Создание директории кэша"
 
 #, fuzzy
 #~ msgid "Failed to clear contents of cache directory"

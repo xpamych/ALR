@@ -42,7 +42,7 @@ type AppDeps struct {
 func (d *AppDeps) Defer() {
 	if d.DB != nil {
 		if err := d.DB.Close(); err != nil {
-			slog.Warn("failed to close db", "err", err)
+			slog.Warn(gotext.Get("failed to close db"), "err", err)
 		}
 	}
 }

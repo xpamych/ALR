@@ -100,3 +100,28 @@ func GetCommandHelpTemplate() string {
 		gotext.Get("OPTIONS"),
 	)
 }
+
+func GetSubcommandHelpTemplate() string {
+	return fmt.Sprintf(`%s:
+	{{template "helpNameTemplate" .}}
+
+%s:
+   {{.HelpName}} %s [%s] {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[%s...]{{end}}
+{{if .Description}}
+
+%s:
+   {{template "descriptionTemplate" .}}{{end}}
+{{- if len .Authors}}
+
+%s{{template "authorsTemplate" .}}{{end}}{{if .VisibleCommands}}
+
+%s:{{template "visibleCommandCategoryTemplate" .}}{{end}}{{if .VisibleFlagCategories}}
+
+%s:{{template "visibleFlagCategoryTemplate" .}}{{else if .VisibleFlags}}
+
+%s:{{template "visibleFlagTemplate" .}}{{end}}{{if .Copyright}}
+
+%s:
+   {{template "copyrightTemplate" .}}{{end}}
+`, gotext.Get("NAME"), gotext.Get("USAGE"), gotext.Get("command"), gotext.Get("command options"), gotext.Get("arguments"), gotext.Get("DESCRIPTION"), gotext.Get("AUTHOR"), gotext.Get("COMMANDS"), gotext.Get("OPTIONS"), gotext.Get("OPTIONS"), gotext.Get("COPYRIGHT"))
+}

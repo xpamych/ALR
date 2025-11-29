@@ -49,11 +49,26 @@ func HelperCmd() *cli.Command {
 		},
 	}
 
+	helperHelpCmd := &cli.Command{
+		Name:      "help",
+		Aliases:   []string{"h"},
+		Usage:     gotext.Get("Shows a list of commands or help for one command"),
+		ArgsUsage: "[command]",
+		Action: func(cCtx *cli.Context) error {
+			args := cCtx.Args()
+			if args.Present() {
+				return cli.ShowCommandHelp(cCtx, args.First())
+			}
+			cli.ShowSubcommandHelp(cCtx)
+			return nil
+		},
+	}
+
 	return &cli.Command{
 		Name:        "helper",
 		Usage:       gotext.Get("Run a ALR helper command"),
 		ArgsUsage:   `<helper_name|"list">`,
-		Subcommands: []*cli.Command{helperListCmd},
+		Subcommands: []*cli.Command{helperListCmd, helperHelpCmd},
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "dest-dir",
@@ -100,7 +115,6 @@ func HelperCmd() *cli.Command {
 
 			return helper(hc, c.Args().First(), c.Args().Slice()[1:])
 		},
-		CustomHelpTemplate: cli.CommandHelpTemplate,
 		BashComplete: func(ctx *cli.Context) {
 			for name := range helpers.Helpers {
 				fmt.Println(name)

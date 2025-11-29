@@ -21,6 +21,7 @@ import (
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
 )
 
@@ -34,6 +35,7 @@ type InstallerExecutor interface {
 	Install(ctx context.Context, pkgs []string, opts *manager.Opts) error
 	Remove(ctx context.Context, pkgs []string, opts *manager.Opts) error
 	RemoveAlreadyInstalled(ctx context.Context, pkgs []string) ([]string, error)
+	FilterPackagesByVersion(ctx context.Context, packages []alrsh.Package, osRelease *distro.OSRelease) ([]alrsh.Package, error)
 }
 
 type ScriptExecutor interface {

@@ -583,6 +583,12 @@ func (b *Builder) BuildALRDeps(
 			input.BuildOpts().Interactive,
 			true,
 		)
+
+		pkgs, err = b.installerExecutor.FilterPackagesByVersion(ctx, pkgs, input.OSRelease())
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to filter packages by version: %w", err)
+		}
+
 		type item struct {
 			pkg      *alrsh.Package
 			packages []string

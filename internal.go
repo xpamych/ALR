@@ -32,6 +32,7 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/logger"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/translations"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
 )
 
@@ -42,6 +43,7 @@ func InternalBuildCmd() *cli.Command {
 		Hidden:   true,
 		Action: func(c *cli.Context) error {
 			logger.SetupForGoPlugin()
+			translations.Setup()
 
 			slog.Debug("start _internal-safe-script-executor", "uid", syscall.Getuid(), "gid", syscall.Getgid())
 
@@ -81,7 +83,7 @@ func InternalReposCmd() *cli.Command {
 		Hidden:   true,
 		Action: utils.RootNeededAction(func(ctx *cli.Context) error {
 			logger.SetupForGoPlugin()
-
+			translations.Setup()
 
 			deps, err := appbuilder.
 				New(ctx.Context).
@@ -115,6 +117,7 @@ func InternalInstallCmd() *cli.Command {
 		Hidden:   true,
 		Action: func(c *cli.Context) error {
 			logger.SetupForGoPlugin()
+			translations.Setup()
 
 			// Запуск от текущего пользователя, повышение прав будет через sudo при необходимости
 

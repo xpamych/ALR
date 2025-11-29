@@ -4,6 +4,7 @@ go 1.24.4
 
 require (
 	gitea.plemya-x.ru/Plemya-x/fakeroot v0.0.2-0.20250408104831-427aaa7713c3
+	gitea.plemya-x.ru/xpamych/vercmp v0.0.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/PuerkitoBio/purell v1.2.0
 	github.com/alecthomas/chroma/v2 v2.9.1
@@ -36,7 +37,6 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.3.5
 	go.alt-gnome.ru/capytest v0.0.3-0.20250706082755-f20413e052f9
 	go.alt-gnome.ru/capytest/providers/podman v0.0.3-0.20250706082755-f20413e052f9
-	go.elara.ws/vercmp v0.0.0-20230622214216-0b2b067575c4
 	golang.org/x/crypto v0.36.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	golang.org/x/sys v0.33.0

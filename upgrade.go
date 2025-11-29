@@ -26,7 +26,7 @@ import (
 
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
-	"go.elara.ws/vercmp"
+	"gitea.plemya-x.ru/xpamych/vercmp"
 	"golang.org/x/exp/maps"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/build"

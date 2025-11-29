@@ -46,6 +46,24 @@ func RepoCmd() *cli.Command {
 			SetRepoRefCmd(),
 			RepoMirrorCmd(),
 			SetUrlCmd(),
+			RepoHelpCmd(),
+		},
+	}
+}
+
+func RepoHelpCmd() *cli.Command {
+	return &cli.Command{
+		Name:      "help",
+		Aliases:   []string{"h"},
+		Usage:     gotext.Get("Shows a list of commands or help for one command"),
+		ArgsUsage: "[command]",
+		Action: func(cCtx *cli.Context) error {
+			args := cCtx.Args()
+			if args.Present() {
+				return cli.ShowCommandHelp(cCtx, args.First())
+			}
+			cli.ShowSubcommandHelp(cCtx)
+			return nil
 		},
 	}
 }
@@ -331,6 +349,24 @@ func RepoMirrorCmd() *cli.Command {
 			AddMirror(),
 			RemoveMirror(),
 			ClearMirrors(),
+			MirrorHelpCmd(),
+		},
+	}
+}
+
+func MirrorHelpCmd() *cli.Command {
+	return &cli.Command{
+		Name:      "help",
+		Aliases:   []string{"h"},
+		Usage:     gotext.Get("Shows a list of commands or help for one command"),
+		ArgsUsage: "[command]",
+		Action: func(cCtx *cli.Context) error {
+			args := cCtx.Args()
+			if args.Present() {
+				return cli.ShowCommandHelp(cCtx, args.First())
+			}
+			cli.ShowSubcommandHelp(cCtx)
+			return nil
 		},
 	}
 }

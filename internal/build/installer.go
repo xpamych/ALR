@@ -18,8 +18,16 @@ package build
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
+
+	"github.com/leonelquinteros/gotext"
+	"gitea.plemya-x.ru/xpamych/vercmp"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
 
 func NewInstaller(mgr manager.Manager) *Installer {
@@ -54,6 +62,47 @@ func (i *Installer) RemoveAlreadyInstalled(ctx context.Context, pkgs []string) (
 			continue
 		}
 		filteredPackages = append(filteredPackages, dep)
+	}
+
+	return filteredPackages, nil
+}
+
+func (i *Installer) FilterPackagesByVersion(ctx context.Context, packages []alrsh.Package, osRelease *distro.OSRelease) ([]alrsh.Package, error) {
+	installedPkgs, err := i.mgr.ListInstalled(nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list installed packages: %w", err)
+	}
+
+	var filteredPackages []alrsh.Package
+
+	for _, pkg := range packages {
+		alrPkgName := fmt.Sprintf("%s+%s", pkg.Name, pkg.Repository)
+		installedVer, isInstalled := installedPkgs[alrPkgName]
+
+		if !isInstalled {
+			filteredPackages = append(filteredPackages, pkg)
+			continue
+		}
+
+		repoVer := pkg.Version
+		releaseStr := overrides.ReleasePlatformSpecific(pkg.Release, osRelease)
+
+		if pkg.Release != 0 && pkg.Epoch == 0 {
+			repoVer = fmt.Sprintf("%s-%s", pkg.Version, releaseStr)
+		} else if pkg.Release != 0 && pkg.Epoch != 0 {
+			repoVer = fmt.Sprintf("%d:%s-%s", pkg.Epoch, pkg.Version, releaseStr)
+		}
+
+		cmp := vercmp.Compare(repoVer, installedVer)
+
+		if cmp > 0 {
+			slog.Info(gotext.Get("Package %s is installed with older version %s, will rebuild with version %s", alrPkgName, installedVer, repoVer))
+			filteredPackages = append(filteredPackages, pkg)
+		} else if cmp == 0 {
+			slog.Info(gotext.Get("Package %s is already installed with version %s, skipping build", alrPkgName, installedVer))
+		} else {
+			slog.Info(gotext.Get("Package %s is installed with newer version %s (repo has %s), skipping build", alrPkgName, installedVer, repoVer))
+		}
 	}
 
 	return filteredPackages, nil

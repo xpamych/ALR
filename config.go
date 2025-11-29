@@ -38,6 +38,24 @@ func ConfigCmd() *cli.Command {
 			ShowCmd(),
 			SetConfig(),
 			GetConfig(),
+			ConfigHelpCmd(),
+		},
+	}
+}
+
+func ConfigHelpCmd() *cli.Command {
+	return &cli.Command{
+		Name:      "help",
+		Aliases:   []string{"h"},
+		Usage:     gotext.Get("Shows a list of commands or help for one command"),
+		ArgsUsage: "[command]",
+		Action: func(cCtx *cli.Context) error {
+			args := cCtx.Args()
+			if args.Present() {
+				return cli.ShowCommandHelp(cCtx, args.First())
+			}
+			cli.ShowSubcommandHelp(cCtx)
+			return nil
 		},
 	}
 }

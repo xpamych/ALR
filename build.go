@@ -200,7 +200,7 @@ func BuildCmd() *cli.Command {
 
 				// Проверяем, существует ли файл перед перемещением
 				if _, err := os.Stat(pkg.Path); os.IsNotExist(err) {
-					slog.Info("Package file already moved or removed, skipping", "path", pkg.Path)
+					slog.Info(gotext.Get("Package file already moved or removed, skipping"), "path", pkg.Path)
 					continue
 				}
 
