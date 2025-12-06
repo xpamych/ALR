@@ -114,7 +114,7 @@ func UpgradeCmd() *cli.Command {
 			}
 
 			if len(updates) > 0 {
-				err = builder.InstallALRPackages(
+				_, err = builder.InstallPkgs(
 					ctx,
 					&build.BuildArgs{
 						Opts: &types.BuildOpts{
@@ -124,7 +124,7 @@ func UpgradeCmd() *cli.Command {
 						Info:       deps.Info,
 						PkgFormat_: build.GetPkgFormat(deps.Manager),
 					},
-					mapUptatesInfoToPackages(updates),
+					mapUpdatesToPackageNames(updates),
 				)
 				if err != nil {
 					return cliutils.FormatCliExit(gotext.Get("Error checking for updates"), err)
@@ -138,12 +138,19 @@ func UpgradeCmd() *cli.Command {
 	}
 }
 
-func mapUptatesInfoToPackages(updates []UpdateInfo) []alrsh.Package {
-	var pkgs []alrsh.Package
+func mapUpdatesToPackageNames(updates []UpdateInfo) []string {
+	seen := make(map[string]bool)
+	var pkgNames []string
+
 	for _, info := range updates {
-		pkgs = append(pkgs, *info.Package)
+		fullName := fmt.Sprintf("%s+%s", info.Package.Name, info.Package.Repository)
+		if !seen[fullName] {
+			seen[fullName] = true
+			pkgNames = append(pkgNames, fullName)
+		}
 	}
-	return pkgs
+
+	return pkgNames
 }
 
 type UpdateInfo struct {
