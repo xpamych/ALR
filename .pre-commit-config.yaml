@@ -29,6 +29,12 @@ repos:
         language: system
         pass_filenames: false
 
+      - id: go-generate
+        name: Run go generate
+        entry: bash -c 'go generate ./...'
+        language: system
+        pass_filenames: false
+
       - id: update-license
         name: Update license
         entry: make update-license
