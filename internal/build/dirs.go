@@ -43,6 +43,15 @@ func getDirs(
 	scriptPath string,
 	basePkg string,
 ) (types.Directories, error) {
+	return getDirsForPackage(cfg, scriptPath, basePkg, "")
+}
+
+func getDirsForPackage(
+	cfg Config,
+	scriptPath string,
+	basePkg string,
+	packageName string,
+) (types.Directories, error) {
 	pkgsDir := cfg.GetPaths().PkgsDir
 
 	scriptPath, err := filepath.Abs(scriptPath)
@@ -50,10 +59,18 @@ func getDirs(
 		return types.Directories{}, err
 	}
 	baseDir := filepath.Join(pkgsDir, basePkg)
+
+	// Для подпакетов используем отдельную директорию pkg_<имя_подпакета>
+	// Для обычных пакетов используем просто pkg
+	pkgDirName := "pkg"
+	if packageName != "" {
+		pkgDirName = "pkg_" + packageName
+	}
+
 	return types.Directories{
 		BaseDir:   getBaseDir(cfg, basePkg),
 		SrcDir:    getSrcDir(cfg, basePkg),
-		PkgDir:    filepath.Join(baseDir, "pkg"),
+		PkgDir:    filepath.Join(baseDir, pkgDirName),
 		ScriptDir: getScriptDir(scriptPath),
 	}, nil
 }

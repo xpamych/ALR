@@ -34,27 +34,31 @@ msgstr ""
 msgid "Error getting working directory"
 msgstr ""
 
-#: build.go:117
+#: build.go:111
 msgid "Cannot get absolute script path"
 msgstr ""
 
-#: build.go:143
+#: build.go:137
 msgid "Package not found"
 msgstr ""
 
-#: build.go:156
+#: build.go:150
 msgid "Nothing to build"
 msgstr ""
 
-#: build.go:213
+#: build.go:195
 msgid "Error building package"
 msgstr ""
 
-#: build.go:220
+#: build.go:203
+msgid "Package file already moved or removed, skipping"
+msgstr ""
+
+#: build.go:209
 msgid "Error moving the package"
 msgstr ""
 
-#: build.go:224
+#: build.go:213
 msgid "Done"
 msgstr ""
 
@@ -62,71 +66,123 @@ msgstr ""
 msgid "Manage config"
 msgstr ""
 
-#: config.go:48
+#: config.go:50
+msgid "Shows a list of commands or help for one command"
+msgstr ""
+
+#: config.go:66
 msgid "Show config"
 msgstr ""
 
-#: config.go:84
+#: config.go:103
 msgid "Set config value"
 msgstr ""
 
-#: config.go:85
+#: config.go:104
 msgid "<key> <value>"
 msgstr ""
 
-#: config.go:118 config.go:126
+#: config.go:137 config.go:145 config.go:162
 msgid "invalid boolean value for %s: %s"
 msgstr ""
 
-#: config.go:141
+#: config.go:166
 msgid "use 'repo add/remove' commands to manage repositories"
 msgstr ""
 
-#: config.go:143 config.go:221
+#: config.go:168 config.go:248
 msgid "unknown config key: %s"
 msgstr ""
 
-#: config.go:147
+#: config.go:172
 msgid "failed to save config"
 msgstr ""
 
-#: config.go:150
+#: config.go:175
 msgid "Successfully set %s = %s"
 msgstr ""
 
-#: config.go:159
+#: config.go:184
 msgid "Get config value"
 msgstr ""
 
-#: config.go:160
+#: config.go:185
 msgid "<key>"
 msgstr ""
 
-#: fix.go:39
+#: fix.go:55
 msgid "Attempt to fix problems with ALR"
 msgstr ""
 
-#: fix.go:60
-msgid "Clearing cache directory"
-msgstr ""
-
-#: fix.go:64
-msgid "Unable to open cache directory"
-msgstr ""
-
-#: fix.go:70
-msgid "Unable to read cache directory contents"
+#: fix.go:75
+msgid "Clearing cache and temporary directories"
 msgstr ""
 
 #: fix.go:82
+msgid "Cache directory does not exist, will create it"
+msgstr ""
+
+#: fix.go:84
+msgid "Unable to open cache directory"
+msgstr ""
+
+#: fix.go:91
+msgid "Unable to read cache directory contents"
+msgstr ""
+
+#: fix.go:106
+msgid "Unable to remove cache item (%s) as current user, trying with sudo"
+msgstr ""
+
+#: fix.go:111
 msgid "Unable to remove cache item (%s)"
 msgstr ""
 
-#: fix.go:86
+#: fix.go:119
+msgid "Clearing temporary directory"
+msgstr ""
+
+#: fix.go:126
+msgid "Unable to remove temporary directory as current user, trying with sudo"
+msgstr ""
+
+#: fix.go:129
+msgid "Unable to remove temporary directory"
+msgstr ""
+
+#: fix.go:137
+msgid "Unable to create temporary directory"
+msgstr ""
+
+#: fix.go:144
+msgid "Unable to create download directory"
+msgstr ""
+
+#: fix.go:151
+msgid "Unable to create packages directory"
+msgstr ""
+
+#: fix.go:156
+msgid "Fixing permissions on temporary files"
+msgstr ""
+
+#: fix.go:164
+msgid "Unable to fix file ownership"
+msgstr ""
+
+#: fix.go:169
+msgid "Unable to fix file permissions"
+msgstr ""
+
+#: fix.go:174
 msgid "Rebuilding cache"
 msgstr ""
 
-#: fix.go:90
+#: fix.go:177
+msgid "Creating cache directory"
+msgstr ""
+
+#: fix.go:180
 msgid "Unable to create new cache directory"
 msgstr ""
 
@@ -138,55 +194,67 @@ msgstr ""
 msgid "Generate a ALR script for a pip module"
 msgstr ""
 
+#: gen.go:66
+msgid "Generate a ALR script for an AUR package"
+msgstr ""
+
+#: gen.go:72
+msgid "Name of the AUR package"
+msgstr ""
+
+#: gen.go:77
+msgid "Version of the package (optional, uses latest if not specified)"
+msgstr ""
+
 #: helper.go:42
 msgid "List all the available helper commands"
 msgstr ""
 
-#: helper.go:54
+#: helper.go:69
 msgid "Run a ALR helper command"
 msgstr ""
 
-#: helper.go:61
+#: helper.go:76
 msgid "The directory that the install commands will install to"
 msgstr ""
 
-#: helper.go:74 helper.go:75
+#: helper.go:89 helper.go:90
 msgid "No such helper command"
 msgstr ""
 
-#: helper.go:85
+#: helper.go:100
 msgid "Error parsing os-release file"
 msgstr ""
 
-#: info.go:42
+#: info.go:41
 msgid "Print information about a package"
 msgstr ""
 
-#: info.go:47
+#: info.go:46
 msgid "Show all information, not just for the current distro"
 msgstr ""
 
-#: info.go:68
+#: info.go:64
 msgid "Error getting packages"
 msgstr ""
 
-#: info.go:83
+#: info.go:77
 msgid "Command info expected at least 1 argument, got %d"
 msgstr ""
 
-#: info.go:104
+#: info.go:98
 msgid "Error finding packages"
 msgstr ""
 
-#: info.go:118
+#: info.go:112
 msgid "Can't detect system language"
 msgstr ""
 
-#: info.go:134
+#: info.go:128
 msgid "Error resolving overrides"
 msgstr ""
 
-#: info.go:143
+#: info.go:137
 msgid "Error encoding script variables"
 msgstr ""
 
@@ -198,43 +266,47 @@ msgstr ""
 msgid "Command install expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:113
+#: install.go:107
 msgid "Error when installing the package"
 msgstr ""
 
-#: install.go:151
+#: install.go:142
 msgid "Remove an installed package"
 msgstr ""
 
-#: install.go:170
+#: install.go:161
 msgid "Error listing installed packages"
 msgstr ""
 
-#: install.go:199
+#: install.go:190
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:214
+#: install.go:205
 msgid "Error removing packages"
 msgstr ""
 
-#: internal/build/build.go:351
+#: internal/build/build.go:342 internal/build/build.go:653
+msgid "Using cached package"
+msgstr ""
+
+#: internal/build/build.go:357
 msgid "Building package"
 msgstr ""
 
-#: internal/build/build.go:380
+#: internal/build/build.go:386
 msgid "The checksums array must be the same length as sources"
 msgstr ""
 
-#: internal/build/build.go:422
+#: internal/build/build.go:438
 msgid "Downloading sources"
 msgstr ""
 
-#: internal/build/build.go:468
+#: internal/build/build.go:484
 msgid "Would you like to remove the build dependencies?"
 msgstr ""
 
-#: internal/build/build.go:546
+#: internal/build/build.go:569
 msgid "Installing dependencies"
 msgstr ""
 
@@ -272,20 +344,66 @@ msgstr ""
 msgid "Applying FireJail integration"
 msgstr ""
 
-#: internal/build/script_executor.go:145
+#: internal/build/installer.go:99
+msgid ""
+"Package %s is installed with older version %s, will rebuild with version %s"
+msgstr ""
+
+#: internal/build/installer.go:102
+msgid "Package %s is already installed with version %s, skipping build"
+msgstr ""
+
+#: internal/build/installer.go:104
+msgid ""
+"Package %s is installed with newer version %s (repo has %s), skipping build"
+msgstr ""
+
+#: internal/build/script_executor.go:167
 msgid "Building package metadata"
 msgstr ""
 
-#: internal/build/script_executor.go:285
+#: internal/build/script_executor.go:192
+msgid "Creating package file"
+msgstr ""
+
+#: internal/build/script_executor.go:196
+msgid "Failed to create package file"
+msgstr ""
+
+#: internal/build/script_executor.go:201
+msgid "Packaging with nfpm"
+msgstr ""
+
+#: internal/build/script_executor.go:204
+msgid "Failed to create package"
+msgstr ""
+
+#: internal/build/script_executor.go:208
+msgid "Package created successfully"
+msgstr ""
+
+#: internal/build/script_executor.go:212
+msgid "Package file not found after creation"
+msgstr ""
+
+#: internal/build/script_executor.go:215
+msgid "Package file verified to exist"
+msgstr ""
+
+#: internal/build/script_executor.go:322
 msgid "Executing prepare()"
 msgstr ""
 
-#: internal/build/script_executor.go:294
+#: internal/build/script_executor.go:331
 msgid "Executing build()"
 msgstr ""
 
-#: internal/build/script_executor.go:323 internal/build/script_executor.go:343
+#: internal/build/script_executor.go:360 internal/build/script_executor.go:380
 msgid "Executing %s()"
+msgstr ""
+
+#: internal/cliutils/app_builder/builder.go:45
+msgid "failed to close db"
 msgstr ""
 
 #: internal/cliutils/app_builder/builder.go:75
@@ -320,23 +438,25 @@ msgstr ""
 msgid "User chose not to continue after reading script"
 msgstr ""
 
-#: internal/cliutils/prompt.go:111
+#: internal/cliutils/prompt.go:123
 msgid "Error prompting for choice of package"
 msgstr ""
 
-#: internal/cliutils/prompt.go:135
+#: internal/cliutils/prompt.go:175
 msgid "Choose which package to %s"
 msgstr ""
 
-#: internal/cliutils/prompt.go:156
+#: internal/cliutils/prompt.go:196
 msgid "Choose which optional package(s) to install"
 msgstr ""
 
 #: internal/cliutils/template.go:74 internal/cliutils/template.go:93
+#: internal/cliutils/template.go:126
 msgid "NAME"
 msgstr ""
 
 #: internal/cliutils/template.go:74 internal/cliutils/template.go:94
+#: internal/cliutils/template.go:126
 msgid "USAGE"
 msgstr ""
 
@@ -344,15 +464,17 @@ msgstr ""
 msgid "global options"
 msgstr ""
 
-#: internal/cliutils/template.go:74
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:126
 msgid "command"
 msgstr ""
 
 #: internal/cliutils/template.go:74 internal/cliutils/template.go:95
+#: internal/cliutils/template.go:126
 msgid "command options"
 msgstr ""
 
 #: internal/cliutils/template.go:74 internal/cliutils/template.go:96
+#: internal/cliutils/template.go:126
 msgid "arguments"
 msgstr ""
 
@@ -361,14 +483,15 @@ msgid "VERSION"
 msgstr ""
 
 #: internal/cliutils/template.go:74 internal/cliutils/template.go:98
+#: internal/cliutils/template.go:126
 msgid "DESCRIPTION"
 msgstr ""
 
-#: internal/cliutils/template.go:74
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:126
 msgid "AUTHOR"
 msgstr ""
 
-#: internal/cliutils/template.go:74
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:126
 msgid "COMMANDS"
 msgstr ""
 
@@ -376,7 +499,7 @@ msgstr ""
 msgid "GLOBAL OPTIONS"
 msgstr ""
 
-#: internal/cliutils/template.go:74
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:126
 msgid "COPYRIGHT"
 msgstr ""
 
@@ -385,6 +508,7 @@ msgid "CATEGORY"
 msgstr ""
 
 #: internal/cliutils/template.go:99 internal/cliutils/template.go:100
+#: internal/cliutils/template.go:126
 msgid "OPTIONS"
 msgstr ""
 
@@ -394,11 +518,15 @@ msgid ""
 "instead!"
 msgstr ""
 
-#: internal/db/db.go:76
+#: internal/db/db.go:67
+msgid "Cache directory does not exist, creating it"
+msgstr ""
+
+#: internal/db/db.go:95
 msgid "Database version mismatch; resetting"
 msgstr ""
 
-#: internal/db/db.go:82
+#: internal/db/db.go:101
 msgid ""
 "Database version does not exist. Run alr fix if something isn't working."
 msgstr ""
@@ -433,43 +561,55 @@ msgid ""
 "updating ALR if something doesn't work."
 msgstr ""
 
-#: internal/utils/cmd.go:97
-msgid "Error on dropping capabilities"
+#: internal/repos/pull.go:423
+msgid "Failed to get deleted file from old commit"
 msgstr ""
 
-#: internal/utils/cmd.go:164
-msgid "You need to be a %s member to perform this action"
+#: internal/repos/pull.go:429
+msgid "Failed to read deleted file"
 msgstr ""
 
-#: internal/utils/cmd.go:200
+#: internal/repos/pull.go:448
+msgid "Failed to get updated file from new commit"
+msgstr ""
+
+#: internal/repos/pull.go:454
+msgid "Failed to read updated file"
+msgstr ""
+
+#: internal/repos/pull.go:508
+msgid "No alr.sh files found in repository"
+msgstr ""
+
+#: internal/utils/cmd.go:54
 msgid "You need to be root to perform this action"
 msgstr ""
 
-#: list.go:45
+#: list.go:44
 msgid "List ALR repo packages"
 msgstr ""
 
-#: list.go:59
+#: list.go:58
 msgid "Format output using a Go template"
 msgstr ""
 
-#: list.go:91
+#: list.go:87
 msgid "Error getting packages for upgrade"
 msgstr ""
 
-#: list.go:94
+#: list.go:90
 msgid "No packages for upgrade"
 msgstr ""
 
-#: list.go:104 list.go:201
+#: list.go:100 list.go:197
 msgid "Error parsing format template"
 msgstr ""
 
-#: list.go:110 list.go:205
+#: list.go:106 list.go:201
 msgid "Error executing template"
 msgstr ""
 
-#: list.go:164
+#: list.go:160
 msgid "Failed to parse release"
 msgstr ""
 
@@ -477,19 +617,19 @@ msgstr ""
 msgid "Print the current ALR version and exit"
 msgstr ""
 
-#: main.go:61
+#: main.go:77
 msgid "Arguments to be passed on to the package manager"
 msgstr ""
 
-#: main.go:67
+#: main.go:83
 msgid "Enable interactive questions and prompts"
 msgstr ""
 
-#: main.go:148
+#: main.go:165
 msgid "Show help"
 msgstr ""
 
-#: main.go:152
+#: main.go:169
 msgid "Error while running app"
 msgstr ""
 
@@ -525,124 +665,124 @@ msgstr ""
 msgid "Manage repos"
 msgstr ""
 
-#: repo.go:56 repo.go:625
+#: repo.go:74 repo.go:658
 msgid "Remove an existing repository"
 msgstr ""
 
-#: repo.go:58 repo.go:521
+#: repo.go:76 repo.go:554
 msgid "<name>"
 msgstr ""
 
-#: repo.go:103 repo.go:465 repo.go:568
+#: repo.go:121 repo.go:498 repo.go:601
 msgid "Repo \"%s\" does not exist"
 msgstr ""
 
-#: repo.go:110
+#: repo.go:128
 msgid "Error removing repo directory"
 msgstr ""
 
-#: repo.go:114 repo.go:195 repo.go:253 repo.go:316 repo.go:389 repo.go:504
-#: repo.go:576
+#: repo.go:132 repo.go:210 repo.go:268 repo.go:331 repo.go:422 repo.go:537
+#: repo.go:609
 msgid "Error saving config"
 msgstr ""
 
-#: repo.go:133
+#: repo.go:148
 msgid "Error removing packages from database"
 msgstr ""
 
-#: repo.go:144 repo.go:595
+#: repo.go:159 repo.go:628
 msgid "Add a new repository"
 msgstr ""
 
-#: repo.go:145 repo.go:270 repo.go:345 repo.go:402
+#: repo.go:160 repo.go:285 repo.go:378 repo.go:435
 msgid "<name> <url>"
 msgstr ""
 
-#: repo.go:170
+#: repo.go:185
 msgid "Repo \"%s\" already exists"
 msgstr ""
 
-#: repo.go:206
+#: repo.go:221
 msgid "Set the reference of the repository"
 msgstr ""
 
-#: repo.go:207
+#: repo.go:222
 msgid "<name> <ref>"
 msgstr ""
 
-#: repo.go:269
+#: repo.go:284
 msgid "Set the main url of the repository"
 msgstr ""
 
-#: repo.go:332
+#: repo.go:347
 msgid "Manage mirrors of repos"
 msgstr ""
 
-#: repo.go:344
+#: repo.go:377
 msgid "Add a mirror URL to repository"
 msgstr ""
 
-#: repo.go:401
+#: repo.go:434
 msgid "Remove mirror from the repository"
 msgstr ""
 
-#: repo.go:420
+#: repo.go:453
 msgid "Ignore if mirror does not exist"
 msgstr ""
 
-#: repo.go:425
+#: repo.go:458
 msgid "Match partial URL (e.g., github.com instead of full URL)"
 msgstr ""
 
-#: repo.go:490
+#: repo.go:523
 msgid "No mirrors containing \"%s\" found in repo \"%s\""
 msgstr ""
 
-#: repo.go:492
+#: repo.go:525
 msgid "URL \"%s\" does not exist in repo \"%s\""
 msgstr ""
 
-#: repo.go:508 repo.go:580
+#: repo.go:541 repo.go:613
 msgid "Removed %d mirrors from repo \"%s\"\n"
 msgstr ""
 
-#: repo.go:520
+#: repo.go:553
 msgid "Remove all mirrors from the repository"
 msgstr ""
 
-#: repo.go:602
+#: repo.go:635
 msgid "Name of the new repo"
 msgstr ""
 
-#: repo.go:608
+#: repo.go:641
 msgid "URL of the new repo"
 msgstr ""
 
-#: repo.go:632
+#: repo.go:665
 msgid "Name of the repo to be deleted"
 msgstr ""
 
-#: search.go:40
+#: search.go:39
 msgid "Search packages"
 msgstr ""
 
-#: search.go:51
+#: search.go:50
 msgid "Search by name"
 msgstr ""
 
-#: search.go:56
+#: search.go:55
 msgid "Search by description"
 msgstr ""
 
-#: search.go:61
+#: search.go:60
 msgid "Search by repository"
 msgstr ""
 
-#: search.go:66
+#: search.go:65
 msgid "Search by provides"
 msgstr ""
 
-#: search.go:130
+#: search.go:126
 msgid "Error while executing search"
 msgstr ""
 
@@ -650,10 +790,22 @@ msgstr ""
 msgid "Upgrade all installed packages"
 msgstr ""
 
-#: upgrade.go:106 upgrade.go:123
+#: upgrade.go:89
+msgid "Updating system packages..."
+msgstr ""
+
+#: upgrade.go:95
+msgid "Error updating system packages"
+msgstr ""
+
+#: upgrade.go:97
+msgid "System packages updated successfully"
+msgstr ""
+
+#: upgrade.go:113 upgrade.go:130
 msgid "Error checking for updates"
 msgstr ""
 
-#: upgrade.go:126
+#: upgrade.go:133
 msgid "There is nothing to do."
 msgstr ""

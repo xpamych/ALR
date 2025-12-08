@@ -40,7 +40,12 @@ func (c *Cache) CheckForBuiltPackage(
 		return "", false, err
 	}
 
-	pkgPath := filepath.Join(getBaseDir(c.cfg, vars.Name), filename)
+	// Для подпакетов используем BasePkgName, чтобы искать в правильной директории
+	baseName := vars.BasePkgName
+	if baseName == "" {
+		baseName = vars.Name
+	}
+	pkgPath := filepath.Join(getBaseDir(c.cfg, baseName), filename)
 
 	_, err = os.Stat(pkgPath)
 	if err != nil {

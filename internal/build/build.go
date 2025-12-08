@@ -565,77 +565,171 @@ func (b *Builder) BuildALRDeps(
 	},
 	depends []string,
 ) (buildDeps []*BuiltDep, repoDeps []string, err error) {
-	if len(depends) > 0 {
-		slog.Info(gotext.Get("Installing dependencies"))
-
-		found, notFound, err := b.repos.FindPkgs(ctx, depends) // Поиск зависимостей
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed FindPkgs: %w", err)
-		}
-		repoDeps = notFound
-
-		// Если для некоторых пакетов есть несколько опций, упрощаем их все в один срез
-		// Для зависимостей указываем isDependency = true
-		pkgs := cliutils.FlattenPkgsWithContext(
-			ctx,
-			found,
-			"install",
-			input.BuildOpts().Interactive,
-			true,
-		)
-
-		pkgs, err = b.installerExecutor.FilterPackagesByVersion(ctx, pkgs, input.OSRelease())
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to filter packages by version: %w", err)
-		}
-
-		type item struct {
-			pkg      *alrsh.Package
-			packages []string
-		}
-		pkgsMap := make(map[string]*item)
-		for _, pkg := range pkgs {
-			name := pkg.BasePkgName
-			if name == "" {
-				name = pkg.Name
-			}
-			if pkgsMap[name] == nil {
-				pkgsMap[name] = &item{
-					pkg: &pkg,
-				}
-			}
-			pkgsMap[name].packages = append(
-				pkgsMap[name].packages,
-				pkg.Name,
-			)
-		}
-
-		for basePkgName := range pkgsMap {
-			pkg := pkgsMap[basePkgName].pkg
-			res, err := b.BuildPackageFromDb(
-				ctx,
-				&BuildPackageFromDbArgs{
-					Package:  pkg,
-					Packages: pkgsMap[basePkgName].packages,
-					BuildArgs: BuildArgs{
-						Opts:       input.BuildOpts(),
-						Info:       input.OSRelease(),
-						PkgFormat_: input.PkgFormat(),
-					},
-				},
-			)
-			if err != nil {
-				return nil, nil, fmt.Errorf("failed build package from db: %w", err)
-			}
-
-			buildDeps = append(buildDeps, res...)
-		}
+	if len(depends) == 0 {
+		return nil, nil, nil
 	}
 
-	repoDeps = removeDuplicates(repoDeps)
+	slog.Info(gotext.Get("Installing dependencies"))
+
+	// Шаг 1: Рекурсивно разрешаем ВСЕ зависимости
+	depTree, systemDeps, err := b.ResolveDependencyTree(ctx, input, depends)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to resolve dependency tree: %w", err)
+	}
+
+	// Системные зависимости возвращаем как repoDeps
+	repoDeps = systemDeps
+
+	// Шаг 2: Собираем список всех пакетов из дерева для топологической сортировки
+	allFound := make(map[string][]alrsh.Package)
+	for baseName, node := range depTree {
+		allFound[baseName] = []alrsh.Package{*node.Package}
+	}
+
+	// Шаг 3: Топологическая сортировка (от корней к листьям)
+	sortedPkgs, err := TopologicalSort(depTree, allFound)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to sort dependencies: %w", err)
+	}
+
+	// Шаг 4: Собираем пакеты в правильном порядке, проверяя кеш
+	for _, basePkgName := range sortedPkgs {
+		node := depTree[basePkgName]
+		if node == nil {
+			continue
+		}
+
+		pkg := node.Package
+
+		// Находим ВСЕ подпакеты с этим BasePkgName
+		allSubpkgs, err := b.findAllSubpackages(ctx, basePkgName, pkg.Repository)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to find subpackages for %s: %w", basePkgName, err)
+		}
+
+		// Проверяем кеш для ВСЕХ подпакетов
+		scriptInfo := b.scriptResolver.ResolveScript(ctx, pkg)
+		buildInput := &BuildInput{
+			script:     scriptInfo.Script,
+			repository: scriptInfo.Repository,
+			packages:   allSubpkgs,
+			pkgFormat:  input.PkgFormat(),
+			opts:       input.BuildOpts(),
+			info:       input.OSRelease(),
+		}
+
+		cachedDeps, allInCache, err := b.checkCacheForAllSubpackages(ctx, buildInput, basePkgName, allSubpkgs)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if allInCache {
+			// Все подпакеты в кеше, используем их
+			buildDeps = append(buildDeps, cachedDeps...)
+			continue
+		}
+
+		// Собираем пакет (без рекурсивной сборки зависимостей, так как они уже собраны)
+		res, err := b.BuildPackageFromDb(
+			ctx,
+			&BuildPackageFromDbArgs{
+				Package:  pkg,
+				Packages: allSubpkgs,
+				BuildArgs: BuildArgs{
+					Opts:       input.BuildOpts(),
+					Info:       input.OSRelease(),
+					PkgFormat_: input.PkgFormat(),
+				},
+			},
+		)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed build package from db: %w", err)
+		}
+
+		buildDeps = append(buildDeps, res...)
+	}
+
 	buildDeps = removeDuplicates(buildDeps)
 
 	return buildDeps, repoDeps, nil
+}
+
+// findAllSubpackages находит все подпакеты для базового пакета
+func (b *Builder) findAllSubpackages(ctx context.Context, basePkgName, repository string) ([]string, error) {
+	// Запрашиваем все пакеты с этим basepkg_name
+	pkgs, _, err := b.repos.FindPkgs(ctx, []string{basePkgName})
+	if err != nil {
+		return nil, err
+	}
+
+	var subpkgs []string
+	seen := make(map[string]bool)
+
+	for _, pkgList := range pkgs {
+		for _, pkg := range pkgList {
+			// Проверяем, что это пакет из нужного репозитория
+			if pkg.Repository == repository {
+				pkgBase := pkg.BasePkgName
+				if pkgBase == "" {
+					pkgBase = pkg.Name
+				}
+
+				// Добавляем только если это пакет с нужным BasePkgName
+				if pkgBase == basePkgName && !seen[pkg.Name] {
+					subpkgs = append(subpkgs, pkg.Name)
+					seen[pkg.Name] = true
+				}
+			}
+		}
+	}
+
+	return subpkgs, nil
+}
+
+// checkCacheForAllSubpackages проверяет кеш для всех подпакетов
+func (b *Builder) checkCacheForAllSubpackages(
+	ctx context.Context,
+	buildInput *BuildInput,
+	basePkgName string,
+	subpkgs []string,
+) ([]*BuiltDep, bool, error) {
+	var cachedDeps []*BuiltDep
+	allInCache := true
+
+	// Получаем информацию обо всех подпакетах
+	pkgsInfo, _, err := b.repos.FindPkgs(ctx, subpkgs)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to find subpackages info: %w", err)
+	}
+
+	for _, pkgName := range subpkgs {
+		var pkgForCheck *alrsh.Package
+
+		// Находим Package для подпакета
+		if pkgList, ok := pkgsInfo[pkgName]; ok && len(pkgList) > 0 {
+			pkgForCheck = &pkgList[0]
+		}
+
+		if pkgForCheck != nil {
+			pkgPath, found, err := b.cacheExecutor.CheckForBuiltPackage(ctx, buildInput, pkgForCheck)
+			if err != nil {
+				return nil, false, fmt.Errorf("failed to check cache: %w", err)
+			}
+
+			if found {
+				slog.Info(gotext.Get("Using cached package"), "name", pkgName, "path", pkgPath)
+				cachedDeps = append(cachedDeps, &BuiltDep{
+					Name: pkgName,
+					Path: pkgPath,
+				})
+			} else {
+				allInCache = false
+				break
+			}
+		}
+	}
+
+	return cachedDeps, allInCache && len(cachedDeps) > 0, nil
 }
 
 func (i *Builder) installBuildDeps(

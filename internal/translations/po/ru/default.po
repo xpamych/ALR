@@ -41,27 +41,31 @@ msgstr "Создайте пакет с нуля, даже если уже име
 msgid "Error getting working directory"
 msgstr "Ошибка при получении рабочего каталога"
 
-#: build.go:117
+#: build.go:111
 msgid "Cannot get absolute script path"
 msgstr "Невозможно получить абсолютный путь к скрипту"
 
-#: build.go:143
+#: build.go:137
 msgid "Package not found"
 msgstr "Пакет не найден"
 
-#: build.go:156
+#: build.go:150
 msgid "Nothing to build"
 msgstr "Нечего собирать"
 
-#: build.go:213
+#: build.go:195
 msgid "Error building package"
 msgstr "Ошибка при сборке пакета"
 
-#: build.go:220
+#: build.go:203
+msgid "Package file already moved or removed, skipping"
+msgstr "Файл пакета уже перемещён или удалён, пропускаем"
+
+#: build.go:209
 msgid "Error moving the package"
 msgstr "Ошибка при перемещении пакета"
 
-#: build.go:224
+#: build.go:213
 msgid "Done"
 msgstr "Сделано"
 
@@ -69,71 +73,132 @@ msgstr "Сделано"
 msgid "Manage config"
 msgstr "Управление конфигурацией"
 
-#: config.go:48
+#: config.go:50
+msgid "Shows a list of commands or help for one command"
+msgstr "Показывает список команд или справку по одной команде"
+
+#: config.go:66
 msgid "Show config"
 msgstr "Показать конфигурацию"
 
-#: config.go:84
+#: config.go:103
 msgid "Set config value"
 msgstr "Установить значение в конфигурации"
 
-#: config.go:85
+#: config.go:104
 msgid "<key> <value>"
 msgstr "<ключ> <значение>"
 
-#: config.go:118 config.go:126
+#: config.go:137 config.go:145 config.go:162
 msgid "invalid boolean value for %s: %s"
 msgstr "неверное булево значение для %s: %s"
 
-#: config.go:141
+#: config.go:166
 msgid "use 'repo add/remove' commands to manage repositories"
 msgstr "используйте команды 'repo add/remove' для управления репозиториями"
 
-#: config.go:143 config.go:221
+#: config.go:168 config.go:248
 msgid "unknown config key: %s"
 msgstr "неизвестный ключ конфигурации: %s"
 
-#: config.go:147
+#: config.go:172
 msgid "failed to save config"
 msgstr "не удалось сохранить конфигурацию"
 
-#: config.go:150
+#: config.go:175
 msgid "Successfully set %s = %s"
 msgstr "Успешно установлено %s = %s"
 
-#: config.go:159
+#: config.go:184
 msgid "Get config value"
 msgstr "Получить значение из конфигурации"
 
-#: config.go:160
+#: config.go:185
 msgid "<key>"
 msgstr "<ключ>"
 
-#: fix.go:39
+#: fix.go:55
 msgid "Attempt to fix problems with ALR"
 msgstr "Попытка устранить проблемы с ALR"
 
-#: fix.go:60
-msgid "Clearing cache directory"
-msgstr "Очистка каталога кэша"
+#: fix.go:75
+msgid "Clearing cache and temporary directories"
+msgstr "Очистка кэша и временных директорий"
 
-#: fix.go:64
+#: fix.go:82
+msgid "Cache directory does not exist, will create it"
+msgstr ""
+
+#: fix.go:84
 msgid "Unable to open cache directory"
 msgstr "Невозможно открыть каталог кэша"
 
-#: fix.go:70
+#: fix.go:91
 msgid "Unable to read cache directory contents"
 msgstr "Невозможно прочитать содержимое каталога кэша"
 
-#: fix.go:82
+#: fix.go:106
+#, fuzzy
+msgid "Unable to remove cache item (%s) as current user, trying with sudo"
+msgstr ""
+"Невозможно удалить временную директорию от текущего пользователя, попытка "
+"через sudo"
+
+#: fix.go:111
 msgid "Unable to remove cache item (%s)"
 msgstr "Невозможно удалить элемент кэша (%s)"
 
-#: fix.go:86
+#: fix.go:119
+msgid "Clearing temporary directory"
+msgstr "Очистка временной директории"
+
+#: fix.go:126
+msgid "Unable to remove temporary directory as current user, trying with sudo"
+msgstr ""
+"Невозможно удалить временную директорию от текущего пользователя, попытка "
+"через sudo"
+
+#: fix.go:129
+#, fuzzy
+msgid "Unable to remove temporary directory"
+msgstr "Невозможно открыть каталог кэша"
+
+#: fix.go:137
+#, fuzzy
+msgid "Unable to create temporary directory"
+msgstr "Не удалось создать каталог конфигурации ALR"
+
+#: fix.go:144
+#, fuzzy
+msgid "Unable to create download directory"
+msgstr "Не удалось создать каталог конфигурации ALR"
+
+#: fix.go:151
+#, fuzzy
+msgid "Unable to create packages directory"
+msgstr "Не удалось создать каталог кэша пакетов"
+
+#: fix.go:156
+msgid "Fixing permissions on temporary files"
+msgstr "Исправление прав доступа к временным файлам"
+
+#: fix.go:164
+msgid "Unable to fix file ownership"
+msgstr ""
+
+#: fix.go:169
+msgid "Unable to fix file permissions"
+msgstr ""
+
+#: fix.go:174
 msgid "Rebuilding cache"
 msgstr "Восстановление кэша"
 
-#: fix.go:90
+#: fix.go:177
+msgid "Creating cache directory"
+msgstr "Создание директории кэша"
+
+#: fix.go:180
 msgid "Unable to create new cache directory"
 msgstr "Не удалось создать новый каталог кэша"
 
@@ -145,55 +210,69 @@ msgstr "Генерация скрипта ALR из шаблона"
 msgid "Generate a ALR script for a pip module"
 msgstr "Генерация скрипта ALR для модуля pip"
 
+#: gen.go:66
+#, fuzzy
+msgid "Generate a ALR script for an AUR package"
+msgstr "Генерация скрипта ALR из шаблона"
+
+#: gen.go:72
+#, fuzzy
+msgid "Name of the AUR package"
+msgstr "Название нового репозитория"
+
+#: gen.go:77
+msgid "Version of the package (optional, uses latest if not specified)"
+msgstr ""
+
 #: helper.go:42
 msgid "List all the available helper commands"
 msgstr "Список всех доступных вспомогательных команды"
 
-#: helper.go:54
+#: helper.go:69
 msgid "Run a ALR helper command"
 msgstr "Запустить вспомогательную команду ALR"
 
-#: helper.go:61
+#: helper.go:76
 msgid "The directory that the install commands will install to"
 msgstr "Каталог, в который будут устанавливать команды установки"
 
-#: helper.go:74 helper.go:75
+#: helper.go:89 helper.go:90
 msgid "No such helper command"
 msgstr "Такой вспомогательной команды нет"
 
-#: helper.go:85
+#: helper.go:100
 msgid "Error parsing os-release file"
 msgstr "Ошибка при разборе файла выпуска операционной системы"
 
-#: info.go:42
+#: info.go:41
 msgid "Print information about a package"
 msgstr "Отобразить информацию о пакете"
 
-#: info.go:47
+#: info.go:46
 msgid "Show all information, not just for the current distro"
 msgstr "Показывать всю информацию, не только для текущего дистрибутива"
 
-#: info.go:68
+#: info.go:64
 msgid "Error getting packages"
 msgstr "Ошибка при получении пакетов"
 
-#: info.go:83
+#: info.go:77
 msgid "Command info expected at least 1 argument, got %d"
 msgstr "Для команды info ожидался хотя бы 1 аргумент, получено %d"
 
-#: info.go:104
+#: info.go:98
 msgid "Error finding packages"
 msgstr "Ошибка при поиске пакетов"
 
-#: info.go:118
+#: info.go:112
 msgid "Can't detect system language"
 msgstr "Ошибка при определении языка системы"
 
-#: info.go:134
+#: info.go:128
 msgid "Error resolving overrides"
 msgstr "Ошибка устранения переорпеделений"
 
-#: info.go:143
+#: info.go:137
 msgid "Error encoding script variables"
 msgstr "Ошибка кодирования переменных скрита"
 
@@ -205,43 +284,47 @@ msgstr "Установить новый пакет"
 msgid "Command install expected at least 1 argument, got %d"
 msgstr "Для команды install ожидался хотя бы 1 аргумент, получено %d"
 
-#: install.go:113
+#: install.go:107
 msgid "Error when installing the package"
 msgstr "Ошибка при установке пакета"
 
-#: install.go:151
+#: install.go:142
 msgid "Remove an installed package"
 msgstr "Удалить установленный пакет"
 
-#: install.go:170
+#: install.go:161
 msgid "Error listing installed packages"
 msgstr "Ошибка при составлении списка установленных пакетов"
 
-#: install.go:199
+#: install.go:190
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr "Для команды remove ожидался хотя бы 1 аргумент, получено %d"
 
-#: install.go:214
+#: install.go:205
 msgid "Error removing packages"
 msgstr "Ошибка при удалении пакетов"
 
-#: internal/build/build.go:351
+#: internal/build/build.go:342 internal/build/build.go:653
+msgid "Using cached package"
+msgstr "Используется кешированный пакет"
+
+#: internal/build/build.go:357
 msgid "Building package"
 msgstr "Сборка пакета"
 
-#: internal/build/build.go:380
+#: internal/build/build.go:386
 msgid "The checksums array must be the same length as sources"
 msgstr "Массив контрольных сумм должен быть той же длины, что и источники"
 
-#: internal/build/build.go:422
+#: internal/build/build.go:438
 msgid "Downloading sources"
 msgstr "Скачивание источников"
 
-#: internal/build/build.go:468
+#: internal/build/build.go:484
 msgid "Would you like to remove the build dependencies?"
 msgstr "Хотели бы вы удалить зависимости сборки?"
 
-#: internal/build/build.go:546
+#: internal/build/build.go:569
 msgid "Installing dependencies"
 msgstr "Установка зависимостей"
 
@@ -283,21 +366,70 @@ msgstr ""
 msgid "Applying FireJail integration"
 msgstr "Применение интеграции FireJail"
 
-#: internal/build/script_executor.go:145
+#: internal/build/installer.go:99
+msgid ""
+"Package %s is installed with older version %s, will rebuild with version %s"
+msgstr ""
+"Пакет %s установлен с устаревшей версией %s, будет пересобран с версией %s"
+
+#: internal/build/installer.go:102
+msgid "Package %s is already installed with version %s, skipping build"
+msgstr "Пакет %s уже установлен с версией %s, пропуск сборки"
+
+#: internal/build/installer.go:104
+msgid ""
+"Package %s is installed with newer version %s (repo has %s), skipping build"
+msgstr ""
+"Пакет %s установлен с более новой версией %s (в репозитории %s), пропуск "
+"сборки"
+
+#: internal/build/script_executor.go:167
 msgid "Building package metadata"
 msgstr "Сборка метаданных пакета"
 
-#: internal/build/script_executor.go:285
+#: internal/build/script_executor.go:192
+msgid "Creating package file"
+msgstr "Создание файла пакета"
+
+#: internal/build/script_executor.go:196
+msgid "Failed to create package file"
+msgstr "Не удалось создать файл пакета"
+
+#: internal/build/script_executor.go:201
+msgid "Packaging with nfpm"
+msgstr "Упаковка с помощью nfpm"
+
+#: internal/build/script_executor.go:204
+msgid "Failed to create package"
+msgstr "Не удалось создать пакет"
+
+#: internal/build/script_executor.go:208
+msgid "Package created successfully"
+msgstr "Пакет успешно создан"
+
+#: internal/build/script_executor.go:212
+msgid "Package file not found after creation"
+msgstr "Файл пакета не найден после создания"
+
+#: internal/build/script_executor.go:215
+msgid "Package file verified to exist"
+msgstr "Наличие файла пакета подтверждено"
+
+#: internal/build/script_executor.go:322
 msgid "Executing prepare()"
 msgstr "Выполнение prepare()"
 
-#: internal/build/script_executor.go:294
+#: internal/build/script_executor.go:331
 msgid "Executing build()"
 msgstr "Выполнение build()"
 
-#: internal/build/script_executor.go:323 internal/build/script_executor.go:343
+#: internal/build/script_executor.go:360 internal/build/script_executor.go:380
 msgid "Executing %s()"
 msgstr "Выполнение %s()"
+
+#: internal/cliutils/app_builder/builder.go:45
+msgid "failed to close db"
+msgstr "не удалось закрыть БД"
 
 #: internal/cliutils/app_builder/builder.go:75
 msgid "Error loading config"
@@ -331,23 +463,25 @@ msgstr "Продолжить?"
 msgid "User chose not to continue after reading script"
 msgstr "Пользователь решил не продолжать после просмотра скрипта"
 
-#: internal/cliutils/prompt.go:111
+#: internal/cliutils/prompt.go:123
 msgid "Error prompting for choice of package"
 msgstr "Ошибка при запросе выбора пакета"
 
-#: internal/cliutils/prompt.go:135
+#: internal/cliutils/prompt.go:175
 msgid "Choose which package to %s"
 msgstr "Выберите, какой пакет использовать для %s"
 
-#: internal/cliutils/prompt.go:156
+#: internal/cliutils/prompt.go:196
 msgid "Choose which optional package(s) to install"
 msgstr "Выберите дополнительные пакеты для установки"
 
 #: internal/cliutils/template.go:74 internal/cliutils/template.go:93
+#: internal/cliutils/template.go:126
 msgid "NAME"
 msgstr "НАЗВАНИЕ"
 
 #: internal/cliutils/template.go:74 internal/cliutils/template.go:94
+#: internal/cliutils/template.go:126
 msgid "USAGE"
 msgstr "ИСПОЛЬЗОВАНИЕ"
 
@@ -355,15 +489,17 @@ msgstr "ИСПОЛЬЗОВАНИЕ"
 msgid "global options"
 msgstr "глобальные опции"
 
-#: internal/cliutils/template.go:74
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:126
 msgid "command"
 msgstr "команда"
 
 #: internal/cliutils/template.go:74 internal/cliutils/template.go:95
+#: internal/cliutils/template.go:126
 msgid "command options"
 msgstr "опции команды"
 
 #: internal/cliutils/template.go:74 internal/cliutils/template.go:96
+#: internal/cliutils/template.go:126
 msgid "arguments"
 msgstr "аргументы"
 
@@ -372,14 +508,15 @@ msgid "VERSION"
 msgstr "ВЕРСИЯ"
 
 #: internal/cliutils/template.go:74 internal/cliutils/template.go:98
+#: internal/cliutils/template.go:126
 msgid "DESCRIPTION"
 msgstr "ОПИСАНИЕ"
 
-#: internal/cliutils/template.go:74
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:126
 msgid "AUTHOR"
 msgstr "АВТОР"
 
-#: internal/cliutils/template.go:74
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:126
 msgid "COMMANDS"
 msgstr "КОМАНДЫ"
 
@@ -387,7 +524,7 @@ msgstr "КОМАНДЫ"
 msgid "GLOBAL OPTIONS"
 msgstr "ГЛОБАЛЬНЫЕ ОПЦИИ"
 
-#: internal/cliutils/template.go:74
+#: internal/cliutils/template.go:74 internal/cliutils/template.go:126
 msgid "COPYRIGHT"
 msgstr "АВТОРСКОЕ ПРАВО"
 
@@ -396,6 +533,7 @@ msgid "CATEGORY"
 msgstr "КАТЕГОРИЯ"
 
 #: internal/cliutils/template.go:99 internal/cliutils/template.go:100
+#: internal/cliutils/template.go:126
 msgid "OPTIONS"
 msgstr "ПАРАМЕТРЫ"
 
@@ -407,11 +545,15 @@ msgstr ""
 "Эта команда устарела и будет удалена в будущем, используйте вместо нее "
 "\"%s\"!"
 
-#: internal/db/db.go:76
+#: internal/db/db.go:67
+msgid "Cache directory does not exist, creating it"
+msgstr ""
+
+#: internal/db/db.go:95
 msgid "Database version mismatch; resetting"
 msgstr "Несоответствие версий базы данных; сброс настроек"
 
-#: internal/db/db.go:82
+#: internal/db/db.go:101
 msgid ""
 "Database version does not exist. Run alr fix if something isn't working."
 msgstr ""
@@ -449,43 +591,55 @@ msgstr ""
 "Минимальная версия ALR для ALR-репозитория выше текущей версии. Попробуйте "
 "обновить ALR, если что-то не работает."
 
-#: internal/utils/cmd.go:97
-msgid "Error on dropping capabilities"
-msgstr "Ошибка при понижении привилегий"
+#: internal/repos/pull.go:423
+msgid "Failed to get deleted file from old commit"
+msgstr "Не удалось получить удалённый файл из старого коммита"
 
-#: internal/utils/cmd.go:164
-msgid "You need to be a %s member to perform this action"
-msgstr "Вы должны быть членом %s чтобы выполнить это"
+#: internal/repos/pull.go:429
+msgid "Failed to read deleted file"
+msgstr "Не удалось прочитать удалённый файл"
 
-#: internal/utils/cmd.go:200
+#: internal/repos/pull.go:448
+msgid "Failed to get updated file from new commit"
+msgstr "Не удалось получить обновлённый файл из нового коммита"
+
+#: internal/repos/pull.go:454
+msgid "Failed to read updated file"
+msgstr "Не удалось прочитать обновлённый файл"
+
+#: internal/repos/pull.go:508
+msgid "No alr.sh files found in repository"
+msgstr "Файлы alr.sh не найдены в репозитории"
+
+#: internal/utils/cmd.go:54
 msgid "You need to be root to perform this action"
 msgstr "Вы должны быть root чтобы выполнить это"
 
-#: list.go:45
+#: list.go:44
 msgid "List ALR repo packages"
 msgstr "Список пакетов репозитория ALR"
 
-#: list.go:59
+#: list.go:58
 msgid "Format output using a Go template"
 msgstr "Формат выходных данных с использованием шаблона Go"
 
-#: list.go:91
+#: list.go:87
 msgid "Error getting packages for upgrade"
 msgstr "Ошибка при получении пакетов для обновления"
 
-#: list.go:94
+#: list.go:90
 msgid "No packages for upgrade"
 msgstr "Нет пакетов к обновлению"
 
-#: list.go:104 list.go:201
+#: list.go:100 list.go:197
 msgid "Error parsing format template"
 msgstr "Ошибка при разборе шаблона"
 
-#: list.go:110 list.go:205
+#: list.go:106 list.go:201
 msgid "Error executing template"
 msgstr "Ошибка при выполнении шаблона"
 
-#: list.go:164
+#: list.go:160
 msgid "Failed to parse release"
 msgstr "Не удалось разобрать релиз"
 
@@ -493,23 +647,19 @@ msgstr "Не удалось разобрать релиз"
 msgid "Print the current ALR version and exit"
 msgstr "Показать текущую версию ALR и выйти"
 
-#: main.go:61
+#: main.go:77
 msgid "Arguments to be passed on to the package manager"
 msgstr "Аргументы, которые будут переданы менеджеру пакетов"
 
-#: main.go:67
+#: main.go:83
 msgid "Enable interactive questions and prompts"
 msgstr "Включение интерактивных вопросов и запросов"
 
-#: main.go:147
+#: main.go:165
 msgid "Show help"
 msgstr "Показать справку"
 
-#: main.go:148
-msgid "Shows a list of commands or help for one command"
-msgstr "Показывает список команд или справку по одной команде"
-
-#: main.go:152
+#: main.go:169
 msgid "Error while running app"
 msgstr "Ошибка при запуске приложения"
 
@@ -545,124 +695,124 @@ msgstr "Скачать все изменённые репозитории"
 msgid "Manage repos"
 msgstr "Управление репозиториями"
 
-#: repo.go:56 repo.go:625
+#: repo.go:74 repo.go:658
 msgid "Remove an existing repository"
 msgstr "Удалить существующий репозиторий"
 
-#: repo.go:58 repo.go:521
+#: repo.go:76 repo.go:554
 msgid "<name>"
 msgstr "<имя>"
 
-#: repo.go:103 repo.go:465 repo.go:568
+#: repo.go:121 repo.go:498 repo.go:601
 msgid "Repo \"%s\" does not exist"
 msgstr "Репозиторий \"%s\" не существует"
 
-#: repo.go:110
+#: repo.go:128
 msgid "Error removing repo directory"
 msgstr "Ошибка при удалении каталога репозитория"
 
-#: repo.go:114 repo.go:195 repo.go:253 repo.go:316 repo.go:389 repo.go:504
-#: repo.go:576
+#: repo.go:132 repo.go:210 repo.go:268 repo.go:331 repo.go:422 repo.go:537
+#: repo.go:609
 msgid "Error saving config"
 msgstr "Ошибка при сохранении конфигурации"
 
-#: repo.go:133
+#: repo.go:148
 msgid "Error removing packages from database"
 msgstr "Ошибка при удалении пакетов из базы данных"
 
-#: repo.go:144 repo.go:595
+#: repo.go:159 repo.go:628
 msgid "Add a new repository"
 msgstr "Добавить новый репозиторий"
 
-#: repo.go:145 repo.go:270 repo.go:345 repo.go:402
+#: repo.go:160 repo.go:285 repo.go:378 repo.go:435
 msgid "<name> <url>"
 msgstr "<имя> <url>"
 
-#: repo.go:170
+#: repo.go:185
 msgid "Repo \"%s\" already exists"
 msgstr "Репозиторий \"%s\" уже существует"
 
-#: repo.go:206
+#: repo.go:221
 msgid "Set the reference of the repository"
 msgstr "Установить ссылку на версию репозитория"
 
-#: repo.go:207
+#: repo.go:222
 msgid "<name> <ref>"
 msgstr "<имя> <ссылка_на_версию>"
 
-#: repo.go:269
+#: repo.go:284
 msgid "Set the main url of the repository"
 msgstr "Установить главный URL репозитория"
 
-#: repo.go:332
+#: repo.go:347
 msgid "Manage mirrors of repos"
 msgstr "Управление зеркалами репозитория"
 
-#: repo.go:344
+#: repo.go:377
 msgid "Add a mirror URL to repository"
 msgstr "Добавить зеркало репозитория"
 
-#: repo.go:401
+#: repo.go:434
 msgid "Remove mirror from the repository"
 msgstr "Удалить зеркало из репозитория"
 
-#: repo.go:420
+#: repo.go:453
 msgid "Ignore if mirror does not exist"
 msgstr "Игнорировать, если зеркала не существует"
 
-#: repo.go:425
+#: repo.go:458
 msgid "Match partial URL (e.g., github.com instead of full URL)"
 msgstr "Соответствует частичному URL (например, github.com вместо полного URL)"
 
-#: repo.go:490
+#: repo.go:523
 msgid "No mirrors containing \"%s\" found in repo \"%s\""
 msgstr "В репозитории \"%s\" не найдено зеркал, содержащих \"%s\""
 
-#: repo.go:492
+#: repo.go:525
 msgid "URL \"%s\" does not exist in repo \"%s\""
 msgstr "URL \"%s\" не существует в репозитории \"%s\""
 
-#: repo.go:508 repo.go:580
+#: repo.go:541 repo.go:613
 msgid "Removed %d mirrors from repo \"%s\"\n"
 msgstr "Удалено %d зеркал из репозитория \"%s\"\n"
 
-#: repo.go:520
+#: repo.go:553
 msgid "Remove all mirrors from the repository"
 msgstr "Удалить все зеркала из репозитория"
 
-#: repo.go:602
+#: repo.go:635
 msgid "Name of the new repo"
 msgstr "Название нового репозитория"
 
-#: repo.go:608
+#: repo.go:641
 msgid "URL of the new repo"
 msgstr "URL-адрес нового репозитория"
 
-#: repo.go:632
+#: repo.go:665
 msgid "Name of the repo to be deleted"
 msgstr "Название репозитория для удаления"
 
-#: search.go:40
+#: search.go:39
 msgid "Search packages"
 msgstr "Поиск пакетов"
 
-#: search.go:51
+#: search.go:50
 msgid "Search by name"
 msgstr "Искать по имени"
 
-#: search.go:56
+#: search.go:55
 msgid "Search by description"
 msgstr "Искать по описанию"
 
-#: search.go:61
+#: search.go:60
 msgid "Search by repository"
 msgstr "Искать по репозиторию"
 
-#: search.go:66
+#: search.go:65
 msgid "Search by provides"
 msgstr "Искать по provides"
 
-#: search.go:130
+#: search.go:126
 msgid "Error while executing search"
 msgstr "Ошибка при выполнении поиска"
 
@@ -670,113 +820,35 @@ msgstr "Ошибка при выполнении поиска"
 msgid "Upgrade all installed packages"
 msgstr "Обновить все установленные пакеты"
 
-#: upgrade.go:106 upgrade.go:123
-msgid "Error checking for updates"
-msgstr "Ошибка при проверке обновлений"
-
-#: upgrade.go:126
-msgid "There is nothing to do."
-msgstr "Действия не требуются."
-
-#: internal/build/installer.go:88
-msgid "Package %s is installed with older version %s, will rebuild with version %s"
-msgstr "Пакет %s установлен с устаревшей версией %s, будет пересобран с версией %s"
-
-#: internal/build/installer.go:96
-msgid "Package %s is already installed with version %s, skipping build"
-msgstr "Пакет %s уже установлен с версией %s, пропуск сборки"
-
-#: internal/build/installer.go:102
-msgid "Package %s is installed with newer version %s (repo has %s), skipping build"
-msgstr "Пакет %s установлен с более новой версией %s (в репозитории %s), пропуск сборки"
-
-#: internal/build/script_executor.go:170
-msgid "Creating package file"
-msgstr "Создание файла пакета"
-
-#: internal/build/script_executor.go:174
-msgid "Failed to create package file"
-msgstr "Не удалось создать файл пакета"
-
-#: internal/build/script_executor.go:179
-msgid "Packaging with nfpm"
-msgstr "Упаковка с помощью nfpm"
-
-#: internal/build/script_executor.go:182
-msgid "Failed to create package"
-msgstr "Не удалось создать пакет"
-
-#: internal/build/script_executor.go:186
-msgid "Package created successfully"
-msgstr "Пакет успешно создан"
-
-#: internal/build/script_executor.go:190
-msgid "Package file not found after creation"
-msgstr "Файл пакета не найден после создания"
-
-#: internal/build/script_executor.go:193
-msgid "Package file verified to exist"
-msgstr "Наличие файла пакета подтверждено"
-
-#: internal/repos/pull.go:423
-msgid "Failed to get deleted file from old commit"
-msgstr "Не удалось получить удалённый файл из старого коммита"
-
-#: internal/repos/pull.go:429
-msgid "Failed to read deleted file"
-msgstr "Не удалось прочитать удалённый файл"
-
-#: internal/repos/pull.go:448
-msgid "Failed to get updated file from new commit"
-msgstr "Не удалось получить обновлённый файл из нового коммита"
-
-#: internal/repos/pull.go:454
-msgid "Failed to read updated file"
-msgstr "Не удалось прочитать обновлённый файл"
-
-#: internal/repos/pull.go:508
-msgid "No alr.sh files found in repository"
-msgstr "Файлы alr.sh не найдены в репозитории"
-
-#: internal/cliutils/app_builder/builder.go:45
-msgid "failed to close db"
-msgstr "не удалось закрыть БД"
-
-#: internal/build/build.go:342
-msgid "Using cached package"
-msgstr "Используется кешированный пакет"
-
 #: upgrade.go:89
 msgid "Updating system packages..."
+msgstr "Обновление системных пакетов..."
+
+#: upgrade.go:95
+#, fuzzy
+msgid "Error updating system packages"
 msgstr "Обновление системных пакетов..."
 
 #: upgrade.go:97
 msgid "System packages updated successfully"
 msgstr "Системные пакеты успешно обновлены"
 
-#: build.go:203
-msgid "Package file already moved or removed, skipping"
-msgstr "Файл пакета уже перемещён или удалён, пропускаем"
+#: upgrade.go:113 upgrade.go:130
+msgid "Error checking for updates"
+msgstr "Ошибка при проверке обновлений"
 
-#: fix.go:75
-msgid "Clearing cache and temporary directories"
-msgstr "Очистка кэша и временных директорий"
+#: upgrade.go:133
+msgid "There is nothing to do."
+msgstr "Действия не требуются."
 
-#: fix.go:119
-msgid "Clearing temporary directory"
-msgstr "Очистка временной директории"
+#~ msgid "Clearing cache directory"
+#~ msgstr "Очистка каталога кэша"
 
-#: fix.go:126
-msgid "Unable to remove temporary directory as current user, trying with sudo"
-msgstr "Невозможно удалить временную директорию от текущего пользователя, попытка через sudo"
+#~ msgid "Error on dropping capabilities"
+#~ msgstr "Ошибка при понижении привилегий"
 
-#: fix.go:156
-msgid "Fixing permissions on temporary files"
-msgstr "Исправление прав доступа к временным файлам"
-
-#: fix.go:177
-msgid "Creating cache directory"
-msgstr "Создание директории кэша"
+#~ msgid "You need to be a %s member to perform this action"
+#~ msgstr "Вы должны быть членом %s чтобы выполнить это"
 
 #, fuzzy
 #~ msgid "Failed to clear contents of cache directory"
@@ -795,13 +867,6 @@ msgstr "Создание директории кэша"
 #, fuzzy
 #~ msgid "Error mounting"
 #~ msgstr "Ошибка при кодировании конфигурации"
-
-#, fuzzy
-#~ msgid "Unable to create config directory"
-#~ msgstr "Не удалось создать каталог конфигурации ALR"
-
-#~ msgid "Unable to create package cache directory"
-#~ msgstr "Не удалось создать каталог кэша пакетов"
 
 #~ msgid ""
 #~ "Running ALR as root is forbidden as it may cause catastrophic damage to "

@@ -130,12 +130,34 @@ func (e *LocalScriptExecutor) ExecuteSecondPass(
 			packageName = vars.Name
 		}
 
+		// Для каждого подпакета создаём отдельную директорию
+		pkgDirs, err := getDirsForPackage(e.cfg, sf.Path(), basePkg, packageName)
+		if err != nil {
+			return nil, err
+		}
+
+		// Создаём директорию для подпакета
+		if err := os.MkdirAll(pkgDirs.PkgDir, 0o755); err != nil {
+			return nil, err
+		}
+
+		// Обновляем переменную окружения $pkgdir для текущего подпакета
+		setPkgdirCmd := fmt.Sprintf("pkgdir='%s'", pkgDirs.PkgDir)
+		setPkgdirScript, err := syntax.NewParser().Parse(strings.NewReader(setPkgdirCmd), "")
+		if err != nil {
+			return nil, err
+		}
+		err = runner.Run(ctx, setPkgdirScript)
+		if err != nil {
+			return nil, err
+		}
+
 		pkgFormat := input.pkgFormat
 
 		funcOut, err := e.ExecutePackageFunctions(
 			ctx,
 			dec,
-			dirs,
+			pkgDirs,
 			packageName,
 		)
 		if err != nil {
@@ -148,7 +170,7 @@ func (e *LocalScriptExecutor) ExecuteSecondPass(
 			ctx,
 			input,
 			vars,
-			dirs,
+			pkgDirs,
 			append(
 				repoDeps,
 				GetBuiltName(builtDeps)...,
@@ -165,7 +187,7 @@ func (e *LocalScriptExecutor) ExecuteSecondPass(
 		}
 
 		pkgName := packager.ConventionalFileName(pkgInfo) // Получаем имя файла пакета
-		pkgPath := filepath.Join(dirs.BaseDir, pkgName)   // Определяем путь к пакету
+		pkgPath := filepath.Join(pkgDirs.BaseDir, pkgName)   // Определяем путь к пакету
 
 		slog.Info(gotext.Get("Creating package file"), "path", pkgPath, "name", pkgName)
 
