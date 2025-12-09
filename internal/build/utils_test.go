@@ -156,3 +156,56 @@ func TestRegexpALRPackageName(t *testing.T) {
 		})
 	}
 }
+
+func TestExtractRepoNameFromPath(t *testing.T) {
+	tests := []struct {
+		name         string
+		scriptPath   string
+		expectedRepo string
+	}{
+		{
+			name:         "относительный путь - стандартная структура",
+			scriptPath:   "alr-default/alr-bin/alr.sh",
+			expectedRepo: "alr-default",
+		},
+		{
+			name:         "абсолютный путь",
+			scriptPath:   "/home/user/repos/alr-default/alr-bin/alr.sh",
+			expectedRepo: "alr-default",
+		},
+		{
+			name:         "репозиторий без префикса alr-",
+			scriptPath:   "my-repo/my-package/alr.sh",
+			expectedRepo: "my-repo",
+		},
+		{
+			name:         "только имя файла",
+			scriptPath:   "alr.sh",
+			expectedRepo: "default",
+		},
+		{
+			name:         "один уровень директории",
+			scriptPath:   "package/alr.sh",
+			expectedRepo: "default",
+		},
+		{
+			name:         "путь с точками",
+			scriptPath:   "./alr-default/alr-bin/alr.sh",
+			expectedRepo: "alr-default",
+		},
+		{
+			name:         "путь с двойными точками",
+			scriptPath:   "../alr-default/alr-bin/alr.sh",
+			expectedRepo: "alr-default",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := ExtractRepoNameFromPath(tt.scriptPath)
+			if result != tt.expectedRepo {
+				t.Errorf("ExtractRepoNameFromPath(%q) = %q, ожидается %q", tt.scriptPath, result, tt.expectedRepo)
+			}
+		})
+	}
+}
