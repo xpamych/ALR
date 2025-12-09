@@ -293,7 +293,7 @@ func (b *Builder) BuildPackageFromScript(
 ) ([]*BuiltDep, error) {
 	return b.BuildPackage(ctx, &BuildInput{
 		script:     args.Script,
-		repository: "default",
+		repository: ExtractRepoNameFromPath(args.Script),
 		packages:   args.Packages,
 		pkgFormat:  args.PkgFormat(),
 		opts:       args.Opts,

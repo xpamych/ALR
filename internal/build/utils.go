@@ -331,3 +331,29 @@ func removeDuplicatesSources(sources, checksums []string) ([]string, []string) {
 	}
 	return newSources, newChecksums
 }
+
+// ExtractRepoNameFromPath извлекает имя репозитория из пути к скрипту.
+// Ожидаемый формат: repo-name/package-name/alr.sh или /abs/path/repo-name/package-name/alr.sh
+// Возвращает "default", если не удалось извлечь имя.
+func ExtractRepoNameFromPath(scriptPath string) string {
+	// Нормализуем путь
+	cleanPath := filepath.Clean(scriptPath)
+
+	// Разбиваем путь на компоненты
+	dir := filepath.Dir(cleanPath) // package-name
+	if dir == "." || dir == "/" {
+		return "default"
+	}
+
+	repoDir := filepath.Dir(dir) // repo-name
+	if repoDir == "." || repoDir == "/" {
+		return "default"
+	}
+
+	repoName := filepath.Base(repoDir)
+	if repoName == "." || repoName == "/" || repoName == "" {
+		return "default"
+	}
+
+	return repoName
+}
