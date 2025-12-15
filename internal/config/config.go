@@ -59,7 +59,7 @@ func defaultConfigKoanf() *koanf.Koanf {
 		"logLevel":         "info",
 		"autoPull":         true,
 		"updateSystemOnUpgrade": false,
-		"repos": []types.Repo{
+		"repo": []types.Repo{
 			{
 				Name: "alr-default",
 				URL:  "https://gitea.plemya-x.ru/Plemya-x/alr-default.git",
