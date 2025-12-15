@@ -39,12 +39,13 @@ import (
 )
 
 type BuildInput struct {
-	opts       *types.BuildOpts
-	info       *distro.OSRelease
-	pkgFormat  string
-	script     string
-	repository string
-	packages   []string
+	opts             *types.BuildOpts
+	info             *distro.OSRelease
+	pkgFormat        string
+	script           string
+	repository       string
+	packages         []string
+	skipDepsBuilding bool // Пропустить сборку зависимостей (используется при вызове из BuildALRDeps)
 }
 
 func (bi *BuildInput) GobEncode() ([]byte, error) {
@@ -242,9 +243,10 @@ type Builder struct {
 }
 
 type BuildArgs struct {
-	Opts       *types.BuildOpts
-	Info       *distro.OSRelease
-	PkgFormat_ string
+	Opts             *types.BuildOpts
+	Info             *distro.OSRelease
+	PkgFormat_       string
+	SkipDepsBuilding bool // Пропустить сборку зависимостей (используется при вызове из BuildALRDeps)
 }
 
 func (b *BuildArgs) BuildOpts() *types.BuildOpts {
@@ -278,12 +280,13 @@ func (b *Builder) BuildPackageFromDb(
 	scriptInfo := b.scriptResolver.ResolveScript(ctx, args.Package)
 
 	return b.BuildPackage(ctx, &BuildInput{
-		script:     scriptInfo.Script,
-		repository: scriptInfo.Repository,
-		packages:   args.Packages,
-		pkgFormat:  args.PkgFormat(),
-		opts:       args.Opts,
-		info:       args.Info,
+		script:           scriptInfo.Script,
+		repository:       scriptInfo.Repository,
+		packages:         args.Packages,
+		pkgFormat:        args.PkgFormat(),
+		opts:             args.Opts,
+		info:             args.Info,
+		skipDepsBuilding: args.SkipDepsBuilding,
 	})
 }
 
@@ -407,13 +410,14 @@ func (b *Builder) BuildPackage(
 
 	// We filter so as not to re-build what has already been built at the `installBuildDeps` stage.
 	var filteredDepends []string
-	
+
 	// Создаем набор подпакетов текущего мультипакета для исключения циклических зависимостей
+	// Используем имена из varsOfPackages, так как input.packages может быть пустым
 	currentPackageNames := make(map[string]struct{})
-	for _, pkg := range input.packages {
-		currentPackageNames[pkg] = struct{}{}
+	for _, vars := range varsOfPackages {
+		currentPackageNames[vars.Name] = struct{}{}
 	}
-	
+
 	for _, d := range depends {
 		if _, found := depNames[d]; !found {
 			// Исключаем зависимости, которые являются подпакетами текущего мультипакета
@@ -423,10 +427,16 @@ func (b *Builder) BuildPackage(
 		}
 	}
 
-	slog.Debug("BuildALRDeps")
-	newBuiltDeps, repoDeps, err := b.BuildALRDeps(ctx, input, filteredDepends)
-	if err != nil {
-		return nil, err
+	var newBuiltDeps []*BuiltDep
+	var repoDeps []string
+
+	// Пропускаем сборку зависимостей если флаг установлен (вызов из BuildALRDeps)
+	if !input.skipDepsBuilding {
+		slog.Debug("BuildALRDeps")
+		newBuiltDeps, repoDeps, err = b.BuildALRDeps(ctx, input, filteredDepends)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	slog.Debug("PrepareDirs")
@@ -580,65 +590,68 @@ func (b *Builder) BuildALRDeps(
 	// Системные зависимости возвращаем как repoDeps
 	repoDeps = systemDeps
 
-	// Шаг 2: Собираем список всех пакетов из дерева для топологической сортировки
-	allFound := make(map[string][]alrsh.Package)
-	for baseName, node := range depTree {
-		allFound[baseName] = []alrsh.Package{*node.Package}
-	}
-
-	// Шаг 3: Топологическая сортировка (от корней к листьям)
-	sortedPkgs, err := TopologicalSort(depTree, allFound)
+	// Шаг 2: Топологическая сортировка (от корней к листьям)
+	sortedPkgs, err := TopologicalSort(depTree)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to sort dependencies: %w", err)
 	}
 
+	// Шаг 3: Группируем подпакеты по basePkgName для оптимизации сборки
+	// Если несколько подпакетов из одного мультипакета, собираем их вместе
+	builtBasePkgs := make(map[string]bool) // Уже собранные базовые пакеты
+
 	// Шаг 4: Собираем пакеты в правильном порядке, проверяя кеш
-	for _, basePkgName := range sortedPkgs {
-		node := depTree[basePkgName]
+	for _, pkgName := range sortedPkgs {
+		node := depTree[pkgName]
 		if node == nil {
 			continue
 		}
 
 		pkg := node.Package
+		basePkgName := node.BasePkgName
 
-		// Находим ВСЕ подпакеты с этим BasePkgName
-		allSubpkgs, err := b.findAllSubpackages(ctx, basePkgName, pkg.Repository)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to find subpackages for %s: %w", basePkgName, err)
+		// Если базовый пакет уже собран, пропускаем
+		if builtBasePkgs[basePkgName] {
+			continue
 		}
 
-		// Проверяем кеш для ВСЕХ подпакетов
+		// Собираем только запрошенный подпакет (или все, если запрошен basePkgName)
+		packagesToBuilt := []string{pkgName}
+
+		// Проверяем кеш для запрошенного подпакета
 		scriptInfo := b.scriptResolver.ResolveScript(ctx, pkg)
 		buildInput := &BuildInput{
 			script:     scriptInfo.Script,
 			repository: scriptInfo.Repository,
-			packages:   allSubpkgs,
+			packages:   packagesToBuilt,
 			pkgFormat:  input.PkgFormat(),
 			opts:       input.BuildOpts(),
 			info:       input.OSRelease(),
 		}
 
-		cachedDeps, allInCache, err := b.checkCacheForAllSubpackages(ctx, buildInput, basePkgName, allSubpkgs)
+		cachedDeps, allInCache, err := b.checkCacheForAllSubpackages(ctx, buildInput, basePkgName, packagesToBuilt)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		if allInCache {
-			// Все подпакеты в кеше, используем их
+			// Подпакет в кеше, используем его
 			buildDeps = append(buildDeps, cachedDeps...)
 			continue
 		}
 
-		// Собираем пакет (без рекурсивной сборки зависимостей, так как они уже собраны)
+		// Собираем только запрошенный подпакет
+		// SkipDepsBuilding: true предотвращает рекурсивный вызов BuildALRDeps
 		res, err := b.BuildPackageFromDb(
 			ctx,
 			&BuildPackageFromDbArgs{
 				Package:  pkg,
-				Packages: allSubpkgs,
+				Packages: packagesToBuilt,
 				BuildArgs: BuildArgs{
-					Opts:       input.BuildOpts(),
-					Info:       input.OSRelease(),
-					PkgFormat_: input.PkgFormat(),
+					Opts:             input.BuildOpts(),
+					Info:             input.OSRelease(),
+					PkgFormat_:       input.PkgFormat(),
+					SkipDepsBuilding: true,
 				},
 			},
 		)
@@ -647,6 +660,7 @@ func (b *Builder) BuildALRDeps(
 		}
 
 		buildDeps = append(buildDeps, res...)
+		builtBasePkgs[basePkgName] = true
 	}
 
 	buildDeps = removeDuplicates(buildDeps)
