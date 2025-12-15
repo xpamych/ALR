@@ -27,6 +27,7 @@ import (
 type DependencyNode struct {
 	Package      *alrsh.Package
 	BasePkgName  string
+	PkgName      string   // Имя конкретного подпакета (может отличаться от BasePkgName)
 	Dependencies []string // Имена зависимостей
 }
 
@@ -82,8 +83,9 @@ func (b *Builder) ResolveDependencyTree(
 				baseName = pkg.Name
 			}
 
-			// Если уже обработали этот базовый пакет, пропускаем
-			if resolved[baseName] != nil {
+			// Используем имя конкретного подпакета как ключ (не basePkgName)
+			// Это позволяет собирать только запрошенный подпакет, а не весь мультипакет
+			if resolved[pkgName] != nil {
 				continue
 			}
 
@@ -96,10 +98,11 @@ func (b *Builder) ResolveDependencyTree(
 			allDeps := append([]string{}, deps...)
 			allDeps = append(allDeps, buildDeps...)
 
-			// Добавляем узел в resolved
-			resolved[baseName] = &DependencyNode{
+			// Добавляем узел в resolved с ключом = имя подпакета
+			resolved[pkgName] = &DependencyNode{
 				Package:      &pkg,
 				BasePkgName:  baseName,
+				PkgName:      pkgName,
 				Dependencies: allDeps,
 			}
 
@@ -129,8 +132,8 @@ func (b *Builder) ResolveDependencyTree(
 }
 
 // TopologicalSort выполняет топологическую сортировку пакетов по зависимостям
-// Возвращает список базовых имен пакетов в порядке сборки (от корней к листьям)
-func TopologicalSort(nodes map[string]*DependencyNode, allPkgs map[string][]alrsh.Package) ([]string, error) {
+// Возвращает список имен подпакетов в порядке сборки (от корней к листьям)
+func TopologicalSort(nodes map[string]*DependencyNode) ([]string, error) {
 	// Список для результата
 	var result []string
 
@@ -140,51 +143,42 @@ func TopologicalSort(nodes map[string]*DependencyNode, allPkgs map[string][]alrs
 	// Множество узлов в текущем пути (для обнаружения циклов)
 	inStack := make(map[string]bool)
 
-	var visit func(basePkgName string) error
-	visit = func(basePkgName string) error {
-		if visited[basePkgName] {
+	var visit func(pkgName string) error
+	visit = func(pkgName string) error {
+		if visited[pkgName] {
 			return nil
 		}
 
-		if inStack[basePkgName] {
-			return fmt.Errorf("circular dependency detected: %s", basePkgName)
+		if inStack[pkgName] {
+			return fmt.Errorf("circular dependency detected: %s", pkgName)
 		}
 
-		node := nodes[basePkgName]
+		node := nodes[pkgName]
 		if node == nil {
-			// Это системный пакет, игнорируем
+			// Это системный пакет или пакет не в дереве, игнорируем
 			return nil
 		}
 
-		inStack[basePkgName] = true
+		inStack[pkgName] = true
 
 		// Посещаем все зависимости
 		for _, dep := range node.Dependencies {
-			// Находим базовое имя для зависимости
-			depBaseName := dep
-
-			// Проверяем, есть ли этот пакет в allPkgs
-			if pkgs, ok := allPkgs[dep]; ok && len(pkgs) > 0 {
-				if pkgs[0].BasePkgName != "" {
-					depBaseName = pkgs[0].BasePkgName
-				}
-			}
-
-			if err := visit(depBaseName); err != nil {
+			// Используем имя зависимости напрямую (это имя подпакета)
+			if err := visit(dep); err != nil {
 				return err
 			}
 		}
 
-		inStack[basePkgName] = false
-		visited[basePkgName] = true
-		result = append(result, basePkgName)
+		inStack[pkgName] = false
+		visited[pkgName] = true
+		result = append(result, pkgName)
 
 		return nil
 	}
 
 	// Посещаем все узлы
-	for basePkgName := range nodes {
-		if err := visit(basePkgName); err != nil {
+	for pkgName := range nodes {
+		if err := visit(pkgName); err != nil {
 			return nil, err
 		}
 	}
