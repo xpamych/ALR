@@ -36,6 +36,7 @@ type InstallerExecutor interface {
 	Remove(ctx context.Context, pkgs []string, opts *manager.Opts) error
 	RemoveAlreadyInstalled(ctx context.Context, pkgs []string) ([]string, error)
 	FilterPackagesByVersion(ctx context.Context, packages []alrsh.Package, osRelease *distro.OSRelease) ([]alrsh.Package, error)
+	CheckVersionsAfterInstall(ctx context.Context, pkgs []string) error
 }
 
 type ScriptExecutor interface {

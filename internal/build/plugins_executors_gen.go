@@ -238,6 +238,33 @@ func (s *InstallerExecutorRPCServer) FilterPackagesByVersion(args *InstallerExec
 	return nil
 }
 
+type InstallerExecutorCheckVersionsAfterInstallArgs struct {
+	Pkgs []string
+}
+
+type InstallerExecutorCheckVersionsAfterInstallResp struct {
+}
+
+func (s *InstallerExecutorRPC) CheckVersionsAfterInstall(ctx context.Context, pkgs []string) error {
+	var resp *InstallerExecutorCheckVersionsAfterInstallResp
+	err := s.client.Call("Plugin.CheckVersionsAfterInstall", &InstallerExecutorCheckVersionsAfterInstallArgs{
+		Pkgs: pkgs,
+	}, &resp)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *InstallerExecutorRPCServer) CheckVersionsAfterInstall(args *InstallerExecutorCheckVersionsAfterInstallArgs, resp *InstallerExecutorCheckVersionsAfterInstallResp) error {
+	err := s.Impl.CheckVersionsAfterInstall(context.Background(), args.Pkgs)
+	if err != nil {
+		return err
+	}
+	*resp = InstallerExecutorCheckVersionsAfterInstallResp{}
+	return nil
+}
+
 type ScriptExecutorReadScriptArgs struct {
 	ScriptPath string
 }

@@ -141,7 +141,6 @@ func setLogLevel(newLevel string) {
 
 func main() {
 	logger.SetupDefault()
-	setLogLevel(os.Getenv("ALR_LOG_LEVEL"))
 	translations.Setup()
 
 	ctx := context.Background()
@@ -154,6 +153,10 @@ func main() {
 		os.Exit(1)
 	}
 	setLogLevel(cfg.LogLevel())
+	// Переменная окружения имеет приоритет над конфигом
+	if envLevel := os.Getenv("ALR_LOG_LEVEL"); envLevel != "" {
+		setLogLevel(envLevel)
+	}
 
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()

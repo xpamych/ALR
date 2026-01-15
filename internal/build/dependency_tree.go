@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
@@ -44,7 +45,12 @@ func (b *Builder) ResolveDependencyTree(
 ) (map[string]*DependencyNode, []string, error) {
 	resolved := make(map[string]*DependencyNode)
 	visited := make(map[string]bool)
-	systemDeps := make(map[string]bool) // Для дедупликации системных зависимостей
+	systemDeps := make(map[string]bool)
+
+	overrideNames, err := overrides.Resolve(input.OSRelease(), overrides.DefaultOpts)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to resolve overrides: %w", err)
+	}
 
 	var resolve func(pkgNames []string) error
 	resolve = func(pkgNames []string) error {
@@ -77,20 +83,17 @@ func (b *Builder) ResolveDependencyTree(
 
 			pkg := pkgList[0]
 
-			// Определяем базовое имя пакета
+			alrsh.ResolvePackage(&pkg, overrideNames)
+
 			baseName := pkg.BasePkgName
 			if baseName == "" {
 				baseName = pkg.Name
 			}
 
-			// Используем имя конкретного подпакета как ключ (не basePkgName)
-			// Это позволяет собирать только запрошенный подпакет, а не весь мультипакет
 			if resolved[pkgName] != nil {
 				continue
 			}
 
-			// Получаем зависимости для этого дистрибутива
-			// Пакет из БД уже содержит разрешенные значения для текущего дистрибутива
 			deps := pkg.Depends.Resolved()
 			buildDeps := pkg.BuildDepends.Resolved()
 

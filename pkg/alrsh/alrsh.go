@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -171,7 +172,25 @@ func (s *ScriptFile) createPackageFromMeta(
 		return nil, err
 	}
 
-	metaDecoder := decoder.New(&distro.OSRelease{}, metaRunner)
+	// DEBUG: Выводим что в metaRunner.Vars и dec.Runner.Vars для deps_debian
+	if depsDebianMeta, ok := metaRunner.Vars["deps_debian"]; ok {
+		slog.Info("DEBUG createPackageFromMeta: metaRunner.Vars[deps_debian]", "value", depsDebianMeta.String(), "list", depsDebianMeta.List)
+	} else {
+		slog.Info("DEBUG createPackageFromMeta: metaRunner.Vars[deps_debian] NOT FOUND")
+	}
+	if depsDebianParent, ok := dec.Runner.Vars["deps_debian"]; ok {
+		slog.Info("DEBUG createPackageFromMeta: parent Vars[deps_debian]", "value", depsDebianParent.String(), "list", depsDebianParent.List)
+	}
+
+	// Сливаем переменные родительского runner'а с переменными мета-функции.
+	// Переменные мета-функции имеют приоритет (для случаев переопределения).
+	for name, val := range dec.Runner.Vars {
+		if _, exists := metaRunner.Vars[name]; !exists {
+			metaRunner.Vars[name] = val
+		}
+	}
+
+	metaDecoder := decoder.New(dec.Info(), metaRunner)
 
 	var vars Package
 	if err := metaDecoder.DecodeVars(&vars); err != nil {
