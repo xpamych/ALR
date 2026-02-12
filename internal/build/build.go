@@ -596,22 +596,73 @@ func (b *Builder) BuildALRDeps(
 		return nil, nil, fmt.Errorf("failed to sort dependencies: %w", err)
 	}
 
+	// Шаг 2.5: Фильтруем уже установленные пакеты
+	// Собираем пакеты вместе с их ключами (именами поиска)
+	type pkgWithKey struct {
+		key string
+		pkg alrsh.Package
+	}
+	var allPkgsWithKeys []pkgWithKey
+	for key, node := range depTree {
+		if node.Package != nil {
+			allPkgsWithKeys = append(allPkgsWithKeys, pkgWithKey{key: key, pkg: *node.Package})
+		}
+	}
+
+	var allPkgs []alrsh.Package
+	for _, p := range allPkgsWithKeys {
+		allPkgs = append(allPkgs, p.pkg)
+	}
+
+	slog.Info("DEBUG: allPkgs count", "count", len(allPkgs))
+	for _, p := range allPkgsWithKeys {
+		slog.Info("DEBUG: package in depTree", "key", p.key, "name", p.pkg.Name, "repo", p.pkg.Repository)
+	}
+
+	needBuildPkgs, err := b.installerExecutor.FilterPackagesByVersion(ctx, allPkgs, input.OSRelease())
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to filter packages: %w", err)
+	}
+
+	// Создаём множество имён пакетов, которые нужно собрать
+	needBuildNames := make(map[string]bool)
+	for _, pkg := range needBuildPkgs {
+		needBuildNames[pkg.Name] = true
+	}
+
+	slog.Info("DEBUG: needBuildPkgs count", "count", len(needBuildPkgs))
+	for _, pkg := range needBuildPkgs {
+		slog.Info("DEBUG: package needs build", "name", pkg.Name)
+	}
+
+	// Строим needBuildSet по КЛЮЧАМ depTree, а не по pkg.Name
+	// Это важно, т.к. ключ может быть именем из Provides (python3-pyside6),
+	// а pkg.Name - фактическое имя пакета (python3-shiboken6)
+	needBuildSet := make(map[string]bool)
+	for _, p := range allPkgsWithKeys {
+		if needBuildNames[p.pkg.Name] {
+			needBuildSet[p.key] = true
+		}
+	}
+
 	// Шаг 3: Группируем подпакеты по basePkgName для оптимизации сборки
 	// Если несколько подпакетов из одного мультипакета, собираем их вместе
-	builtBasePkgs := make(map[string]bool) // Уже собранные базовые пакеты
+	slog.Info("DEBUG: sortedPkgs", "pkgs", sortedPkgs)
 
 	// Шаг 4: Собираем пакеты в правильном порядке, проверяя кеш
 	for _, pkgName := range sortedPkgs {
 		node := depTree[pkgName]
 		if node == nil {
+			slog.Info("DEBUG: node is nil", "pkgName", pkgName)
 			continue
 		}
 
 		pkg := node.Package
 		basePkgName := node.BasePkgName
 
-		// Если базовый пакет уже собран, пропускаем
-		if builtBasePkgs[basePkgName] {
+		// Пропускаем уже установленные пакеты
+		if !needBuildSet[pkgName] {
+			slog.Info("DEBUG: skipping (not in needBuildSet)", "pkgName", pkgName)
 			continue
 		}
 
@@ -636,9 +687,12 @@ func (b *Builder) BuildALRDeps(
 
 		if allInCache {
 			// Подпакет в кеше, используем его
+			slog.Info("DEBUG: using cached package", "pkgName", pkgName)
 			buildDeps = append(buildDeps, cachedDeps...)
 			continue
 		}
+
+		slog.Info("DEBUG: building package", "pkgName", pkgName)
 
 		// Собираем только запрошенный подпакет
 		// SkipDepsBuilding: true предотвращает рекурсивный вызов BuildALRDeps
@@ -660,7 +714,6 @@ func (b *Builder) BuildALRDeps(
 		}
 
 		buildDeps = append(buildDeps, res...)
-		builtBasePkgs[basePkgName] = true
 	}
 
 	buildDeps = removeDuplicates(buildDeps)
@@ -846,8 +899,9 @@ func (i *Builder) InstallPkgs(
 		if err != nil {
 			return nil, err
 		}
-		
-		// Отслеживание установки пакетов из репозитория
+
+		_ = i.installerExecutor.CheckVersionsAfterInstall(ctx, repoDeps)
+
 		for _, pkg := range repoDeps {
 			if stats.ShouldTrackPackage(pkg) {
 				stats.TrackInstallation(ctx, pkg, "install")

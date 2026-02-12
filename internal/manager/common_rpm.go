@@ -70,3 +70,21 @@ func (a *CommonRPM) IsInstalled(pkg string) (bool, error) {
 	}
 	return true, nil
 }
+
+func (a *CommonRPM) GetInstalledVersion(pkg string) (string, error) {
+	cmd := exec.Command("rpm", "-q", "--queryformat", "%|EPOCH?{%{EPOCH}:}:{}|%{VERSION}-%{RELEASE}", pkg)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			if exitErr.ExitCode() == 1 {
+				return "", nil
+			}
+		}
+		return "", fmt.Errorf("rpm: getinstalledversion: %w, output: %s", err, output)
+	}
+
+	version := strings.TrimSpace(string(output))
+	// Remove epoch 0: prefix if present
+	version = strings.TrimPrefix(version, "0:")
+	return version, nil
+}

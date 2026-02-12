@@ -219,7 +219,7 @@ func filesFindLibCmd(hc interp.HandlerContext, cmd string, args []string) error 
 		namePattern = args[0]
 	}
 
-	libPaths := []string{"./usr/lib/", "./usr/lib64/"}
+	libPaths := []string{"./usr/lib/", "./usr/lib64/", "./usr/local/lib/", "./usr/local/lib64/"}
 	var libFiles []string
 
 	for _, libPath := range libPaths {

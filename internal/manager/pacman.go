@@ -160,3 +160,24 @@ func (p *Pacman) IsInstalled(pkg string) (bool, error) {
 	}
 	return true, nil
 }
+
+func (p *Pacman) GetInstalledVersion(pkg string) (string, error) {
+	cmd := exec.Command("pacman", "-Q", pkg)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		// Pacman returns exit code 1 if the package is not found
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			if exitErr.ExitCode() == 1 {
+				return "", nil
+			}
+		}
+		return "", fmt.Errorf("pacman: getinstalledversion: %w, output: %s", err, output)
+	}
+
+	// Output format: "package-name version"
+	_, version, ok := strings.Cut(strings.TrimSpace(string(output)), " ")
+	if !ok {
+		return "", nil
+	}
+	return version, nil
+}

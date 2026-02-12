@@ -1,0 +1,185 @@
+# ALR - Any Linux Repository
+# Copyright (C) 2025 The ALR Authors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Get Changes between Tags
+        id: changes
+        run: |
+          # Получаем текущий и предыдущий теги
+          CURRENT_TAG=${GITHUB_REF##*/}
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${CURRENT_TAG}^ 2>/dev/null || echo "")
+
+          if [ -n "$PREVIOUS_TAG" ]; then
+            CHANGES=$(git log ${PREVIOUS_TAG}..${CURRENT_TAG} --pretty=format:"- %s" --no-merges)
+          else
+            CHANGES=$(git log ${CURRENT_TAG} --pretty=format:"- %s" --no-merges)
+          fi
+
+          # Экранируем для использования в GitHub Actions
+          CHANGES="${CHANGES//'%'/'%25'}"
+          CHANGES="${CHANGES//$'\n'/'%0A'}"
+          CHANGES="${CHANGES//$'\r'/'%0D'}"
+
+          echo "changes=$CHANGES" >> $GITHUB_OUTPUT
+
+      - name: Set version
+        run: |
+          version=$(echo "${GITHUB_REF##*/}" | sed 's/^v//')
+          echo "Version - $version"
+          echo "VERSION=$version" >> $GITHUB_ENV
+
+      - name: Prepare for install
+        run: |
+          apt-get update
+
+      - name: Build alr
+        env:
+          IGNORE_ROOT_CHECK: 1
+        run: |
+          make build
+
+      - name: Create tar.gz
+        run: |
+          mkdir -p ./out/completion
+          cp alr ./out
+          cp scripts/completion/bash ./out/completion/alr
+          cp scripts/completion/zsh ./out/completion/_alr
+
+          ( cd out && tar -czvf ../alr-${{ env.VERSION }}-linux-x86_64.tar.gz * )
+
+      - name: Create Release via GitVerse API
+        env:
+          GITVERSE_TOKEN: ${{ secrets.GITVERSE_TOKEN }}
+        run: |
+          TAG_NAME=${GITHUB_REF##*/}
+          RELEASE_NAME="ALR ${{ env.VERSION }}"
+          BODY="${{ steps.changes.outputs.changes }}"
+
+          # Создаём релиз через GitVerse API
+          RELEASE_RESPONSE=$(curl -s -X POST \
+            "https://gitverse.ru/api/v1/repos/${{ gitverse.repository_owner }}/${{ gitverse.repository }}/releases" \
+            -H "Authorization: token ${GITVERSE_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"tag_name\": \"${TAG_NAME}\",
+              \"name\": \"${RELEASE_NAME}\",
+              \"body\": \"${BODY}\",
+              \"draft\": false,
+              \"prerelease\": false
+            }")
+
+          RELEASE_ID=$(echo "$RELEASE_RESPONSE" | jq -r '.id')
+          echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
+          echo "Created release with ID: $RELEASE_ID"
+
+      - name: Upload tar.gz asset
+        env:
+          GITVERSE_TOKEN: ${{ secrets.GITVERSE_TOKEN }}
+        run: |
+          curl -s -X POST \
+            "https://gitverse.ru/api/v1/repos/${{ gitverse.repository_owner }}/${{ gitverse.repository }}/releases/${{ env.RELEASE_ID }}/assets?name=alr-${{ env.VERSION }}-linux-x86_64.tar.gz" \
+            -H "Authorization: token ${GITVERSE_TOKEN}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary "@alr-${{ env.VERSION }}-linux-x86_64.tar.gz"
+
+      - name: Checkout alr-default repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ gitverse.repository_owner }}/alr-default
+          token: ${{ secrets.GITVERSE_PUBLIC_TOKEN }}
+          path: alr-default
+
+      - name: Calculate checksum
+        run: |
+          # Вычисляем SHA256 контрольную сумму архива
+          CHECKSUM=$(sha256sum alr-${{ env.VERSION }}-linux-x86_64.tar.gz | awk '{print $1}')
+          echo "Archive checksum: $CHECKSUM"
+          echo "CHECKSUM=$CHECKSUM" >> $GITHUB_ENV
+
+      - name: Update version and checksum in alr-bin
+        run: |
+          # Обновляем версию
+          sed -i "s/version='[0-9]\+\.[0-9]\+\.[0-9]\+'/version='${{ env.VERSION }}'/g" alr-default/alr-bin/alr.sh
+          sed -i "s/release='[0-9]\+'/release='1'/g" alr-default/alr-bin/alr.sh
+
+          # Обновляем контрольную сумму
+          sed -i "s/checksums=('[^']*')/checksums=('${{ env.CHECKSUM }}')/g" alr-default/alr-bin/alr.sh
+
+      - name: Commit and push changes to alr-default
+        run: |
+          cd alr-default
+          git config user.name "gitverse"
+          git config user.email "admin@plemya-x.ru"
+          git add alr-bin/alr.sh
+          git commit -m "Обновление alr-bin до версии ${{ env.VERSION }}"
+          git push
+
+      - name: Install alr
+        env:
+          CREATE_SYSTEM_RESOURCES: 0
+        run: |
+          make install
+
+      - name: Prepare directories for ALR
+        run: |
+          # Создаём необходимые директории для работы alr build
+          mkdir -p /tmp/alr/dl /tmp/alr/pkgs /var/cache/alr
+          chmod -R 777 /tmp/alr
+          chmod -R 755 /var/cache/alr
+
+      - name: Build packages
+        run: |
+          SCRIPT_PATH=alr-default/alr-bin/alr.sh
+          ALR_DISTRO=altlinux ALR_PKG_FORMAT=rpm alr build -s "$SCRIPT_PATH"
+          ALR_PKG_FORMAT=rpm alr build -s "$SCRIPT_PATH"
+          ALR_PKG_FORMAT=deb alr build -s "$SCRIPT_PATH"
+          ALR_PKG_FORMAT=archlinux alr build -s "$SCRIPT_PATH"
+
+      - name: Upload package assets
+        env:
+          GITVERSE_TOKEN: ${{ secrets.GITVERSE_TOKEN }}
+        run: |
+          # Загружаем все собранные пакеты
+          for file in alr-bin*.deb alr-bin*.rpm alr-bin*.pkg.tar.zst; do
+            if [ -f "$file" ]; then
+              echo "Uploading $file..."
+              curl -s -X POST \
+                "https://gitverse.ru/api/v1/repos/${{ gitverse.repository_owner }}/${{ gitverse.repository }}/releases/${{ env.RELEASE_ID }}/assets?name=${file}" \
+                -H "Authorization: token ${GITVERSE_TOKEN}" \
+                -H "Content-Type: application/octet-stream" \
+                --data-binary "@${file}"
+            fi
+          done

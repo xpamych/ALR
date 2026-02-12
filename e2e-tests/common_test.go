@@ -30,19 +30,21 @@ var ALL_SYSTEMS []string = []string{
 	"ubuntu-24.04",
 	"alt-sisyphus",
 	"fedora-41",
-	// "archlinux",
-	// "alpine",
-	// "opensuse-leap",
-	// "redos-8",
+	"archlinux",
+	"alpine",
+	"opensuse-leap",
 }
 
 var AUTOREQ_AUTOPROV_SYSTEMS []string = []string{
-	// "alt-sisyphus",
+	"alt-sisyphus",
 	"fedora-41",
+	"opensuse-leap",
 }
 
 var RPM_SYSTEMS []string = []string{
+	"alt-sisyphus",
 	"fedora-41",
+	"opensuse-leap",
 }
 
 var COMMON_SYSTEMS []string = []string{

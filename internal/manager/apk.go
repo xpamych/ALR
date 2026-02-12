@@ -167,3 +167,33 @@ func (a *APK) IsInstalled(pkg string) (bool, error) {
 	}
 	return true, nil
 }
+
+func (a *APK) GetInstalledVersion(pkg string) (string, error) {
+	cmd := exec.Command("apk", "info", "--installed", pkg)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			// Exit code 1 means the package is not installed
+			if exitErr.ExitCode() == 1 {
+				return "", nil
+			}
+		}
+		return "", fmt.Errorf("apk: getinstalledversion: %w, output: %s", err, output)
+	}
+
+	// Output format: "package-version" (e.g., "curl-8.5.0-r0")
+	// We need to extract just the version part
+	line := strings.TrimSpace(string(output))
+	if line == "" {
+		return "", nil
+	}
+
+	// Find the last hyphen that separates name from version
+	// Alpine package names can contain hyphens, version starts after last one
+	lastDash := strings.LastIndex(line, "-")
+	if lastDash == -1 {
+		return "", nil
+	}
+
+	return line[lastDash+1:], nil
+}

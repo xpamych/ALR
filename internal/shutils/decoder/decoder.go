@@ -71,6 +71,10 @@ func New(info *distro.OSRelease, runner *interp.Runner) *Decoder {
 	return &Decoder{info, runner, true, len(info.Like) > 0}
 }
 
+func (d *Decoder) Info() *distro.OSRelease {
+	return d.info
+}
+
 // DecodeVar decodes a variable to val using reflection.
 // Structs should use the "sh" struct tag.
 func (d *Decoder) DecodeVar(name string, val any) error {

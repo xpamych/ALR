@@ -82,14 +82,54 @@ func (a *APT) InstallLocal(opts *Opts, pkgs ...string) error {
 
 func (a *APT) Remove(opts *Opts, pkgs ...string) error {
 	opts = ensureOpts(opts)
+
+	resolvedPkgs := make([]string, 0, len(pkgs))
+	for _, pkg := range pkgs {
+		resolved := a.resolvePackageName(pkg)
+		resolvedPkgs = append(resolvedPkgs, resolved)
+	}
+
 	cmd := a.getCmd(opts, "apt", "remove")
-	cmd.Args = append(cmd.Args, pkgs...)
+	cmd.Args = append(cmd.Args, resolvedPkgs...)
 	setCmdEnv(cmd)
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("apt: remove: %w", err)
 	}
 	return nil
+}
+
+func (a *APT) resolvePackageName(pkg string) string {
+	cmd := exec.Command("dpkg-query", "-f", "${Status}", "-W", pkg)
+	output, err := cmd.Output()
+	if err == nil && strings.Contains(string(output), "install ok installed") {
+		return pkg
+	}
+
+	cmd = exec.Command("dpkg-query", "-W", "-f", "${Package}\t${Provides}\n")
+	output, err = cmd.Output()
+	if err != nil {
+		return pkg
+	}
+
+	for _, line := range strings.Split(string(output), "\n") {
+		parts := strings.SplitN(line, "\t", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		pkgName := parts[0]
+		provides := parts[1]
+
+		for _, p := range strings.Split(provides, ", ") {
+			p = strings.TrimSpace(p)
+			provName := strings.Split(p, " ")[0]
+			if provName == pkg {
+				return pkgName
+			}
+		}
+	}
+
+	return pkg
 }
 
 func (a *APT) Upgrade(opts *Opts, pkgs ...string) error {
@@ -140,11 +180,11 @@ func (a *APT) ListInstalled(opts *Opts) (map[string]string, error) {
 }
 
 func (a *APT) IsInstalled(pkg string) (bool, error) {
-	cmd := exec.Command("dpkg-query", "-f", "${Status}", "-W", pkg)
+	resolved := a.resolvePackageName(pkg)
+	cmd := exec.Command("dpkg-query", "-f", "${Status}", "-W", resolved)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
-			// Код выхода 1 означает что пакет не найден
 			if exitErr.ExitCode() == 1 {
 				return false, nil
 			}
@@ -153,6 +193,21 @@ func (a *APT) IsInstalled(pkg string) (bool, error) {
 	}
 
 	status := strings.TrimSpace(string(output))
-	// Проверяем что пакет действительно установлен (статус должен содержать "install ok installed")
 	return strings.Contains(status, "install ok installed"), nil
+}
+
+func (a *APT) GetInstalledVersion(pkg string) (string, error) {
+	resolved := a.resolvePackageName(pkg)
+	cmd := exec.Command("dpkg-query", "-f", "${Version}", "-W", resolved)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			if exitErr.ExitCode() == 1 {
+				return "", nil
+			}
+		}
+		return "", fmt.Errorf("apt: getinstalledversion: %w, output: %s", err, output)
+	}
+
+	return strings.TrimSpace(string(output)), nil
 }

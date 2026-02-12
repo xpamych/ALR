@@ -18,6 +18,8 @@ package finddeps
 
 import (
 	"context"
+	"os"
+	"os/exec"
 
 	"github.com/goreleaser/nfpm/v2"
 
@@ -39,10 +41,9 @@ func New(info *distro.OSRelease, pkgFormat string) *ProvReqService {
 		finder: &EmptyFindProvReq{},
 	}
 	if pkgFormat == "rpm" {
-		switch info.ID {
-		case "altlinux":
+		if _, err := os.Stat("/usr/lib/rpm/find-provides"); err == nil {
 			s.finder = &ALTLinuxFindProvReq{}
-		case "fedora":
+		} else if _, err := exec.LookPath("/usr/lib/rpm/rpmdeps"); err == nil {
 			s.finder = &FedoraFindProvReq{}
 		}
 	}

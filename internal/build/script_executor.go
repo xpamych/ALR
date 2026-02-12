@@ -35,6 +35,7 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
 	finddeps "gitea.plemya-x.ru/Plemya-x/ALR/internal/build/find_deps"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
@@ -242,16 +243,27 @@ func buildPkgMetadata(
 	pkgInfo.Homepage = vars.Homepage.Resolved()
 	pkgInfo.License = strings.Join(vars.Licenses, ", ")
 	pkgInfo.Maintainer = vars.Maintainer.Resolved()
+
+	pkgFormat := input.PkgFormat()
+	info := input.OSRelease()
+
+	// Для RPM на multilib-системах квалифицируем автоконфликт архитектурой (ISA),
+	// чтобы не удалять пакеты другой архитектуры. Например, установка
+	// libdrm+alr.x86_64 не должна конфликтовать с libdrm.i686.
+	autoConflictName := vars.Name
+	if pkgFormat == "rpm" {
+		if isa := goArchToRPMISA(cpu.Arch()); isa != "" {
+			autoConflictName = fmt.Sprintf("%s(%s)", vars.Name, isa)
+		}
+	}
+
 	pkgInfo.Overridables = nfpm.Overridables{
-		Conflicts: append(vars.Conflicts, vars.Name),
+		Conflicts: append(vars.Conflicts, autoConflictName),
 		Replaces:  vars.Replaces,
 		Provides:  append(vars.Provides, vars.Name),
 		Depends:   deps,
 	}
 	pkgInfo.Section = vars.Group.Resolved()
-
-	pkgFormat := input.PkgFormat()
-	info := input.OSRelease()
 
 	if pkgFormat == "apk" {
 		// Alpine отказывается устанавливать пакеты, которые предоставляют сами себя, поэтому удаляем такие элементы

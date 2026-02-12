@@ -27,6 +27,7 @@ import (
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
+	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/depver"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
 )
 
@@ -43,7 +44,14 @@ func (i *Installer) InstallLocal(ctx context.Context, paths []string, opts *mana
 }
 
 func (i *Installer) Install(ctx context.Context, pkgs []string, opts *manager.Opts) error {
-	return i.mgr.Install(opts, pkgs...)
+	// Convert dependencies to manager-specific format
+	converted := make([]string, len(pkgs))
+	for idx, pkg := range pkgs {
+		dep := depver.Parse(pkg)
+		converted[idx] = dep.ForManager(i.mgr.Name())
+	}
+
+	return i.mgr.Install(opts, converted...)
 }
 
 func (i *Installer) Remove(ctx context.Context, pkgs []string, opts *manager.Opts) error {
@@ -54,17 +62,69 @@ func (i *Installer) RemoveAlreadyInstalled(ctx context.Context, pkgs []string) (
 	filteredPackages := []string{}
 
 	for _, dep := range pkgs {
-		installed, err := i.mgr.IsInstalled(dep)
+		parsed := depver.Parse(dep)
+
+		// Check if package is installed
+		installed, err := i.mgr.IsInstalled(parsed.Name)
 		if err != nil {
 			return nil, err
 		}
-		if installed {
+
+		if !installed {
+			filteredPackages = append(filteredPackages, dep)
 			continue
 		}
-		filteredPackages = append(filteredPackages, dep)
+
+		// If there's a version constraint, check if installed version satisfies it
+		if parsed.HasVersionConstraint() {
+			installedVer, err := i.mgr.GetInstalledVersion(parsed.Name)
+			if err != nil {
+				return nil, err
+			}
+
+			if !parsed.Satisfies(installedVer) {
+				// Installed version doesn't satisfy constraint - need to upgrade
+				slog.Debug("installed version doesn't satisfy constraint",
+					"package", parsed.Name,
+					"required", dep,
+					"installed", installedVer)
+				filteredPackages = append(filteredPackages, dep)
+			}
+		}
 	}
 
 	return filteredPackages, nil
+}
+
+func (i *Installer) CheckVersionsAfterInstall(ctx context.Context, pkgs []string) error {
+	for _, pkg := range pkgs {
+		parsed := depver.Parse(pkg)
+		if !parsed.HasVersionConstraint() {
+			continue
+		}
+
+		installedVer, err := i.mgr.GetInstalledVersion(parsed.Name)
+		if err != nil {
+			slog.Warn(gotext.Get("Failed to get installed version"),
+				"package", parsed.Name,
+				"error", err)
+			continue
+		}
+
+		if installedVer == "" {
+			slog.Warn(gotext.Get("Package was not installed"),
+				"package", parsed.Name)
+			continue
+		}
+
+		if !parsed.Satisfies(installedVer) {
+			slog.Warn(gotext.Get("Installed version doesn't satisfy requirement"),
+				"package", parsed.Name,
+				"required", pkg,
+				"installed", installedVer)
+		}
+	}
+	return nil
 }
 
 func (i *Installer) FilterPackagesByVersion(ctx context.Context, packages []alrsh.Package, osRelease *distro.OSRelease) ([]alrsh.Package, error) {

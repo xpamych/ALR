@@ -37,12 +37,12 @@ var DefaultOpts = &Opts{
 
 var managers = []Manager{
 	NewPacman(),
+	NewAPTRpm(), // APT-RPM должен проверяться раньше APT, т.к. на ALT Linux есть оба
 	NewAPT(),
 	NewDNF(),
 	NewYUM(),
 	NewAPK(),
 	NewZypper(),
-	NewAPTRpm(),
 }
 
 // Register registers a new package manager
@@ -74,8 +74,11 @@ type Manager interface {
 	UpgradeAll(*Opts) error
 	// ListInstalled returns all installed packages mapped to their versions
 	ListInstalled(*Opts) (map[string]string, error)
-	//
+	// IsInstalled checks if a package is installed
 	IsInstalled(string) (bool, error)
+	// GetInstalledVersion returns the version of an installed package.
+	// Returns empty string and no error if package is not installed.
+	GetInstalledVersion(string) (string, error)
 }
 
 // Detect returns the package manager detected on the system
