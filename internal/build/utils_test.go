@@ -157,6 +157,29 @@ func TestRegexpALRPackageName(t *testing.T) {
 	}
 }
 
+func TestGoArchToRPMISA(t *testing.T) {
+	tests := []struct {
+		goarch   string
+		expected string
+	}{
+		{"amd64", "x86-64"},
+		{"386", "x86-32"},
+		{"arm64", "aarch-64"},
+		{"arm", ""},
+		{"mips", ""},
+		{"unknown", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.goarch, func(t *testing.T) {
+			result := goArchToRPMISA(tt.goarch)
+			if result != tt.expected {
+				t.Errorf("goArchToRPMISA(%q) = %q, ожидается %q", tt.goarch, result, tt.expected)
+			}
+		})
+	}
+}
+
 func TestExtractRepoNameFromPath(t *testing.T) {
 	tests := []struct {
 		name         string

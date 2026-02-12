@@ -180,6 +180,22 @@ func normalizeContents(contents []*files.Content) {
 
 var RegexpALRPackageName = regexp.MustCompile(`^(?P<package>[^+]+)\+(?P<repo>.+)$`)
 
+// goArchToRPMISA конвертирует Go-архитектуру в RPM ISA (Instruction Set Architecture)
+// квалификатор, используемый в спецификациях зависимостей (например, "x86-64" для amd64).
+// Возвращает пустую строку, если ISA квалификатор неизвестен для данной архитектуры.
+func goArchToRPMISA(goarch string) string {
+	switch goarch {
+	case "amd64":
+		return "x86-64"
+	case "386":
+		return "x86-32"
+	case "arm64":
+		return "aarch-64"
+	default:
+		return ""
+	}
+}
+
 func getBasePkgInfo(vars *alrsh.Package, input interface {
 	RepositoryProvider
 	OsInfoProvider
