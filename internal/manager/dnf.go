@@ -20,6 +20,7 @@
 package manager
 
 import (
+	"bufio"
 	"fmt"
 	"os/exec"
 )
@@ -105,6 +106,42 @@ func (d *DNF) Upgrade(opts *Opts, pkgs ...string) error {
 		return fmt.Errorf("dnf: upgrade: %w", err)
 	}
 	return nil
+}
+
+func (d *DNF) ListAvailable(prefix string) ([]string, error) {
+	cmd := exec.Command("dnf", "repoquery", "--qf", "%{name}\n", "--quiet", prefix+"*")
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("dnf: listavailable: %w", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("dnf: listavailable: %w", err)
+	}
+
+	seen := make(map[string]struct{})
+	var pkgs []string
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		name := scanner.Text()
+		if name == "" {
+			continue
+		}
+		if _, ok := seen[name]; !ok {
+			seen[name] = struct{}{}
+			pkgs = append(pkgs, name)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("dnf: listavailable: %w", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return nil, fmt.Errorf("dnf: listavailable: %w", err)
+	}
+
+	return pkgs, nil
 }
 
 // UpgradeAll обновляет все установленные пакеты

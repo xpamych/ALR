@@ -115,6 +115,42 @@ func (p *Pacman) UpgradeAll(opts *Opts) error {
 	return nil
 }
 
+func (p *Pacman) ListAvailable(prefix string) ([]string, error) {
+	cmd := exec.Command("pacman", "-Ssq", "^"+prefix)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("pacman: listavailable: %w", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("pacman: listavailable: %w", err)
+	}
+
+	seen := make(map[string]struct{})
+	var pkgs []string
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		name := scanner.Text()
+		if _, ok := seen[name]; !ok {
+			seen[name] = struct{}{}
+			pkgs = append(pkgs, name)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("pacman: listavailable: %w", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 1 {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("pacman: listavailable: %w", err)
+	}
+
+	return pkgs, nil
+}
+
 func (p *Pacman) ListInstalled(opts *Opts) (map[string]string, error) {
 	out := map[string]string{}
 	cmd := exec.Command("pacman", "-Q")

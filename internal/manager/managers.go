@@ -79,6 +79,9 @@ type Manager interface {
 	// GetInstalledVersion returns the version of an installed package.
 	// Returns empty string and no error if package is not installed.
 	GetInstalledVersion(string) (string, error)
+	// ListAvailable returns names of available packages matching the given prefix.
+	// The prefix is used for filtering to avoid returning all packages.
+	ListAvailable(prefix string) ([]string, error)
 }
 
 // Detect returns the package manager detected on the system

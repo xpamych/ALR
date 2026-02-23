@@ -122,7 +122,7 @@ func GetApp() *cli.App {
 
 func setLogLevel(newLevel string) {
 	level := slog.LevelInfo
-	switch newLevel {
+	switch strings.ToUpper(newLevel) {
 	case "DEBUG":
 		level = slog.LevelDebug
 	case "INFO":
@@ -131,6 +131,10 @@ func setLogLevel(newLevel string) {
 		level = slog.LevelWarn
 	case "ERROR":
 		level = slog.LevelError
+	default:
+		if newLevel != "" {
+			slog.Warn("unknown logLevel value, falling back to INFO", "value", newLevel)
+		}
 	}
 	logger, ok := slog.Default().Handler().(*logger.Logger)
 	if !ok {

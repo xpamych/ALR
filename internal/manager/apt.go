@@ -196,6 +196,10 @@ func (a *APT) IsInstalled(pkg string) (bool, error) {
 	return strings.Contains(status, "install ok installed"), nil
 }
 
+func (a *APT) ListAvailable(prefix string) ([]string, error) {
+	return aptCacheListAvailable(prefix)
+}
+
 func (a *APT) GetInstalledVersion(pkg string) (string, error) {
 	resolved := a.resolvePackageName(pkg)
 	cmd := exec.Command("dpkg-query", "-f", "${Version}", "-W", resolved)

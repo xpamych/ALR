@@ -172,14 +172,13 @@ func (s *ScriptFile) createPackageFromMeta(
 		return nil, err
 	}
 
-	// DEBUG: Выводим что в metaRunner.Vars и dec.Runner.Vars для deps_debian
 	if depsDebianMeta, ok := metaRunner.Vars["deps_debian"]; ok {
-		slog.Info("DEBUG createPackageFromMeta: metaRunner.Vars[deps_debian]", "value", depsDebianMeta.String(), "list", depsDebianMeta.List)
+		slog.Debug("createPackageFromMeta: metaRunner.Vars[deps_debian]", "value", depsDebianMeta.String(), "list", depsDebianMeta.List)
 	} else {
-		slog.Info("DEBUG createPackageFromMeta: metaRunner.Vars[deps_debian] NOT FOUND")
+		slog.Debug("createPackageFromMeta: metaRunner.Vars[deps_debian] NOT FOUND")
 	}
 	if depsDebianParent, ok := dec.Runner.Vars["deps_debian"]; ok {
-		slog.Info("DEBUG createPackageFromMeta: parent Vars[deps_debian]", "value", depsDebianParent.String(), "list", depsDebianParent.List)
+		slog.Debug("createPackageFromMeta: parent Vars[deps_debian]", "value", depsDebianParent.String(), "list", depsDebianParent.List)
 	}
 
 	// Сливаем переменные родительского runner'а с переменными мета-функции.

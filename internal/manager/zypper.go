@@ -20,8 +20,10 @@
 package manager
 
 import (
+	"bufio"
 	"fmt"
 	"os/exec"
+	"strings"
 )
 
 // Zypper represents the Zypper package manager
@@ -101,6 +103,55 @@ func (z *Zypper) Upgrade(opts *Opts, pkgs ...string) error {
 		return fmt.Errorf("zypper: upgrade: %w", err)
 	}
 	return nil
+}
+
+func (z *Zypper) ListAvailable(prefix string) ([]string, error) {
+	cmd := exec.Command("zypper", "--quiet", "search", "--type", "package", prefix+"*")
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("zypper: listavailable: %w", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("zypper: listavailable: %w", err)
+	}
+
+	seen := make(map[string]struct{})
+	var pkgs []string
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		line := scanner.Text()
+		// zypper table format: "S | Name | Summary | Type"
+		// Skip separator lines and headers
+		if !strings.Contains(line, "|") {
+			continue
+		}
+		fields := strings.Split(line, "|")
+		if len(fields) < 2 {
+			continue
+		}
+		name := strings.TrimSpace(fields[1])
+		if name == "" || name == "Name" {
+			continue
+		}
+		if _, ok := seen[name]; !ok {
+			seen[name] = struct{}{}
+			pkgs = append(pkgs, name)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("zypper: listavailable: %w", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 104 {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("zypper: listavailable: %w", err)
+	}
+
+	return pkgs, nil
 }
 
 func (z *Zypper) UpgradeAll(opts *Opts) error {

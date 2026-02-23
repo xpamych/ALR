@@ -116,6 +116,48 @@ func (a *APK) UpgradeAll(opts *Opts) error {
 	return a.Upgrade(opts)
 }
 
+func (a *APK) ListAvailable(prefix string) ([]string, error) {
+	cmd := exec.Command("apk", "search", "-q", prefix)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("apk: listavailable: %w", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("apk: listavailable: %w", err)
+	}
+
+	seen := make(map[string]struct{})
+	var pkgs []string
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "" {
+			continue
+		}
+		// apk search -q returns "name-version", extract name
+		lastDash := strings.LastIndex(line, "-")
+		name := line
+		if lastDash > 0 {
+			name = line[:lastDash]
+		}
+		if _, ok := seen[name]; !ok {
+			seen[name] = struct{}{}
+			pkgs = append(pkgs, name)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("apk: listavailable: %w", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return nil, fmt.Errorf("apk: listavailable: %w", err)
+	}
+
+	return pkgs, nil
+}
+
 func (a *APK) ListInstalled(opts *Opts) (map[string]string, error) {
 	out := map[string]string{}
 	cmd := exec.Command("apk", "list", "-I")

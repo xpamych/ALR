@@ -21,6 +21,8 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
+	"strings"
 
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
@@ -110,17 +112,27 @@ func InstallCmd() *cli.Command {
 			return nil
 		}),
 		BashComplete: cliutils.BashCompleteWithError(func(c *cli.Context) error {
-
 			ctx := c.Context
 			deps, err := appbuilder.
 				New(ctx).
 				WithConfig().
 				WithDB().
+				WithManager().
 				Build()
 			if err != nil {
 				return err
 			}
 			defer deps.Defer()
+
+			seen := make(map[string]struct{})
+
+			var prefix string
+			if c.Args().Len() > 0 {
+				prefix = c.Args().Get(c.Args().Len() - 1)
+				if strings.HasPrefix(prefix, "-") {
+					prefix = ""
+				}
+			}
 
 			result, err := deps.DB.GetPkgs(c.Context, "true")
 			if err != nil {
@@ -128,7 +140,24 @@ func InstallCmd() *cli.Command {
 			}
 
 			for _, pkg := range result {
-				fmt.Println(pkg.Name)
+				if prefix == "" || strings.HasPrefix(pkg.Name, prefix) {
+					if _, ok := seen[pkg.Name]; !ok {
+						seen[pkg.Name] = struct{}{}
+						fmt.Println(pkg.Name)
+					}
+				}
+			}
+
+			sysPkgs, err := deps.Manager.ListAvailable(prefix)
+			if err != nil {
+				slog.Debug("failed to list system packages", "err", err)
+			} else {
+				for _, name := range sysPkgs {
+					if _, ok := seen[name]; !ok {
+						seen[name] = struct{}{}
+						fmt.Println(name)
+					}
+				}
 			}
 
 			return nil
