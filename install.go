@@ -228,13 +228,49 @@ func RemoveCmd() *cli.Command {
 			}
 			defer deps.Defer()
 
+			// Транслируем короткие имена ALR-пакетов в полные (name+repo)
+			resolvedPkgs, err := resolveInstalledALRNames(deps.Manager, c.Args().Slice())
+			if err != nil {
+				return cliutils.FormatCliExit(gotext.Get("Error removing packages"), err)
+			}
+
 			if err := deps.Manager.Remove(&manager.Opts{
 				NoConfirm: !c.Bool("interactive"),
-			}, c.Args().Slice()...); err != nil {
+			}, resolvedPkgs...); err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error removing packages"), err)
 			}
 
 			return nil
 		}),
 	}
+}
+
+// resolveInstalledALRNames транслирует короткие имена пакетов в полные имена ALR (name+repo).
+// Если ALR-пакет с таким именем не установлен, имя передаётся как есть.
+func resolveInstalledALRNames(mgr manager.Manager, names []string) ([]string, error) {
+	installed, err := mgr.ListInstalled(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Строим карту: короткое имя → полное имя (name+repo)
+	shortToFull := make(map[string]string)
+	for fullName := range installed {
+		matches := build.RegexpALRPackageName.FindStringSubmatch(fullName)
+		if matches != nil {
+			pkgName := matches[build.RegexpALRPackageName.SubexpIndex("package")]
+			shortToFull[pkgName] = fullName
+		}
+	}
+
+	resolved := make([]string, len(names))
+	for i, name := range names {
+		if fullName, ok := shortToFull[name]; ok {
+			resolved[i] = fullName
+		} else {
+			resolved[i] = name
+		}
+	}
+
+	return resolved, nil
 }
