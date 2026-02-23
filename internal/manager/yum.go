@@ -20,6 +20,7 @@
 package manager
 
 import (
+	"bufio"
 	"fmt"
 	"os/exec"
 )
@@ -101,6 +102,42 @@ func (y *YUM) Upgrade(opts *Opts, pkgs ...string) error {
 		return fmt.Errorf("yum: upgrade: %w", err)
 	}
 	return nil
+}
+
+func (y *YUM) ListAvailable(prefix string) ([]string, error) {
+	cmd := exec.Command("yum", "repoquery", "--qf", "%{name}\n", "--quiet", prefix+"*")
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("yum: listavailable: %w", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("yum: listavailable: %w", err)
+	}
+
+	seen := make(map[string]struct{})
+	var pkgs []string
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		name := scanner.Text()
+		if name == "" {
+			continue
+		}
+		if _, ok := seen[name]; !ok {
+			seen[name] = struct{}{}
+			pkgs = append(pkgs, name)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("yum: listavailable: %w", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return nil, fmt.Errorf("yum: listavailable: %w", err)
+	}
+
+	return pkgs, nil
 }
 
 func (y *YUM) UpgradeAll(opts *Opts) error {

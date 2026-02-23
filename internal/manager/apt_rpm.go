@@ -100,6 +100,10 @@ func (a *APTRpm) Upgrade(opts *Opts, pkgs ...string) error {
 	return a.Install(opts, pkgs...)
 }
 
+func (a *APTRpm) ListAvailable(prefix string) ([]string, error) {
+	return aptCacheListAvailable(prefix)
+}
+
 func (a *APTRpm) UpgradeAll(opts *Opts) error {
 	opts = ensureOpts(opts)
 	cmd := a.getCmd(opts, "apt-get", "dist-upgrade")
