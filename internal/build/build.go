@@ -614,9 +614,9 @@ func (b *Builder) BuildALRDeps(
 		allPkgs = append(allPkgs, p.pkg)
 	}
 
-	slog.Info("DEBUG: allPkgs count", "count", len(allPkgs))
+	slog.Debug("allPkgs count", "count", len(allPkgs))
 	for _, p := range allPkgsWithKeys {
-		slog.Info("DEBUG: package in depTree", "key", p.key, "name", p.pkg.Name, "repo", p.pkg.Repository)
+		slog.Debug("package in depTree", "key", p.key, "name", p.pkg.Name, "repo", p.pkg.Repository)
 	}
 
 	needBuildPkgs, err := b.installerExecutor.FilterPackagesByVersion(ctx, allPkgs, input.OSRelease())
@@ -630,9 +630,9 @@ func (b *Builder) BuildALRDeps(
 		needBuildNames[pkg.Name] = true
 	}
 
-	slog.Info("DEBUG: needBuildPkgs count", "count", len(needBuildPkgs))
+	slog.Debug("needBuildPkgs count", "count", len(needBuildPkgs))
 	for _, pkg := range needBuildPkgs {
-		slog.Info("DEBUG: package needs build", "name", pkg.Name)
+		slog.Debug("package needs build", "name", pkg.Name)
 	}
 
 	// Строим needBuildSet по КЛЮЧАМ depTree, а не по pkg.Name
@@ -647,13 +647,13 @@ func (b *Builder) BuildALRDeps(
 
 	// Шаг 3: Группируем подпакеты по basePkgName для оптимизации сборки
 	// Если несколько подпакетов из одного мультипакета, собираем их вместе
-	slog.Info("DEBUG: sortedPkgs", "pkgs", sortedPkgs)
+	slog.Debug("sortedPkgs", "pkgs", sortedPkgs)
 
 	// Шаг 4: Собираем пакеты в правильном порядке, проверяя кеш
 	for _, pkgName := range sortedPkgs {
 		node := depTree[pkgName]
 		if node == nil {
-			slog.Info("DEBUG: node is nil", "pkgName", pkgName)
+			slog.Debug("node is nil", "pkgName", pkgName)
 			continue
 		}
 
@@ -662,7 +662,7 @@ func (b *Builder) BuildALRDeps(
 
 		// Пропускаем уже установленные пакеты
 		if !needBuildSet[pkgName] {
-			slog.Info("DEBUG: skipping (not in needBuildSet)", "pkgName", pkgName)
+			slog.Debug("skipping (not in needBuildSet)", "pkgName", pkgName)
 			continue
 		}
 
@@ -687,12 +687,12 @@ func (b *Builder) BuildALRDeps(
 
 		if allInCache {
 			// Подпакет в кеше, используем его
-			slog.Info("DEBUG: using cached package", "pkgName", pkgName)
+			slog.Debug("using cached package", "pkgName", pkgName)
 			buildDeps = append(buildDeps, cachedDeps...)
 			continue
 		}
 
-		slog.Info("DEBUG: building package", "pkgName", pkgName)
+		slog.Debug("building package", "pkgName", pkgName)
 
 		// Собираем только запрошенный подпакет
 		// SkipDepsBuilding: true предотвращает рекурсивный вызов BuildALRDeps
