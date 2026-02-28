@@ -162,6 +162,12 @@ func main() {
 		setLogLevel(envLevel)
 	}
 
+	// Автоматически подавляем INFO-логи при перенаправлении stdout (pipe/file),
+	// если пользователь не задал уровень явно через ALR_LOG_LEVEL
+	if os.Getenv("ALR_LOG_LEVEL") == "" && !isatty.IsTerminal(os.Stdout.Fd()) {
+		setLogLevel("WARN")
+	}
+
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
