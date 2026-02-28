@@ -150,17 +150,11 @@ func BuildCmd() *cli.Command {
 				return cliutils.FormatCliExit(gotext.Get("Nothing to build"), nil)
 			}
 
-
-
-
-
 			installer, installerClose, err := build.GetSafeInstaller()
 			if err != nil {
 				return err
 			}
 			defer installerClose()
-
-
 
 			scripter, scripterClose, err := build.GetSafeScriptExecutor()
 			if err != nil {

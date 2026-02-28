@@ -24,9 +24,9 @@ import (
 	"fmt"
 	"log/slog"
 
+	"gitea.plemya-x.ru/xpamych/vercmp"
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
-	"gitea.plemya-x.ru/xpamych/vercmp"
 	"golang.org/x/exp/maps"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/build"
@@ -55,13 +55,11 @@ func UpgradeCmd() *cli.Command {
 			},
 		},
 		Action: utils.RootNeededAction(func(c *cli.Context) error {
-
 			installer, installerClose, err := build.GetSafeInstaller()
 			if err != nil {
 				return err
 			}
 			defer installerClose()
-
 
 			scripter, scripterClose, err := build.GetSafeScriptExecutor()
 			if err != nil {

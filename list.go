@@ -59,7 +59,6 @@ func ListCmd() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
-
 			ctx := c.Context
 
 			deps, err := appbuilder.

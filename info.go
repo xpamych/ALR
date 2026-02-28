@@ -47,7 +47,6 @@ func InfoCmd() *cli.Command {
 			},
 		},
 		BashComplete: cliutils.BashCompleteWithError(func(c *cli.Context) error {
-
 			ctx := c.Context
 			deps, err := appbuilder.
 				New(ctx).

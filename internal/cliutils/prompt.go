@@ -107,7 +107,7 @@ func FlattenPkgs(ctx context.Context, found map[string][]alrsh.Package, verb str
 }
 
 // FlattenPkgsWithContext расширенная версия FlattenPkgs с контекстом обработки зависимостей
-func FlattenPkgsWithContext(ctx context.Context, found map[string][]alrsh.Package, verb string, interactive bool, isDependency bool) []alrsh.Package {
+func FlattenPkgsWithContext(ctx context.Context, found map[string][]alrsh.Package, verb string, interactive, isDependency bool) []alrsh.Package {
 	var outPkgs []alrsh.Package
 	for _, pkgs := range found {
 		if len(pkgs) > 1 {
@@ -141,21 +141,21 @@ func isMultiPackage(pkgs []alrsh.Package) bool {
 	if len(pkgs) <= 1 {
 		return false
 	}
-	
+
 	// Проверяем, что у всех пакетов одинаковый BasePkgName и Repository
 	firstBasePkg := pkgs[0].BasePkgName
 	firstRepo := pkgs[0].Repository
-	
+
 	if firstBasePkg == "" {
 		return false // Не мультипакет
 	}
-	
+
 	for _, pkg := range pkgs[1:] {
 		if pkg.BasePkgName != firstBasePkg || pkg.Repository != firstRepo {
 			return false
 		}
 	}
-	
+
 	return true
 }
 

@@ -21,5 +21,5 @@ const (
 	SystemCachePath  = "/var/cache/alr"
 	TempDir          = "/tmp/alr"
 	// PrivilegedGroup - устарело, используйте GetPrivilegedGroup()
-	PrivilegedGroup  = "wheel" // оставлено для обратной совместимости
+	PrivilegedGroup = "wheel" // оставлено для обратной совместимости
 )

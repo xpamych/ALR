@@ -19,6 +19,7 @@ package build
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
@@ -62,6 +63,26 @@ func (b *Builder) ResolveDependencyTree(
 		found, notFound, err := b.repos.FindPkgs(ctx, pkgNames)
 		if err != nil {
 			return fmt.Errorf("failed to find packages: %w", err)
+		}
+
+		// При preferALRDeps=false: для пакетов, найденных в ALR, проверяем
+		// наличие в системном репо. Если пакет доступен в системном репо —
+		// предпочитаем системный пакет.
+		if b.cfg != nil && !b.cfg.PreferALRDeps() && b.mgr != nil {
+			for pkgName := range found {
+				available, err := b.mgr.ListAvailable(pkgName)
+				if err != nil {
+					continue
+				}
+				for _, av := range available {
+					if av == pkgName {
+						slog.Debug("Preferring system package over ALR", "pkg", pkgName)
+						delete(found, pkgName)
+						notFound = append(notFound, pkgName)
+						break
+					}
+				}
+			}
 		}
 
 		// Собираем системные зависимости (не найденные в ALR)

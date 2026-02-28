@@ -149,3 +149,10 @@ func (c *SystemConfig) SetUpdateSystemOnUpgrade(v bool) {
 		panic(err)
 	}
 }
+
+func (c *SystemConfig) SetPreferALRDeps(v bool) {
+	err := c.k.Set("preferALRDeps", v)
+	if err != nil {
+		panic(err)
+	}
+}

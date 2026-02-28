@@ -47,7 +47,6 @@ func InternalBuildCmd() *cli.Command {
 
 			slog.Debug("start _internal-safe-script-executor", "uid", syscall.Getuid(), "gid", syscall.Getgid())
 
-
 			cfg := config.New()
 			err := cfg.Load()
 			if err != nil {
@@ -155,5 +154,3 @@ func InternalInstallCmd() *cli.Command {
 		},
 	}
 }
-
-

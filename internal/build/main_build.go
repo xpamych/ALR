@@ -46,6 +46,8 @@ func NewMainBuilder(
 			cfg,
 		},
 		repos: repos,
+		mgr:   mgr,
+		cfg:   cfg,
 	}
 
 	return builder, nil

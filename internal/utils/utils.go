@@ -21,8 +21,9 @@ import (
 	"os"
 	"os/user"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/fsutils"
 	"golang.org/x/sys/unix"
+
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/fsutils"
 )
 
 func NoNewPrivs() error {

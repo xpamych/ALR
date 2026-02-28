@@ -35,8 +35,8 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
 	finddeps "gitea.plemya-x.ru/Plemya-x/ALR/internal/build/find_deps"
+	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/helpers"
@@ -187,8 +187,8 @@ func (e *LocalScriptExecutor) ExecuteSecondPass(
 			return nil, err
 		}
 
-		pkgName := packager.ConventionalFileName(pkgInfo) // Получаем имя файла пакета
-		pkgPath := filepath.Join(pkgDirs.BaseDir, pkgName)   // Определяем путь к пакету
+		pkgName := packager.ConventionalFileName(pkgInfo)  // Получаем имя файла пакета
+		pkgPath := filepath.Join(pkgDirs.BaseDir, pkgName) // Определяем путь к пакету
 
 		slog.Info(gotext.Get("Creating package file"), "path", pkgPath, "name", pkgName)
 

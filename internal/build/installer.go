@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/leonelquinteros/gotext"
 	"gitea.plemya-x.ru/xpamych/vercmp"
+	"github.com/leonelquinteros/gotext"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"

@@ -21,14 +21,15 @@ package types
 
 // Config represents the ALR configuration file
 type Config struct {
-	RootCmd             string   `json:"rootCmd" koanf:"rootCmd"`
-	UseRootCmd          bool     `json:"useRootCmd" koanf:"useRootCmd"`
-	PagerStyle          string   `json:"pagerStyle" koanf:"pagerStyle"`
-	IgnorePkgUpdates    []string `json:"ignorePkgUpdates" koanf:"ignorePkgUpdates"`
-	Repos               []Repo   `json:"repo" koanf:"repo"`
-	AutoPull            bool     `json:"autoPull" koanf:"autoPull"`
-	LogLevel            string   `json:"logLevel" koanf:"logLevel"`
-	UpdateSystemOnUpgrade bool   `json:"updateSystemOnUpgrade" koanf:"updateSystemOnUpgrade"`
+	RootCmd               string   `json:"rootCmd" koanf:"rootCmd"`
+	UseRootCmd            bool     `json:"useRootCmd" koanf:"useRootCmd"`
+	PagerStyle            string   `json:"pagerStyle" koanf:"pagerStyle"`
+	IgnorePkgUpdates      []string `json:"ignorePkgUpdates" koanf:"ignorePkgUpdates"`
+	Repos                 []Repo   `json:"repo" koanf:"repo"`
+	AutoPull              bool     `json:"autoPull" koanf:"autoPull"`
+	LogLevel              string   `json:"logLevel" koanf:"logLevel"`
+	UpdateSystemOnUpgrade bool     `json:"updateSystemOnUpgrade" koanf:"updateSystemOnUpgrade"`
+	PreferALRDeps         bool     `json:"preferALRDeps" koanf:"preferALRDeps"`
 }
 
 // Repo represents a ALR repo within a configuration file

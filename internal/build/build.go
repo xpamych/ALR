@@ -166,6 +166,7 @@ type PackageFinder interface {
 type Config interface {
 	GetPaths() *config.Paths
 	PagerStyle() string
+	PreferALRDeps() bool
 }
 
 type FunctionsOutput struct {
@@ -239,7 +240,8 @@ type Builder struct {
 	installerExecutor    InstallerExecutor
 	sourceExecutor       SourceDownloaderExecutor
 	repos                PackageFinder
-	// mgr                  manager.Manager
+	mgr                  manager.Manager
+	cfg                  Config
 }
 
 type BuildArgs struct {
@@ -345,7 +347,7 @@ func (b *Builder) BuildPackage(
 			slog.Info(gotext.Get("Using cached package"), "name", basePkg)
 			return builtDeps, nil
 		}
-		
+
 		// Обновляем varsOfPackages только теми пакетами, которые нужно собрать
 		varsOfPackages = remainingVars
 	}
@@ -554,7 +556,7 @@ func (b *Builder) InstallALRPackages(
 		if err != nil {
 			return err
 		}
-		
+
 		// Отслеживание установки ALR пакетов
 		for _, dep := range res {
 			if stats.ShouldTrackPackage(dep.Name) {
@@ -883,7 +885,7 @@ func (i *Builder) InstallPkgs(
 		if err != nil {
 			return nil, err
 		}
-		
+
 		// Отслеживание установки локальных пакетов
 		for _, dep := range builtDeps {
 			if stats.ShouldTrackPackage(dep.Name) {

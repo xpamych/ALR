@@ -95,6 +95,7 @@ var configKeys = []string{
 	"logLevel",
 	"ignorePkgUpdates",
 	"updateSystemOnUpgrade",
+	"preferALRDeps",
 }
 
 func SetConfig() *cli.Command {
@@ -162,6 +163,12 @@ func SetConfig() *cli.Command {
 					return cliutils.FormatCliExit(gotext.Get("invalid boolean value for %s: %s", key, value), err)
 				}
 				deps.Cfg.System.SetUpdateSystemOnUpgrade(boolValue)
+			case "preferALRDeps":
+				boolValue, err := strconv.ParseBool(value)
+				if err != nil {
+					return cliutils.FormatCliExit(gotext.Get("invalid boolean value for %s: %s", key, value), err)
+				}
+				deps.Cfg.System.SetPreferALRDeps(boolValue)
 			case "repo", "repos":
 				return cliutils.FormatCliExit(gotext.Get("use 'repo add/remove' commands to manage repositories"), nil)
 			default:
@@ -233,6 +240,8 @@ func GetConfig() *cli.Command {
 				}
 			case "updateSystemOnUpgrade":
 				fmt.Println(deps.Cfg.UpdateSystemOnUpgrade())
+			case "preferALRDeps":
+				fmt.Println(deps.Cfg.PreferALRDeps())
 			case "repo", "repos":
 				repos := deps.Cfg.Repos()
 				if len(repos) == 0 {

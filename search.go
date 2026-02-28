@@ -71,7 +71,6 @@ func SearchCmd() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
-
 			ctx := c.Context
 
 			var names []string
