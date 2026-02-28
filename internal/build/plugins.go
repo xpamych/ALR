@@ -97,13 +97,13 @@ func getSafeExecutor[T any](subCommand, pluginName string) (T, func(), error) {
 	setCommonCmdEnv(cmd)
 
 	client := plugin.NewClient(&plugin.ClientConfig{
-		HandshakeConfig: HandshakeConfig,
-		Plugins:         pluginMap,
-		Cmd:             cmd,
-		Logger:          logger.GetHCLoggerAdapter(),
-		SkipHostEnv:     true,
+		HandshakeConfig:  HandshakeConfig,
+		Plugins:          pluginMap,
+		Cmd:              cmd,
+		Logger:           logger.GetHCLoggerAdapter(),
+		SkipHostEnv:      true,
 		UnixSocketConfig: &plugin.UnixSocketConfig{},
-		SyncStderr: os.Stderr,
+		SyncStderr:       os.Stderr,
 	})
 	rpcClient, err := client.Client()
 	if err != nil {

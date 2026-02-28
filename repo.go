@@ -132,7 +132,6 @@ func RemoveRepoCmd() *cli.Command {
 				return cliutils.FormatCliExit(gotext.Get("Error saving config"), err)
 			}
 
-
 			deps, err = appbuilder.
 				New(ctx).
 				UseConfig(cfg).

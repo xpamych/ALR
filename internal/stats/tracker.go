@@ -53,7 +53,7 @@ func generateFingerprint(packageName string) string {
 }
 
 // TrackInstallation отправляет статистику установки пакета
-func TrackInstallation(ctx context.Context, packageName string, installType string) {
+func TrackInstallation(ctx context.Context, packageName, installType string) {
 	// Запускаем в отдельной горутине, чтобы не блокировать основной процесс
 	go func() {
 		data := InstallationData{

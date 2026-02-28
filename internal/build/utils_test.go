@@ -24,8 +24,8 @@ import (
 )
 
 type mockInput struct {
-	repo    string
-	osInfo  *distro.OSRelease
+	repo   string
+	osInfo *distro.OSRelease
 }
 
 func (m *mockInput) Repository() string {

@@ -26,9 +26,9 @@ import (
 	"path/filepath"
 
 	"github.com/goccy/go-yaml"
+	ktoml "github.com/knadh/koanf/parsers/toml/v2"
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/v2"
-	ktoml "github.com/knadh/koanf/parsers/toml/v2"
 
 	"gitea.plemya-x.ru/Plemya-x/ALR/internal/constants"
 	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
@@ -52,13 +52,14 @@ func New() *ALRConfig {
 func defaultConfigKoanf() *koanf.Koanf {
 	k := koanf.New(".")
 	defaults := map[string]interface{}{
-		"rootCmd":          "sudo",
-		"useRootCmd":       true,
-		"pagerStyle":       "native",
-		"ignorePkgUpdates": []string{},
-		"logLevel":         "info",
-		"autoPull":         true,
+		"rootCmd":               "sudo",
+		"useRootCmd":            true,
+		"pagerStyle":            "native",
+		"ignorePkgUpdates":      []string{},
+		"logLevel":              "info",
+		"autoPull":              true,
 		"updateSystemOnUpgrade": false,
+		"preferALRDeps":         true,
 		"repo": []types.Repo{
 			{
 				Name: "alr-default",
@@ -107,7 +108,7 @@ func (c *ALRConfig) Load() error {
 	c.paths.UserConfigPath = constants.SystemConfigPath
 	c.paths.CacheDir = constants.SystemCachePath
 	c.paths.RepoDir = filepath.Join(c.paths.CacheDir, "repo")
-	c.paths.PkgsDir = filepath.Join(constants.TempDir, "pkgs")  // Перемещаем в /tmp/alr/pkgs
+	c.paths.PkgsDir = filepath.Join(constants.TempDir, "pkgs") // Перемещаем в /tmp/alr/pkgs
 	c.paths.DBPath = filepath.Join(c.paths.CacheDir, "alr.db")
 
 	// Проверяем существование кэш-директории, но не пытаемся создать
@@ -144,18 +145,23 @@ func (c *ALRConfig) migrateConfig() error {
 			return nil
 		}
 	} else {
-		// Если файл существует, проверяем, есть ли в нем новая опция
+		needSave := false
+		// Если файл существует, проверяем, есть ли в нем новые опции
 		if !c.System.k.Exists("updateSystemOnUpgrade") {
-			// Если опции нет, добавляем ее со значением по умолчанию
 			c.System.SetUpdateSystemOnUpgrade(false)
-			// Сохраняем обновленную конфигурацию
+			needSave = true
+		}
+		if !c.System.k.Exists("preferALRDeps") {
+			c.System.SetPreferALRDeps(true)
+			needSave = true
+		}
+		if needSave {
 			if err := c.System.Save(); err != nil {
-				// Если не удается сохранить - это не критично, продолжаем работу
 				return nil
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -165,7 +171,7 @@ func (c *ALRConfig) createDefaultConfig() error {
 		// Если не root, пытаемся запустить создание конфига с повышением привилегий
 		return c.createDefaultConfigWithPrivileges()
 	}
-	
+
 	// Если уже root, создаем конфиг напрямую
 	return c.doCreateDefaultConfig()
 }
@@ -175,13 +181,13 @@ func (c *ALRConfig) createDefaultConfigWithPrivileges() error {
 	if !c.cfg.UseRootCmd {
 		return c.doCreateDefaultConfig()
 	}
-	
+
 	// Определяем команду для повышения привилегий
 	rootCmd := c.cfg.RootCmd
 	if rootCmd == "" {
 		rootCmd = "sudo" // fallback
 	}
-	
+
 	// Создаем временный файл с дефолтной конфигурацией
 	tmpFile, err := os.CreateTemp("", "alr-config-*.toml")
 	if err != nil {
@@ -189,43 +195,43 @@ func (c *ALRConfig) createDefaultConfigWithPrivileges() error {
 	}
 	defer os.Remove(tmpFile.Name())
 	defer tmpFile.Close()
-	
+
 	// Генерируем дефолтную конфигурацию во временный файл
 	defaults := defaultConfigKoanf()
 	tempSystemConfig := &SystemConfig{k: defaults}
-	
+
 	bytes, err := tempSystemConfig.k.Marshal(ktoml.Parser())
 	if err != nil {
 		return fmt.Errorf("не удалось сериализовать конфигурацию: %w", err)
 	}
-	
+
 	if _, err := tmpFile.Write(bytes); err != nil {
 		return fmt.Errorf("не удалось записать во временный файл: %w", err)
 	}
 	tmpFile.Close()
-	
+
 	// Используем команду повышения привилегий для создания директории и копирования файла
-	
+
 	// Создаем директорию с правами
 	configDir := filepath.Dir(constants.SystemConfigPath)
 	mkdirCmd := exec.Command(rootCmd, "mkdir", "-p", configDir)
 	if err := mkdirCmd.Run(); err != nil {
 		return fmt.Errorf("не удалось создать директорию %s: %w", configDir, err)
 	}
-	
+
 	// Копируем файл в нужное место
 	cpCmd := exec.Command(rootCmd, "cp", tmpFile.Name(), constants.SystemConfigPath)
 	if err := cpCmd.Run(); err != nil {
 		return fmt.Errorf("не удалось скопировать конфигурацию в %s: %w", constants.SystemConfigPath, err)
 	}
-	
+
 	// Устанавливаем правильные права доступа
 	chmodCmd := exec.Command(rootCmd, "chmod", "644", constants.SystemConfigPath)
 	if err := chmodCmd.Run(); err != nil {
 		// Не критично, продолжаем
 		fmt.Fprintf(os.Stderr, "Предупреждение: не удалось установить права доступа для %s: %v\n", constants.SystemConfigPath, err)
 	}
-	
+
 	return nil
 }
 
@@ -234,22 +240,22 @@ func (c *ALRConfig) doCreateDefaultConfig() error {
 	configDir := filepath.Dir(constants.SystemConfigPath)
 	if _, err := os.Stat(configDir); os.IsNotExist(err) {
 		// Пытаемся создать директорию
-		if err := os.MkdirAll(configDir, 0755); err != nil {
+		if err := os.MkdirAll(configDir, 0o755); err != nil {
 			return fmt.Errorf("не удалось создать директорию %s: %w", configDir, err)
 		}
 	}
 
 	// Загружаем дефолтную конфигурацию
 	defaults := defaultConfigKoanf()
-	
+
 	// Копируем все дефолтные значения в системную конфигурацию
 	c.System.k = defaults
-	
+
 	// Сохраняем конфигурацию в файл
 	if err := c.System.Save(); err != nil {
 		return fmt.Errorf("не удалось сохранить конфигурацию в %s: %w", constants.SystemConfigPath, err)
 	}
-	
+
 	return nil
 }
 
@@ -262,4 +268,5 @@ func (c *ALRConfig) IgnorePkgUpdates() []string  { return c.cfg.IgnorePkgUpdates
 func (c *ALRConfig) LogLevel() string            { return c.cfg.LogLevel }
 func (c *ALRConfig) UseRootCmd() bool            { return c.cfg.UseRootCmd }
 func (c *ALRConfig) UpdateSystemOnUpgrade() bool { return c.cfg.UpdateSystemOnUpgrade }
+func (c *ALRConfig) PreferALRDeps() bool         { return c.cfg.PreferALRDeps }
 func (c *ALRConfig) GetPaths() *Paths            { return c.paths }

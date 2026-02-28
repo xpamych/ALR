@@ -38,7 +38,7 @@ import (
 func execWithPrivileges(name string, args ...string) *exec.Cmd {
 	isRoot := os.Geteuid() == 0
 	isCI := os.Getenv("CI") == "true"
-	
+
 	if !isRoot && !isCI {
 		// Если не root и не в CI, используем sudo
 		allArgs := append([]string{name}, args...)
@@ -104,7 +104,7 @@ func FixCmd() *cli.Command {
 					if err != nil {
 						// Если не получилось удалить, пробуем через sudo
 						slog.Warn(gotext.Get("Unable to remove cache item (%s) as current user, trying with sudo", entry))
-						
+
 						sudoCmd := execWithPrivileges("rm", "-rf", fullPath)
 						if sudoErr := sudoCmd.Run(); sudoErr != nil {
 							// Если и через sudo не получилось, пропускаем с предупреждением
@@ -154,7 +154,7 @@ func FixCmd() *cli.Command {
 			// Исправляем права на все существующие файлы в /tmp/alr, если там что-то есть
 			if _, err := os.Stat(tmpDir); err == nil {
 				slog.Info(gotext.Get("Fixing permissions on temporary files"))
-				
+
 				// Проверяем, есть ли файлы в директории
 				entries, err := os.ReadDir(tmpDir)
 				if err == nil && len(entries) > 0 {
@@ -163,7 +163,7 @@ func FixCmd() *cli.Command {
 					if fixErr := fixCmd.Run(); fixErr != nil {
 						slog.Warn(gotext.Get("Unable to fix file ownership"), "error", fixErr)
 					}
-					
+
 					fixCmd = execWithPrivileges("chmod", "-R", "2775", tmpDir)
 					if fixErr := fixCmd.Run(); fixErr != nil {
 						slog.Warn(gotext.Get("Unable to fix file permissions"), "error", fixErr)

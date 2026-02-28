@@ -38,18 +38,18 @@ var aurTmpl string
 
 // AUROptions содержит параметры для генерации шаблона AUR
 type AUROptions struct {
-	Name    string // Имя пакета в AUR
-	Version string // Версия пакета (опционально, если не указана - берется последняя)
-	CreateDir bool  // Создавать ли директорию для пакета и дополнительные файлы
+	Name      string // Имя пакета в AUR
+	Version   string // Версия пакета (опционально, если не указана - берется последняя)
+	CreateDir bool   // Создавать ли директорию для пакета и дополнительные файлы
 }
 
 // aurAPIResponse представляет структуру ответа от API AUR
 type aurAPIResponse struct {
-	Version      int         `json:"version"`      // Версия API
-	Type         string      `json:"type"`         // Тип ответа
-	ResultCount  int         `json:"resultcount"`  // Количество результатов
-	Results      []aurResult `json:"results"`      // Массив результатов
-	Error        string      `json:"error"`        // Сообщение об ошибке (если есть)
+	Version     int         `json:"version"`     // Версия API
+	Type        string      `json:"type"`        // Тип ответа
+	ResultCount int         `json:"resultcount"` // Количество результатов
+	Results     []aurResult `json:"results"`     // Массив результатов
+	Error       string      `json:"error"`       // Сообщение об ошибке (если есть)
 }
 
 // aurResult содержит информацию о пакете из AUR
@@ -78,25 +78,25 @@ type aurResult struct {
 	Provides       []string `json:"Provides"`
 	Replaces       []string `json:"Replaces"`
 	// Дополнительные поля для данных из PKGBUILD
-	Sources      []string `json:"-"`
-	Checksums    []string `json:"-"`
-	BuildFunc    string   `json:"-"`
-	PackageFunc  string   `json:"-"`
-	PrepareFunc  string   `json:"-"`
-	PackageType  string   `json:"-"`  // python, go, rust, cpp, nodejs, bin, git
-	HasDesktop   bool     `json:"-"`  // Есть ли desktop файлы
-	HasSystemd   bool     `json:"-"`  // Есть ли systemd сервисы
-	HasVersion   bool     `json:"-"`  // Есть ли функция version()
-	HasScripts   []string `json:"-"`  // Дополнительные скрипты (postinstall, postremove, etc)
-	HasPatches   bool     `json:"-"`  // Есть ли патчи
+	Sources       []string `json:"-"`
+	Checksums     []string `json:"-"`
+	BuildFunc     string   `json:"-"`
+	PackageFunc   string   `json:"-"`
+	PrepareFunc   string   `json:"-"`
+	PackageType   string   `json:"-"` // python, go, rust, cpp, nodejs, bin, git
+	HasDesktop    bool     `json:"-"` // Есть ли desktop файлы
+	HasSystemd    bool     `json:"-"` // Есть ли systemd сервисы
+	HasVersion    bool     `json:"-"` // Есть ли функция version()
+	HasScripts    []string `json:"-"` // Дополнительные скрипты (postinstall, postremove, etc)
+	HasPatches    bool     `json:"-"` // Есть ли патчи
 	Architectures []string `json:"-"` // Поддерживаемые архитектуры
-	
+
 	// Автоматически определяемые файлы для install-* команд
-	BinaryFiles  []string `json:"-"`  // Исполняемые файлы для install-binary
-	LicenseFiles []string `json:"-"`  // Лицензионные файлы для install-license
-	ManualFiles  []string `json:"-"`  // Man страницы для install-manual
-	DesktopFiles []string `json:"-"`  // Desktop файлы для install-desktop
-	ServiceFiles []string `json:"-"`  // Systemd сервисы для install-systemd
+	BinaryFiles     []string          `json:"-"` // Исполняемые файлы для install-binary
+	LicenseFiles    []string          `json:"-"` // Лицензионные файлы для install-license
+	ManualFiles     []string          `json:"-"` // Man страницы для install-manual
+	DesktopFiles    []string          `json:"-"` // Desktop файлы для install-desktop
+	ServiceFiles    []string          `json:"-"` // Systemd сервисы для install-systemd
 	CompletionFiles map[string]string `json:"-"` // Файлы автодополнения по типу (bash, zsh, fish)
 }
 
@@ -194,7 +194,7 @@ func (r aurResult) ScriptsString() string {
 // GenerateInstallCommands генерирует команды install-* для шаблона
 func (r aurResult) GenerateInstallCommands() string {
 	var commands []string
-	
+
 	// install-binary команды
 	for _, binary := range r.BinaryFiles {
 		if binary == "./"+r.Name {
@@ -203,22 +203,22 @@ func (r aurResult) GenerateInstallCommands() string {
 			commands = append(commands, fmt.Sprintf("\tinstall-binary %s %s", binary, r.Name))
 		}
 	}
-	
+
 	// install-license команды
 	for _, license := range r.LicenseFiles {
 		commands = append(commands, fmt.Sprintf("\tinstall-license %s %s/LICENSE", license, r.Name))
 	}
-	
+
 	// install-manual команды
 	for _, manual := range r.ManualFiles {
 		commands = append(commands, fmt.Sprintf("\tinstall-manual %s", manual))
 	}
-	
+
 	// install-desktop команды
 	for _, desktop := range r.DesktopFiles {
 		commands = append(commands, fmt.Sprintf("\tinstall-desktop %s", desktop))
 	}
-	
+
 	// install-systemd команды
 	for _, service := range r.ServiceFiles {
 		if strings.Contains(service, "user") {
@@ -227,7 +227,7 @@ func (r aurResult) GenerateInstallCommands() string {
 			commands = append(commands, fmt.Sprintf("\tinstall-systemd %s", service))
 		}
 	}
-	
+
 	// install-completion команды
 	for shell, file := range r.CompletionFiles {
 		switch shell {
@@ -239,11 +239,11 @@ func (r aurResult) GenerateInstallCommands() string {
 			commands = append(commands, fmt.Sprintf("\t%s completion fish | install-completion fish %s", r.Name, r.Name))
 		}
 	}
-	
+
 	if len(commands) == 0 {
 		return "\t# TODO: Добавьте команды установки файлов"
 	}
-	
+
 	return strings.Join(commands, "\n")
 }
 
@@ -251,43 +251,43 @@ func (r aurResult) GenerateInstallCommands() string {
 func fetchPKGBUILD(packageBase string) (string, error) {
 	// URL для raw PKGBUILD
 	pkgbuildURL := fmt.Sprintf("https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=%s", packageBase)
-	
+
 	res, err := http.Get(pkgbuildURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch PKGBUILD: %w", err)
 	}
 	defer res.Body.Close()
-	
+
 	if res.StatusCode != 200 {
 		return "", fmt.Errorf("failed to fetch PKGBUILD: status %s", res.Status)
 	}
-	
+
 	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", fmt.Errorf("failed to read PKGBUILD: %w", err)
 	}
-	
+
 	return string(data), nil
 }
 
 // parseSources извлекает источники из PKGBUILD
 func parseSources(pkgbuild string) []string {
 	var sources []string
-	
+
 	// Регулярное выражение для поиска массива source
 	// Поддерживает как однострочные, так и многострочные определения
 	sourceRegex := regexp.MustCompile(`(?ms)source=\((.*?)\)`)
 	matches := sourceRegex.FindStringSubmatch(pkgbuild)
-	
+
 	if len(matches) > 1 {
 		// Извлекаем содержимое массива source
 		sourceContent := matches[1]
-		
+
 		// Разбираем элементы массива
 		// Учитываем кавычки и переносы строк
 		elemRegex := regexp.MustCompile(`['"]([^'"]+)['"]`)
 		elements := elemRegex.FindAllStringSubmatch(sourceContent, -1)
-		
+
 		for _, elem := range elements {
 			if len(elem) > 1 {
 				source := elem[1]
@@ -302,7 +302,7 @@ func parseSources(pkgbuild string) []string {
 			}
 		}
 	}
-	
+
 	// Если источники не найдены в source=(), проверяем source_x86_64 и другие архитектуры
 	if len(sources) == 0 {
 		archSourceRegex := regexp.MustCompile(`(?ms)source_(?:x86_64|aarch64)=\((.*?)\)`)
@@ -311,7 +311,7 @@ func parseSources(pkgbuild string) []string {
 			sourceContent := matches[1]
 			elemRegex := regexp.MustCompile(`['"]([^'"]+)['"]`)
 			elements := elemRegex.FindAllStringSubmatch(sourceContent, -1)
-			
+
 			for _, elem := range elements {
 				if len(elem) > 1 {
 					source := elem[1]
@@ -324,36 +324,36 @@ func parseSources(pkgbuild string) []string {
 			}
 		}
 	}
-	
+
 	return sources
 }
 
 // parseChecksums извлекает контрольные суммы из PKGBUILD
 func parseChecksums(pkgbuild string) []string {
 	var checksums []string
-	
+
 	// Пробуем разные типы контрольных сумм
 	for _, hashType := range []string{"sha256sums", "sha512sums", "sha1sums", "md5sums", "b2sums"} {
 		regex := regexp.MustCompile(fmt.Sprintf(`(?ms)%s=\((.*?)\)`, hashType))
 		matches := regex.FindStringSubmatch(pkgbuild)
-		
+
 		if len(matches) > 1 {
 			content := matches[1]
 			elemRegex := regexp.MustCompile(`['"]([^'"]+)['"]`)
 			elements := elemRegex.FindAllStringSubmatch(content, -1)
-			
+
 			for _, elem := range elements {
 				if len(elem) > 1 {
 					checksums = append(checksums, elem[1])
 				}
 			}
-			
+
 			if len(checksums) > 0 {
 				break // Используем первый найденный тип хешей
 			}
 		}
 	}
-	
+
 	return checksums
 }
 
@@ -364,19 +364,19 @@ func parseFunctions(pkgbuild string) (buildFunc, packageFunc, prepareFunc string
 	if matches := buildRegex.FindStringSubmatch(pkgbuild); len(matches) > 1 {
 		buildFunc = strings.TrimSpace(matches[1])
 	}
-	
+
 	// Извлекаем функцию package()
 	packageRegex := regexp.MustCompile(`(?ms)^package\(\)\s*\{(.*?)^\}`)
 	if matches := packageRegex.FindStringSubmatch(pkgbuild); len(matches) > 1 {
 		packageFunc = strings.TrimSpace(matches[1])
 	}
-	
+
 	// Извлекаем функцию prepare()
 	prepareRegex := regexp.MustCompile(`(?ms)^prepare\(\)\s*\{(.*?)^\}`)
 	if matches := prepareRegex.FindStringSubmatch(pkgbuild); len(matches) > 1 {
 		prepareFunc = strings.TrimSpace(matches[1])
 	}
-	
+
 	return buildFunc, packageFunc, prepareFunc
 }
 
@@ -384,7 +384,7 @@ func parseFunctions(pkgbuild string) (buildFunc, packageFunc, prepareFunc string
 func detectInstallableFiles(pkg *aurResult, pkgbuild string) {
 	// Инициализируем карту для файлов автодополнения
 	pkg.CompletionFiles = make(map[string]string)
-	
+
 	// Для простоты, добавляем стандартные файлы для типа пакета
 	switch pkg.PackageType {
 	case "go":
@@ -400,26 +400,26 @@ func detectInstallableFiles(pkg *aurResult, pkgbuild string) {
 			pkg.BinaryFiles = append(pkg.BinaryFiles, "./"+pkg.Name)
 		}
 	}
-	
+
 	// Ищем лицензионные файлы для install-license с более точными паттернами
 	licenseRegex := regexp.MustCompile(`(?i)\b(LICENSE|COPYING|COPYRIGHT|LICENCE)(?:\.[a-zA-Z0-9]+)?\b`)
 	licenseMatches := licenseRegex.FindAllString(pkgbuild, -1)
 	for _, match := range licenseMatches {
 		// Фильтруем только реальные файлы лицензий
-		if strings.Contains(strings.ToLower(match), "license") || 
-		   strings.Contains(strings.ToLower(match), "copying") || 
-		   strings.Contains(strings.ToLower(match), "copyright") {
+		if strings.Contains(strings.ToLower(match), "license") ||
+			strings.Contains(strings.ToLower(match), "copying") ||
+			strings.Contains(strings.ToLower(match), "copyright") {
 			if !contains(pkg.LicenseFiles, "./"+match) {
 				pkg.LicenseFiles = append(pkg.LicenseFiles, "./"+match)
 			}
 		}
 	}
-	
+
 	// Если не найдены лицензионные файлы, добавляем стандартные
 	if len(pkg.LicenseFiles) == 0 {
 		pkg.LicenseFiles = append(pkg.LicenseFiles, "LICENSE")
 	}
-	
+
 	// Ищем man страницы для install-manual с более точными паттернами
 	manRegex := regexp.MustCompile(`\b\w+\.(?:1|2|3|4|5|6|7|8)(?:\.gz)?\b`)
 	manMatches := manRegex.FindAllString(pkgbuild, -1)
@@ -431,7 +431,7 @@ func detectInstallableFiles(pkg *aurResult, pkgbuild string) {
 			}
 		}
 	}
-	
+
 	// Ищем desktop файлы для install-desktop
 	desktopRegex := regexp.MustCompile(`[^/\s]*\.desktop`)
 	desktopMatches := desktopRegex.FindAllString(pkgbuild, -1)
@@ -440,7 +440,7 @@ func detectInstallableFiles(pkg *aurResult, pkgbuild string) {
 			pkg.DesktopFiles = append(pkg.DesktopFiles, "./"+match)
 		}
 	}
-	
+
 	// Ищем systemd сервисы для install-systemd
 	serviceRegex := regexp.MustCompile(`[^/\s]*\.service`)
 	serviceMatches := serviceRegex.FindAllString(pkgbuild, -1)
@@ -449,14 +449,14 @@ func detectInstallableFiles(pkg *aurResult, pkgbuild string) {
 			pkg.ServiceFiles = append(pkg.ServiceFiles, "./"+match)
 		}
 	}
-	
+
 	// Ищем файлы автодополнения
 	completionPatterns := map[string]string{
 		"bash": `completions?/.*\.bash|bash-completion`,
 		"zsh":  `completions?/.*\.zsh|zsh.*completion`,
 		"fish": `completions?/.*\.fish|fish.*completion`,
 	}
-	
+
 	for shell, pattern := range completionPatterns {
 		regex := regexp.MustCompile(fmt.Sprintf(`(?i)%s`, pattern))
 		matches := regex.FindAllString(pkgbuild, -1)
@@ -479,7 +479,7 @@ func contains(slice []string, item string) bool {
 // detectPackageType определяет тип пакета на основе имени, зависимостей и источников
 func detectPackageType(pkg *aurResult, pkgbuild string) {
 	name := strings.ToLower(pkg.Name)
-	
+
 	// Определяем тип на основе имени пакета
 	switch {
 	case strings.HasPrefix(name, "python") || strings.HasPrefix(name, "python3-"):
@@ -520,33 +520,33 @@ func detectPackageType(pkg *aurResult, pkgbuild string) {
 			}
 		}
 	}
-	
+
 	// Определяем архитектуры на основе типа пакета
 	if pkg.PackageType == "bin" {
 		pkg.Architectures = []string{"amd64"} // Бинарные пакеты обычно специфичны для архитектуры
 	} else {
 		pkg.Architectures = []string{"all"} // Исходный код собирается для любой архитектуры
 	}
-	
+
 	// Определяем наличие desktop файлов
-	pkg.HasDesktop = strings.Contains(pkgbuild, ".desktop") || 
+	pkg.HasDesktop = strings.Contains(pkgbuild, ".desktop") ||
 		strings.Contains(pkgbuild, "install-desktop") ||
 		strings.Contains(pkgbuild, "xdg-desktop")
-	
+
 	// Определяем наличие systemd сервисов
 	pkg.HasSystemd = strings.Contains(pkgbuild, ".service") ||
 		strings.Contains(pkgbuild, "systemctl") ||
 		strings.Contains(pkgbuild, "install-systemd")
-	
+
 	// Определяем наличие функции version() для -git пакетов
-	pkg.HasVersion = strings.Contains(pkgbuild, "pkgver()") || 
+	pkg.HasVersion = strings.Contains(pkgbuild, "pkgver()") ||
 		(strings.HasSuffix(name, "-git") && strings.Contains(pkgbuild, "git describe"))
-	
+
 	// Определяем наличие патчей
-	pkg.HasPatches = strings.Contains(pkgbuild, "patch ") || 
+	pkg.HasPatches = strings.Contains(pkgbuild, "patch ") ||
 		strings.Contains(pkgbuild, ".patch") ||
 		strings.Contains(pkgbuild, ".diff")
-	
+
 	// Определяем дополнительные скрипты
 	if strings.Contains(pkgbuild, "post_install") {
 		pkg.HasScripts = append(pkg.HasScripts, "postinstall")
@@ -642,13 +642,13 @@ func AUR(w io.Writer, opts AUROptions) error {
 		pkg.Sources = parseSources(pkgbuild)
 		pkg.Checksums = parseChecksums(pkgbuild)
 		pkg.BuildFunc, pkg.PackageFunc, pkg.PrepareFunc = parseFunctions(pkgbuild)
-		
+
 		// Определяем тип пакета
 		detectPackageType(&pkg, pkgbuild)
-		
+
 		// Определяем файлы для install-* команд
 		detectInstallableFiles(&pkg, pkgbuild)
-		
+
 		// Если источники не найдены, используем fallback
 		if len(pkg.Sources) == 0 {
 			fmt.Fprintf(w, "# WARNING: No sources found in PKGBUILD\n")
