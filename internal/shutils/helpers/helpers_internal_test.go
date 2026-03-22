@@ -270,6 +270,28 @@ func TestFindFiles(t *testing.T) {
 			expectedError: nil,
 		},
 		{
+			name: "Files with glob special characters in names",
+			dirsToCreate: []string{
+				"opt/my[app]",
+				"opt/lib64",
+				"usr/share/doc/package[amd64]",
+			},
+			filesToCreate: []string{
+				"opt/my[app]/config.txt",
+				"opt/my[app]/data[1].json",
+				"opt/lib64/libtest[so.1]",
+				"usr/share/doc/package[amd64]/README.md",
+			},
+			expectedOutput: []string{
+				"./opt/my[app]/config.txt",
+				"./opt/my[app]/data[1].json",
+				"./opt/lib64/libtest[so.1]",
+				"./usr/share/doc/package[amd64]/README.md",
+			},
+			args:          "\"/opt/my[app]/*\" \"/opt/lib64/*\" \"/usr/share/doc/package[amd64]/*\"",
+			expectedError: nil,
+		},
+		{
 			name:          "Not existing paths should throw error",
 			args:          "\"/opt/test/not-existing\"",
 			expectedError: doublestar.ErrPatternNotExist,

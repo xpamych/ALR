@@ -143,7 +143,7 @@ msgid "Clearing temporary directory"
 msgstr ""
 
 #: fix.go:126
-msgid "Unable to remove temporary directory as current user, trying with sudo"
+msgid "Unable to remove temporary directory (%s) as current user, trying with sudo"
 msgstr ""
 
 #: fix.go:129

@@ -397,6 +397,7 @@ func (e *LocalScriptExecutor) ExecutePackageFunctions(
 			ctx,
 			interp.Dir(dirs.PkgDir),
 			interp.StdIO(os.Stdin, buf, os.Stderr),
+			interp.Params("-f"), // noglob - disable glob expansion for files with [ ] in names
 		)
 		if err != nil {
 			return nil, err
