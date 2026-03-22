@@ -175,7 +175,26 @@ func buildContents(vars *alrsh.Package, dirs types.Directories, preferedContents
 func normalizeContents(contents []*files.Content) {
 	for _, content := range contents {
 		content.Destination = filepath.Join("/", content.Destination)
+		// Escape glob special characters in Source and Destination paths
+		// to prevent nfpm from treating them as glob patterns.
+		// This fixes issues with files like "[Archive]-Old-Roadmaps.md"
+		content.Source = escapeGlobChars(content.Source)
+		content.Destination = escapeGlobChars(content.Destination)
 	}
+}
+
+// escapeGlobChars escapes glob special characters ([, ]) in a path
+// so that nfpm treats them as literal characters.
+func escapeGlobChars(path string) string {
+	var buf strings.Builder
+	for _, r := range path {
+		switch r {
+		case '[', ']':
+			buf.WriteRune('\\')
+		}
+		buf.WriteRune(r)
+	}
+	return buf.String()
 }
 
 var RegexpALRPackageName = regexp.MustCompile(`^(?P<package>[^+]+)\+(?P<repo>.+)$`)

@@ -123,7 +123,7 @@ func FixCmd() *cli.Command {
 				err = os.RemoveAll(tmpDir)
 				if err != nil {
 					// Если не получилось удалить, пробуем через sudo
-					slog.Warn(gotext.Get("Unable to remove temporary directory as current user, trying with sudo"))
+					slog.Warn(gotext.Get("Unable to remove temporary directory (%s) as current user, trying with sudo", tmpDir))
 					sudoCmd := execWithPrivileges("rm", "-rf", tmpDir)
 					if sudoErr := sudoCmd.Run(); sudoErr != nil {
 						slog.Error(gotext.Get("Unable to remove temporary directory"), "error", err)

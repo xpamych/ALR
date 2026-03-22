@@ -21,6 +21,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/bmatcuk/doublestar/v4"
 	"mvdan.cc/sh/v3/interp"
@@ -33,6 +34,43 @@ func matchNamePattern(name, pattern string) bool {
 		return false
 	}
 	return matched
+}
+
+// escapeGlob escapes special glob characters (*, ?, [, ]) in a path
+// so that they are treated as literal characters instead of glob patterns.
+// This is needed when a directory or filename contains these characters.
+func escapeGlob(path string) string {
+	var buf strings.Builder
+	for _, r := range path {
+		switch r {
+		case '*', '?', '[', ']':
+			buf.WriteRune('\\')
+		}
+		buf.WriteRune(r)
+	}
+	return buf.String()
+}
+
+// splitGlobPath splits a path into a base directory and a glob pattern.
+// It finds the first glob special character (* or ?) and splits there.
+// Square brackets [ ] are always treated as literal characters since they
+// appear in real file paths (e.g., "config[amd64].txt").
+func splitGlobPath(searchPath string) (basepath, pattern string) {
+	// Find the first * or ? which indicates the start of a glob pattern
+	for i, r := range searchPath {
+		if r == '*' || r == '?' {
+			// Find the last separator before this position
+			lastSep := strings.LastIndexAny(searchPath[:i], `/\`)
+			if lastSep == -1 {
+				return ".", searchPath
+			}
+			basepath = searchPath[:lastSep+1] // include the separator
+			pattern = searchPath[lastSep+1:]
+			return basepath, pattern
+		}
+	}
+	// No glob characters found - the entire path is the base
+	return searchPath, ""
 }
 
 func validateDir(dirPath, commandName string) error {
@@ -159,19 +197,75 @@ func filesFindCmd(hc interp.HandlerContext, cmd string, args []string) error {
 	for _, globPattern := range args {
 		searchPath := path.Join(hc.Dir, globPattern)
 
-		basepath, pattern := doublestar.SplitPattern(searchPath)
-		fsys := NewDirLFS(basepath)
-		matches, err := doublestar.Glob(fsys, pattern, doublestar.WithNoFollow(), doublestar.WithFailOnPatternNotExist())
+		// Split the path into base directory and glob pattern.
+		// We treat [ and ] as literal characters since they appear in real file paths.
+		basepath, pattern := splitGlobPath(searchPath)
+
+		// Check if basepath exists (use Lstat to not follow symlinks)
+		info, err := os.Lstat(basepath)
 		if err != nil {
-			return fmt.Errorf("files-find: glob pattern error: %w", err)
+			if os.IsNotExist(err) {
+				return fmt.Errorf("files-find: %w", doublestar.ErrPatternNotExist)
+			}
+			return fmt.Errorf("files-find: %w", err)
+		}
+		// If pattern is not empty, basepath must be a directory
+		if pattern != "" && !info.IsDir() {
+			return fmt.Errorf("files-find: %s is not a directory", basepath)
 		}
 
-		for _, match := range matches {
-			relPath, err := makeRelativePath(hc.Dir, path.Join(basepath, match))
+		// If pattern is empty, we're looking for a specific file/directory
+		if pattern == "" {
+			relPath, err := makeRelativePath(hc.Dir, basepath)
 			if err != nil {
-				continue
+				return err
 			}
 			foundFiles = append(foundFiles, relPath)
+			continue
+		}
+
+		// Use filepath.Walk to traverse the directory and match files manually.
+		// This approach correctly handles files and directories with glob special
+		// characters ([, ], *, ?) in their names, treating them as literals.
+		err = filepath.Walk(basepath, func(p string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			// Skip the base directory itself
+			if p == basepath {
+				return nil
+			}
+
+			// Get the relative path from basepath for pattern matching
+			relFromBase, err := filepath.Rel(basepath, p)
+			if err != nil {
+				return err
+			}
+
+			// Escape glob special characters in the file path so they are treated
+			// as literal characters when matching against the pattern.
+			// This fixes matching when filenames or directory names contain [, ], *, ?
+			escapedRelPath := escapeGlob(relFromBase)
+
+			// Match the escaped relative path against the pattern
+			matched, err := doublestar.Match(pattern, escapedRelPath)
+			if err != nil {
+				return fmt.Errorf("files-find: pattern error: %w", err)
+			}
+
+			if matched {
+				relPath, err := makeRelativePath(hc.Dir, p)
+				if err != nil {
+					return err
+				}
+				foundFiles = append(foundFiles, relPath)
+			}
+
+			return nil
+		})
+		if err != nil {
+			return fmt.Errorf("files-find: %w", err)
 		}
 	}
 
