@@ -3,8 +3,8 @@ module git.alr-pkg.ru/Plemya-x/ALR
 go 1.24.4
 
 require (
-	git.alr-pkg.ru/Plemya-x/fakeroot v0.0.2-0.20250408104831-427aaa7713c3
-	git.alr-pkg.ru/xpamych/vercmp v0.0.1
+	git.alr-pkg.ru/Plemya-x/fakeroot v0.0.3
+	git.alr-pkg.ru/xpamych/vercmp v0.0.2
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/PuerkitoBio/purell v1.2.0
 	github.com/alecthomas/chroma/v2 v2.9.1
