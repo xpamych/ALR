@@ -38,13 +38,13 @@ import (
 	"github.com/goreleaser/nfpm/v2"
 	"github.com/goreleaser/nfpm/v2/files"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/cpu"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/manager"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/overrides"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/utils"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/distro"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/types"
 )
 
 // Функция prepareDirs подготавливает директории для сборки.

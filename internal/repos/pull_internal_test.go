@@ -25,10 +25,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/config"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/db"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/types"
 )
 
 type TestALRConfig struct{}

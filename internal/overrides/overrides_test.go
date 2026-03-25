@@ -27,8 +27,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/text/language"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/overrides"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/distro"
 )
 
 var info = &distro.OSRelease{

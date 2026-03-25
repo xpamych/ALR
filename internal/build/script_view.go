@@ -19,8 +19,8 @@ package build
 import (
 	"context"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/cliutils"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 type ScriptViewerConfig interface {

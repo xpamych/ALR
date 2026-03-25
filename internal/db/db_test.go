@@ -27,9 +27,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/config"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/db"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 type TestALRConfig struct{}
@@ -56,7 +56,7 @@ var testPkg = alrsh.Package{
 		"ru": "Проверочный пакет",
 	}),
 	Homepage: alrsh.OverridableFromMap(map[string]string{
-		"en": "https://gitea.plemya-x.ru/xpamych/ALR",
+		"en": "https://git.alr-pkg.ru/xpamych/ALR",
 	}),
 	Maintainer: alrsh.OverridableFromMap(map[string]string{
 		"en": "Evgeniy Khramov <xpamych@yandex.ru>",

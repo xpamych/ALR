@@ -27,9 +27,9 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/shutils/decoder"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/shutils/handlers"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/distro"
 )
 
 const testScript = `
@@ -38,7 +38,7 @@ const testScript = `
 	release=1
 	epoch=2
 	desc="Test package"
-	homepage='https://gitea.plemya-x.ru/xpamych/ALR'
+	homepage='https://git.alr-pkg.ru/xpamych/ALR'
 	maintainer='Евгений Храмов <xpamych@yandex.ru>'
 	architectures=('arm64' 'amd64')
 	license=('GPL-3.0-or-later')

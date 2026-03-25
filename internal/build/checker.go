@@ -22,10 +22,10 @@ import (
 
 	"github.com/leonelquinteros/gotext"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/cliutils"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/cpu"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/manager"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 type Checker struct {

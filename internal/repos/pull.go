@@ -30,7 +30,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"gitea.plemya-x.ru/xpamych/vercmp"
+	"git.alr-pkg.ru/xpamych/vercmp"
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-git/v5"
 	gitConfig "github.com/go-git/go-git/v5/config"
@@ -41,9 +41,9 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/config"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/shutils/handlers"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/types"
 )
 
 type actionType uint8

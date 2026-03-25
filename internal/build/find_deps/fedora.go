@@ -28,7 +28,7 @@ import (
 	"github.com/goreleaser/nfpm/v2"
 	"github.com/leonelquinteros/gotext"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/types"
 )
 
 type FedoraFindProvReq struct{}

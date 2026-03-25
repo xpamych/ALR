@@ -3,7 +3,7 @@
 </p>
 <b></b>
 
-[![Go Report Card](https://goreportcard.com/badge/gitea.plemya-x.ru/Plemya-x/ALR)](https://goreportcard.com/report/gitea.plemya-x.ru/Plemya-x/ALR) ![Test coverage](./assets/coverage-badge.svg) ![ru translate](./assets/i18n-ru-badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/git.alr-pkg.ru/Plemya-x/ALR)](https://goreportcard.com/report/git.alr-pkg.ru/Plemya-x/ALR) ![Test coverage](./assets/coverage-badge.svg) ![ru translate](./assets/i18n-ru-badge.svg)
 
 # ALR (Any Linux Repository)
 
@@ -20,10 +20,10 @@ ALR написан на чистом Go и после сборки не имее
 Установочный скрипт автоматически загрузит и установит соответствующий пакет ALR в вашей системе. Чтобы использовать его, просто выполните следующую команду:
 
 ```bash
-curl -fsSL https://gitea.plemya-x.ru/Plemya-x/ALR/raw/branch/master/scripts/install.sh | bash
+curl -fsSL https://git.alr-pkg.ru/Plemya-x/ALR/raw/branch/master/scripts/install.sh | bash
 ```
 
-**ВАЖНО**: При этом скрипт будет загружен и запущен [скрипт](https://gitea.plemya-x.ru/Plemya-x/ALR/src/branch/master/scripts/install.sh). Пожалуйста, просматривайте любые скрипты, которые вы скачиваете из Интернета (включая этот), прежде чем запускать их.
+**ВАЖНО**: При этом скрипт будет загружен и запущен [скрипт](https://git.alr-pkg.ru/Plemya-x/ALR/src/branch/master/scripts/install.sh). Пожалуйста, просматривайте любые скрипты, которые вы скачиваете из Интернета (включая этот), прежде чем запускать их.
 
 ### Сборка из исходного кода
 
@@ -44,7 +44,7 @@ ALR был создан потому, что упаковка программн
 
 ## Документация
 
-Документация находится в [Wiki](https://alr.plemya-x.ru/wiki/ALR).
+Документация находится в [Wiki](https://alr-pkg.ru/wiki/ALR).
 
 ---
 
@@ -52,15 +52,15 @@ ALR был создан потому, что упаковка программн
 
 Репозитории alr - это git-хранилища, которые содержат каталог для каждого пакета с файлом `alr.sh` внутри. Файл `alr.sh` содержит все инструкции по сборке пакета и информацию о нем. Скрипты `alr.sh` аналогичны скриптам Aur PKGBUILD. 
 
-Например, репозиторий с ALR [alr-default](https://gitea.plemya-x.ru/Plemya-x/alr-default.git)
+Например, репозиторий с ALR [alr-default](https://git.alr-pkg.ru/Plemya-x/alr-default.git)
 ```
-alr repo add alr-default https://gitea.plemya-x.ru/Plemya-x/alr-default.git
+alr repo add alr-default https://git.alr-pkg.ru/Plemya-x/alr-default.git
 ```
-Репозиторий пакетов [alr-repo](https://gitea.plemya-x.ru/Plemya-x/alr-repo.git) можно подключить так:
+Репозиторий пакетов [alr-repo](https://git.alr-pkg.ru/Plemya-x/alr-repo.git) можно подключить так:
 ```
-alr repo add  alr-repo https://gitea.plemya-x.ru/Plemya-x/alr-repo.git
+alr repo add  alr-repo https://git.alr-pkg.ru/Plemya-x/alr-repo.git
 ```
-Репозиторий Linux-Gaming [alr-LG](https://gitea.plemya-x.ru/Plemya-x/alr-LG.git) можно подключить так:
+Репозиторий Linux-Gaming [alr-LG](https://git.alr-pkg.ru/Plemya-x/alr-LG.git) можно подключить так:
 ```
 alr repo add alr-LG https://git.linux-gaming.ru/Linux-Gaming/alr-LG.git
 ```

@@ -30,10 +30,10 @@ import (
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/helpers"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/cliutils"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/cpu"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/shutils/helpers"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/distro"
 )
 
 func HelperCmd() *cli.Command {

@@ -30,9 +30,9 @@ import (
 	_ "modernc.org/sqlite"
 	"xorm.io/xorm"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/fsutils"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/config"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/fsutils"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 const CurrentVersion = 5
