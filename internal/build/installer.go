@@ -21,14 +21,14 @@ import (
 	"fmt"
 	"log/slog"
 
-	"gitea.plemya-x.ru/xpamych/vercmp"
+	"git.alr-pkg.ru/xpamych/vercmp"
 	"github.com/leonelquinteros/gotext"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/depver"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/manager"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/overrides"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/depver"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/distro"
 )
 
 func NewInstaller(mgr manager.Manager) *Installer {

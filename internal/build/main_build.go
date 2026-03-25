@@ -17,7 +17,7 @@
 package build
 
 import (
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/manager"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/manager"
 )
 
 func NewMainBuilder(

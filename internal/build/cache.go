@@ -23,7 +23,7 @@ import (
 
 	"github.com/goreleaser/nfpm/v2"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 type Cache struct {

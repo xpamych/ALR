@@ -31,9 +31,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/dl"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/dlcache"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/config"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/dl"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/dlcache"
 )
 
 type TestALRConfig struct{}
@@ -53,7 +53,7 @@ func TestDownloadWithoutCache(t *testing.T) {
 
 	prepareServer := func() *httptest.Server {
 		// URL вашего Git-сервера
-		gitServerURL, err := url.Parse("https://gitea.plemya-x.ru")
+		gitServerURL, err := url.Parse("https://git.alr-pkg.ru")
 		if err != nil {
 			log.Fatalf("Failed to parse git server URL: %v", err)
 		}

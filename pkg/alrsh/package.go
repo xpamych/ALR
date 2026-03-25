@@ -24,7 +24,7 @@ import (
 	"reflect"
 	"strings"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/shutils/decoder"
 )
 
 type PackageNames struct {

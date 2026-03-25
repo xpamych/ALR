@@ -29,11 +29,11 @@ import (
 	"github.com/urfave/cli/v2"
 	"golang.org/x/exp/slices"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/build"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
-	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/build"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/cliutils"
+	appbuilder "git.alr-pkg.ru/Plemya-x/ALR/internal/cliutils/app_builder"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/utils"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/types"
 )
 
 func RepoCmd() *cli.Command {

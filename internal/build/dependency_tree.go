@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/overrides"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/overrides"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 // DependencyNode представляет узел в дереве зависимостей

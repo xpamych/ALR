@@ -21,7 +21,7 @@ package depver
 import (
 	"strings"
 
-	"gitea.plemya-x.ru/xpamych/vercmp"
+	"git.alr-pkg.ru/xpamych/vercmp"
 )
 
 // Operator represents a version comparison operator.

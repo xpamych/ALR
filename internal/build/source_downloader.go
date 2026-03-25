@@ -23,9 +23,9 @@ import (
 	"os"
 	"strings"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/constants"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/dl"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/dlcache"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/constants"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/dl"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/dlcache"
 )
 
 type SourceDownloader struct {

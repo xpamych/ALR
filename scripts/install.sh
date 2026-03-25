@@ -63,7 +63,7 @@ trackInstallation() {
     fingerprint=$(echo "$(hostname)_$(date +%Y-%m-%d)" | sha256sum 2>/dev/null | cut -d' ' -f1 || echo "$(hostname)_$(date +%Y-%m-%d)")
     
     # Пробуем разные домены/порты для отправки статистики
-    for api_url in "https://alr.plemya-x.ru/api/packages/track-install" "http://localhost:3001/api/packages/track-install"; do
+    for api_url in "https://alr-pkg.ru/api/packages/track-install" "http://localhost:3001/api/packages/track-install"; do
       curl -s -m 5 -X POST "$api_url" \
         -H "Content-Type: application/json" \
         -H "User-Agent: ALR-InstallScript/1.0" \
@@ -135,7 +135,7 @@ if [ -z "$noPkgMgr" ]; then
   info "Получение списка релизов через API Gitea"
 
   # Используем API для получения последнего релиза
-  releases=$(curl -s "https://gitea.plemya-x.ru/api/v1/repos/Plemya-x/ALR/releases")
+  releases=$(curl -s "https://git.alr-pkg.ru/api/v1/repos/Plemya-x/ALR/releases")
 
   if [ -z "$releases" ] || [ "$releases" = "null" ]; then
     error "Не удалось получить список релизов. Проверьте соединение с интернетом."
@@ -147,12 +147,12 @@ if [ -z "$noPkgMgr" ]; then
   if [ -z "$latestReleaseUrl" ]; then
     # Fallback на парсинг HTML если API не работает
     warn "API не доступен, пробуем получить список через HTML"
-    pageContent=$(curl -s https://gitea.plemya-x.ru/Plemya-x/ALR/releases)
-    fileList=$(echo "$pageContent" | grep -oP '(?<=href=")[^"]*alr-bin[^"]*\.(pkg\.tar\.zst|rpm|deb)' | sed 's|^|https://gitea.plemya-x.ru|')
+    pageContent=$(curl -s https://git.alr-pkg.ru/Plemya-x/ALR/releases)
+    fileList=$(echo "$pageContent" | grep -oP '(?<=href=")[^"]*alr-bin[^"]*\.(pkg\.tar\.zst|rpm|deb)' | sed 's|^|https://git.alr-pkg.ru|')
   else
     # Получаем список файлов из API
     latestReleaseId=$(echo "$releases" | grep -o '"id":[0-9]*' | head -1 | cut -d':' -f2)
-    assets=$(curl -s "https://gitea.plemya-x.ru/api/v1/repos/Plemya-x/ALR/releases/$latestReleaseId/assets")
+    assets=$(curl -s "https://git.alr-pkg.ru/api/v1/repos/Plemya-x/ALR/releases/$latestReleaseId/assets")
     # Фильтруем только пакеты, исключая tar.gz архивы
     fileList=$(echo "$assets" | grep -o '"browser_download_url":"[^"]*"' | cut -d'"' -f4 | grep -v '\.tar\.gz$')
   fi
@@ -160,7 +160,7 @@ if [ -z "$noPkgMgr" ]; then
   if [ -z "$fileList" ]; then
     warn "Не найдены готовые пакеты в последнем релизе"
     warn "Возможно, для вашего дистрибутива нужно собрать пакет из исходников"
-    warn "Инструкции по сборке: https://gitea.plemya-x.ru/Plemya-x/ALR"
+    warn "Инструкции по сборке: https://git.alr-pkg.ru/Plemya-x/ALR"
     error "Не удалось получить список пакетов для загрузки"
   fi
 

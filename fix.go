@@ -29,9 +29,9 @@ import (
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils"
-	appbuilder "gitea.plemya-x.ru/Plemya-x/ALR/internal/cliutils/app_builder"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/utils"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/cliutils"
+	appbuilder "git.alr-pkg.ru/Plemya-x/ALR/internal/cliutils/app_builder"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/utils"
 )
 
 // execWithPrivileges выполняет команду напрямую если root или CI, иначе через sudo

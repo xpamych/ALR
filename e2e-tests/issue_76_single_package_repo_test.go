@@ -36,7 +36,7 @@ func Test75SinglePackageRepo(t *testing.T) {
 				"repo",
 				"add",
 				REPO_NAME_FOR_E2E_TESTS,
-				"https://gitea.plemya-x.ru/Maks1mS/test-single-package-alr-repo.git",
+				"https://git.alr-pkg.ru/Maks1mS/test-single-package-alr-repo.git",
 			)
 			execShouldNoError(t, r, "sudo", "alr", "ref")
 			execShouldNoError(t, r, "sudo", "alr", "repo", "set-ref", REPO_NAME_FOR_E2E_TESTS, "1075c918be")

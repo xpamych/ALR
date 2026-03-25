@@ -30,8 +30,8 @@ import (
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/v2"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/constants"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/constants"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/types"
 )
 
 type ALRConfig struct {
@@ -63,7 +63,7 @@ func defaultConfigKoanf() *koanf.Koanf {
 		"repo": []types.Repo{
 			{
 				Name: "alr-default",
-				URL:  "https://gitea.plemya-x.ru/Plemya-x/alr-default.git",
+				URL:  "https://git.alr-pkg.ru/Plemya-x/alr-default.git",
 			},
 		},
 	}

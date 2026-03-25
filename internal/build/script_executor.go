@@ -35,13 +35,13 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
-	finddeps "gitea.plemya-x.ru/Plemya-x/ALR/internal/build/find_deps"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/cpu"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/handlers"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/helpers"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
+	finddeps "git.alr-pkg.ru/Plemya-x/ALR/internal/build/find_deps"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/cpu"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/shutils/decoder"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/shutils/handlers"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/shutils/helpers"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/types"
 )
 
 type LocalScriptExecutor struct {

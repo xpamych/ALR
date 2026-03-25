@@ -31,9 +31,9 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/shutils/decoder"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/shutils/decoder"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/distro"
 )
 
 type BuildVars struct {
@@ -59,7 +59,7 @@ const testScript = `
 	release=1
 	epoch=2
 	desc="Test package"
-	homepage='https://gitea.plemya-x.ru/xpamych/ALR'
+	homepage='https://git.alr-pkg.ru/xpamych/ALR'
 	maintainer='Евгений Храмов <xpamych@yandex.ru>'
 	architectures=('arm64' 'amd64')
 	license=('GPL-3.0-or-later')
@@ -121,7 +121,7 @@ func TestDecodeVars(t *testing.T) {
 		Description: alrsh.OverridableFromMap(map[string]string{
 			"": "Test package",
 		}),
-		Homepage:      "https://gitea.plemya-x.ru/xpamych/ALR",
+		Homepage:      "https://git.alr-pkg.ru/xpamych/ALR",
 		Maintainer:    "Евгений Храмов <xpamych@yandex.ru>",
 		Architectures: []string{"arm64", "amd64"},
 		Licenses:      []string{"GPL-3.0-or-later"},
@@ -154,7 +154,7 @@ func TestDecodeVarsMissing(t *testing.T) {
 		name='test'
 		epoch=2
 		desc="Test package"
-		homepage='https://gitea.plemya-x.ru/xpamych/ALR'
+		homepage='https://git.alr-pkg.ru/xpamych/ALR'
 		maintainer='Евгений Храмов <xpamych@yandex.ru>'
 		architectures=('arm64' 'amd64')
 		license=('GPL-3.0-or-later')

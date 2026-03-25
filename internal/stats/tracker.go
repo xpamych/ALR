@@ -39,7 +39,7 @@ type InstallationData struct {
 
 var (
 	apiEndpoints = []string{
-		"https://alr.plemya-x.ru/api/packages/track-install",
+		"https://alr-pkg.ru/api/packages/track-install",
 		"http://localhost:3001/api/packages/track-install",
 	}
 	userAgent = "ALR-CLI/1.0"

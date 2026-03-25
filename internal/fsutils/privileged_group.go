@@ -21,7 +21,7 @@ import (
 	"os/user"
 	"sync"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/distro"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/distro"
 )
 
 var (

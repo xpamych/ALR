@@ -29,7 +29,7 @@ import (
 	"syscall"
 	"time"
 
-	"gitea.plemya-x.ru/Plemya-x/fakeroot"
+	"git.alr-pkg.ru/Plemya-x/fakeroot"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 )

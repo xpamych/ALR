@@ -25,10 +25,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/config"
-	database "gitea.plemya-x.ru/Plemya-x/ALR/internal/db"
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/repos"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/config"
+	database "git.alr-pkg.ru/Plemya-x/ALR/internal/db"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/repos"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/types"
 )
 
 type TestEnv struct {
@@ -116,7 +116,7 @@ func TestPull(t *testing.T) {
 	err := rs.Pull(e.Ctx, []types.Repo{
 		{
 			Name: "default",
-			URL:  "https://gitea.plemya-x.ru/Plemya-x/xpamych-alr-repo.git",
+			URL:  "https://git.alr-pkg.ru/Plemya-x/xpamych-alr-repo.git",
 		},
 	})
 	if err != nil {

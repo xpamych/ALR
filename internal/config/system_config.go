@@ -26,8 +26,8 @@ import (
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/internal/constants"
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/types"
+	"git.alr-pkg.ru/Plemya-x/ALR/internal/constants"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/types"
 )
 
 type SystemConfig struct {

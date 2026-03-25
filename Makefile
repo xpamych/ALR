@@ -31,7 +31,7 @@ ifeq ($(GENERATE),1)
 else
 	@echo "Skipping go generate (GENERATE=0)"
 endif
-	go build -ldflags="-X 'gitea.plemya-x.ru/Plemya-x/ALR/internal/config.Version=$(GIT_VERSION)'" -o $@
+	go build -ldflags="-X 'git.alr-pkg.ru/Plemya-x/ALR/internal/config.Version=$(GIT_VERSION)'" -o $@
 
 check-no-root:
 	@if [ "$$IGNORE_ROOT_CHECK" != "1" ] && [ "`whoami`" = "root" ]; then \

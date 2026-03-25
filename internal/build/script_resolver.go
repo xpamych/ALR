@@ -21,7 +21,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"gitea.plemya-x.ru/Plemya-x/ALR/pkg/alrsh"
+	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
 type ScriptResolver struct {
