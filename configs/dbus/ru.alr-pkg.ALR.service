@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=ru.alr-pkg.ALR
+Exec=/usr/bin/alr _internal-dbus-service
+User=root
+SystemdService=alr-dbus.service

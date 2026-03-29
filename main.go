@@ -99,11 +99,13 @@ func GetApp() *cli.App {
 			VersionCmd(),
 			SearchCmd(),
 			RepoCmd(),
+			DBusCmd(),
 			ConfigCmd(),
 			// Internal commands
 			InternalBuildCmd(),
 			InternalInstallCmd(),
 			InternalReposCmd(),
+			InternalDBusServiceCmd(),
 			HelpCmd(),
 		},
 		Before: func(c *cli.Context) error {

@@ -30,6 +30,7 @@ import (
 	"git.alr-pkg.ru/Plemya-x/ALR/internal/cliutils"
 	appbuilder "git.alr-pkg.ru/Plemya-x/ALR/internal/cliutils/app_builder"
 	"git.alr-pkg.ru/Plemya-x/ALR/internal/config"
+	alrdbus "git.alr-pkg.ru/Plemya-x/ALR/internal/dbus"
 	"git.alr-pkg.ru/Plemya-x/ALR/internal/logger"
 	"git.alr-pkg.ru/Plemya-x/ALR/internal/manager"
 	"git.alr-pkg.ru/Plemya-x/ALR/internal/translations"
@@ -150,6 +151,35 @@ func InternalInstallCmd() *cli.Command {
 				},
 				Logger: logger,
 			})
+			return nil
+		},
+	}
+}
+
+// InternalDBusServiceCmd запускает D-Bus сервис
+func InternalDBusServiceCmd() *cli.Command {
+	return &cli.Command{
+		Name:     "_internal-dbus-service",
+		HideHelp: true,
+		Hidden:   true,
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "session",
+				Usage: "Use session bus instead of system bus",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			logger.SetupForGoPlugin()
+			translations.Setup()
+
+			slog.Info("Starting ALR D-Bus service", "session_bus", c.Bool("session"))
+
+			service := alrdbus.NewService()
+			if err := service.Run(c.Bool("session")); err != nil {
+				slog.Error("D-Bus service failed", "err", err)
+				return cliutils.FormatCliExit(gotext.Get("D-Bus service failed"), err)
+			}
+
 			return nil
 		},
 	}
