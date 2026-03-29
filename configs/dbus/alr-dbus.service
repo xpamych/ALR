@@ -1,0 +1,14 @@
+[Unit]
+Description=ALR D-Bus Service
+Documentation=https://alr-pkg.ru/wiki
+After=dbus.service
+
+[Service]
+Type=dbus
+BusName=ru.alr-pkg.ALR
+ExecStart=/usr/bin/alr _internal-dbus-service
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

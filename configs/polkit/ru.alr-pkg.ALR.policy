@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
+<policyconfig>
+  <vendor>ALR Project</vendor>
+  <vendor_url>https://alr-pkg.ru</vendor_url>
+  <icon_name>package-x-generic</icon_name>
+  
+  <action id="ru.alr-pkg.install">
+    <description>Install ALR packages</description>
+    <message>Authentication is required to install ALR packages</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+  
+  <action id="ru.alr-pkg.remove">
+    <description>Remove ALR packages</description>
+    <message>Authentication is required to remove ALR packages</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+  
+  <action id="ru.alr-pkg.build">
+    <description>Build ALR packages</description>
+    <message>Authentication is required to build ALR packages</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+  </action>
+  
+  <action id="ru.alr-pkg.refresh">
+    <description>Refresh ALR repositories</description>
+    <message>Authentication is required to refresh ALR repositories</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+  
+  <action id="ru.alr-pkg.upgrade">
+    <description>Upgrade ALR packages</description>
+    <message>Authentication is required to upgrade ALR packages</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+  
+</policyconfig>

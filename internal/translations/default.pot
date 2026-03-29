@@ -46,19 +46,19 @@ msgstr ""
 msgid "Nothing to build"
 msgstr ""
 
-#: build.go:195
+#: build.go:189
 msgid "Error building package"
 msgstr ""
 
-#: build.go:203
+#: build.go:197
 msgid "Package file already moved or removed, skipping"
 msgstr ""
 
-#: build.go:209
+#: build.go:203
 msgid "Error moving the package"
 msgstr ""
 
-#: build.go:213
+#: build.go:207
 msgid "Done"
 msgstr ""
 
@@ -74,40 +74,156 @@ msgstr ""
 msgid "Show config"
 msgstr ""
 
-#: config.go:103
+#: config.go:104
 msgid "Set config value"
 msgstr ""
 
-#: config.go:104
+#: config.go:105
 msgid "<key> <value>"
 msgstr ""
 
-#: config.go:137 config.go:145 config.go:162
+#: config.go:138 config.go:146 config.go:163 config.go:169
 msgid "invalid boolean value for %s: %s"
 msgstr ""
 
-#: config.go:166
+#: config.go:173
 msgid "use 'repo add/remove' commands to manage repositories"
 msgstr ""
 
-#: config.go:168 config.go:248
+#: config.go:175 config.go:257
 msgid "unknown config key: %s"
 msgstr ""
 
-#: config.go:172
+#: config.go:179
 msgid "failed to save config"
 msgstr ""
 
-#: config.go:175
+#: config.go:182
 msgid "Successfully set %s = %s"
 msgstr ""
 
-#: config.go:184
+#: config.go:191
 msgid "Get config value"
 msgstr ""
 
-#: config.go:185
+#: config.go:192
 msgid "<key>"
+msgstr ""
+
+#: dbus.go:37
+msgid "Manage D-Bus service"
+msgstr ""
+
+#: dbus.go:53
+msgid "Show D-Bus service status"
+msgstr ""
+
+#: dbus.go:57 dbus.go:152 dbus.go:242 dbus.go:308
+msgid "Failed to connect to D-Bus"
+msgstr ""
+
+#: dbus.go:66
+msgid "D-Bus service: not running"
+msgstr ""
+
+#: dbus.go:70
+msgid "D-Bus service: running"
+msgstr ""
+
+#: dbus.go:82
+msgid "Start D-Bus service"
+msgstr ""
+
+#: dbus.go:98
+msgid "Failed to start D-Bus service"
+msgstr ""
+
+#: dbus.go:101
+msgid "D-Bus service started"
+msgstr ""
+
+#: dbus.go:111
+msgid "Stop D-Bus service"
+msgstr ""
+
+#: dbus.go:117
+msgid "Failed to stop D-Bus service"
+msgstr ""
+
+#: dbus.go:120
+msgid "D-Bus service stopped"
+msgstr ""
+
+#: dbus.go:130
+msgid "Search packages via D-Bus"
+msgstr ""
+
+#: dbus.go:136
+msgid "Search by name"
+msgstr ""
+
+#: dbus.go:141
+msgid "Search by description"
+msgstr ""
+
+#: dbus.go:146
+msgid "Search by repository"
+msgstr ""
+
+#: dbus.go:179
+msgid "Search failed"
+msgstr ""
+
+#: dbus.go:184
+msgid "No packages found"
+msgstr ""
+
+#: dbus.go:209
+msgid "Install package via D-Bus"
+msgstr ""
+
+#: dbus.go:215
+msgid "Build from scratch"
+msgstr ""
+
+#: dbus.go:219
+msgid "Don't show progress"
+msgstr ""
+
+#: dbus.go:224 dbus.go:290
+msgid "Package name required"
+msgstr ""
+
+#: dbus.go:252 dbus.go:318
+msgid "Failed to get package"
+msgstr ""
+
+#: dbus.go:265
+msgid "Failed to start installation"
+msgstr ""
+
+#: dbus.go:286
+msgid "Remove package via D-Bus"
+msgstr ""
+
+#: dbus.go:329
+msgid "Failed to start removal"
+msgstr ""
+
+#: dbus.go:354
+msgid "Failed to get job info"
+msgstr ""
+
+#: dbus.go:364
+msgid "Failed to wait for job"
+msgstr ""
+
+#: dbus.go:368
+msgid "Operation completed successfully"
+msgstr ""
+
+#: dbus.go:370
+msgid "Operation failed"
 msgstr ""
 
 #: fix.go:55
@@ -143,7 +259,8 @@ msgid "Clearing temporary directory"
 msgstr ""
 
 #: fix.go:126
-msgid "Unable to remove temporary directory (%s) as current user, trying with sudo"
+msgid ""
+"Unable to remove temporary directory (%s) as current user, trying with sudo"
 msgstr ""
 
 #: fix.go:129
@@ -234,35 +351,35 @@ msgstr ""
 msgid "Show all information, not just for the current distro"
 msgstr ""
 
-#: info.go:64
+#: info.go:63
 msgid "Error getting packages"
 msgstr ""
 
-#: info.go:77
+#: info.go:76
 msgid "Command info expected at least 1 argument, got %d"
 msgstr ""
 
-#: info.go:98
+#: info.go:97
 msgid "Error finding packages"
 msgstr ""
 
-#: info.go:112
+#: info.go:111
 msgid "Can't detect system language"
 msgstr ""
 
-#: info.go:128
+#: info.go:127
 msgid "Error resolving overrides"
 msgstr ""
 
-#: info.go:137
+#: info.go:136
 msgid "Error encoding script variables"
 msgstr ""
 
-#: install.go:39
+#: install.go:41
 msgid "Install a new package"
 msgstr ""
 
-#: install.go:51
+#: install.go:53
 msgid "Command install expected at least 1 argument, got %d"
 msgstr ""
 
@@ -270,43 +387,43 @@ msgstr ""
 msgid "Error when installing the package"
 msgstr ""
 
-#: install.go:142
+#: install.go:169
 msgid "Remove an installed package"
 msgstr ""
 
-#: install.go:161
+#: install.go:188
 msgid "Error listing installed packages"
 msgstr ""
 
-#: install.go:190
+#: install.go:217
 msgid "Command remove expected at least 1 argument, got %d"
 msgstr ""
 
-#: install.go:205
+#: install.go:232 install.go:238
 msgid "Error removing packages"
 msgstr ""
 
-#: internal/build/build.go:342 internal/build/build.go:653
+#: internal/build/build.go:347 internal/build/build.go:789
 msgid "Using cached package"
 msgstr ""
 
-#: internal/build/build.go:357
+#: internal/build/build.go:362
 msgid "Building package"
 msgstr ""
 
-#: internal/build/build.go:386
+#: internal/build/build.go:391
 msgid "The checksums array must be the same length as sources"
 msgstr ""
 
-#: internal/build/build.go:438
+#: internal/build/build.go:450
 msgid "Downloading sources"
 msgstr ""
 
-#: internal/build/build.go:484
+#: internal/build/build.go:496
 msgid "Would you like to remove the build dependencies?"
 msgstr ""
 
-#: internal/build/build.go:569
+#: internal/build/build.go:584
 msgid "Installing dependencies"
 msgstr ""
 
@@ -344,61 +461,73 @@ msgstr ""
 msgid "Applying FireJail integration"
 msgstr ""
 
-#: internal/build/installer.go:99
+#: internal/build/installer.go:108
+msgid "Failed to get installed version"
+msgstr ""
+
+#: internal/build/installer.go:115
+msgid "Package was not installed"
+msgstr ""
+
+#: internal/build/installer.go:121
+msgid "Installed version doesn't satisfy requirement"
+msgstr ""
+
+#: internal/build/installer.go:159
 msgid ""
 "Package %s is installed with older version %s, will rebuild with version %s"
 msgstr ""
 
-#: internal/build/installer.go:102
+#: internal/build/installer.go:162
 msgid "Package %s is already installed with version %s, skipping build"
 msgstr ""
 
-#: internal/build/installer.go:104
+#: internal/build/installer.go:164
 msgid ""
 "Package %s is installed with newer version %s (repo has %s), skipping build"
 msgstr ""
 
-#: internal/build/script_executor.go:167
+#: internal/build/script_executor.go:168
 msgid "Building package metadata"
 msgstr ""
 
-#: internal/build/script_executor.go:192
+#: internal/build/script_executor.go:193
 msgid "Creating package file"
 msgstr ""
 
-#: internal/build/script_executor.go:196
+#: internal/build/script_executor.go:197
 msgid "Failed to create package file"
 msgstr ""
 
-#: internal/build/script_executor.go:201
+#: internal/build/script_executor.go:202
 msgid "Packaging with nfpm"
 msgstr ""
 
-#: internal/build/script_executor.go:204
+#: internal/build/script_executor.go:205
 msgid "Failed to create package"
 msgstr ""
 
-#: internal/build/script_executor.go:208
+#: internal/build/script_executor.go:209
 msgid "Package created successfully"
 msgstr ""
 
-#: internal/build/script_executor.go:212
+#: internal/build/script_executor.go:213
 msgid "Package file not found after creation"
 msgstr ""
 
-#: internal/build/script_executor.go:215
+#: internal/build/script_executor.go:216
 msgid "Package file verified to exist"
 msgstr ""
 
-#: internal/build/script_executor.go:322
+#: internal/build/script_executor.go:334
 msgid "Executing prepare()"
 msgstr ""
 
-#: internal/build/script_executor.go:331
+#: internal/build/script_executor.go:343
 msgid "Executing build()"
 msgstr ""
 
-#: internal/build/script_executor.go:360 internal/build/script_executor.go:380
+#: internal/build/script_executor.go:372 internal/build/script_executor.go:392
 msgid "Executing %s()"
 msgstr ""
 
@@ -585,6 +714,10 @@ msgstr ""
 msgid "You need to be root to perform this action"
 msgstr ""
 
+#: internal.go:180
+msgid "D-Bus service failed"
+msgstr ""
+
 #: list.go:44
 msgid "List ALR repo packages"
 msgstr ""
@@ -593,23 +726,23 @@ msgstr ""
 msgid "Format output using a Go template"
 msgstr ""
 
-#: list.go:87
+#: list.go:86
 msgid "Error getting packages for upgrade"
 msgstr ""
 
-#: list.go:90
+#: list.go:89
 msgid "No packages for upgrade"
 msgstr ""
 
-#: list.go:100 list.go:197
+#: list.go:99 list.go:196
 msgid "Error parsing format template"
 msgstr ""
 
-#: list.go:106 list.go:201
+#: list.go:105 list.go:200
 msgid "Error executing template"
 msgstr ""
 
-#: list.go:160
+#: list.go:159
 msgid "Failed to parse release"
 msgstr ""
 
@@ -625,11 +758,11 @@ msgstr ""
 msgid "Enable interactive questions and prompts"
 msgstr ""
 
-#: main.go:165
+#: main.go:180
 msgid "Show help"
 msgstr ""
 
-#: main.go:169
+#: main.go:184
 msgid "Error while running app"
 msgstr ""
 
@@ -665,15 +798,15 @@ msgstr ""
 msgid "Manage repos"
 msgstr ""
 
-#: repo.go:74 repo.go:658
+#: repo.go:74 repo.go:657
 msgid "Remove an existing repository"
 msgstr ""
 
-#: repo.go:76 repo.go:554
+#: repo.go:76 repo.go:553
 msgid "<name>"
 msgstr ""
 
-#: repo.go:121 repo.go:498 repo.go:601
+#: repo.go:121 repo.go:497 repo.go:600
 msgid "Repo \"%s\" does not exist"
 msgstr ""
 
@@ -681,84 +814,84 @@ msgstr ""
 msgid "Error removing repo directory"
 msgstr ""
 
-#: repo.go:132 repo.go:210 repo.go:268 repo.go:331 repo.go:422 repo.go:537
-#: repo.go:609
+#: repo.go:132 repo.go:209 repo.go:267 repo.go:330 repo.go:421 repo.go:536
+#: repo.go:608
 msgid "Error saving config"
 msgstr ""
 
-#: repo.go:148
+#: repo.go:147
 msgid "Error removing packages from database"
 msgstr ""
 
-#: repo.go:159 repo.go:628
+#: repo.go:158 repo.go:627
 msgid "Add a new repository"
 msgstr ""
 
-#: repo.go:160 repo.go:285 repo.go:378 repo.go:435
+#: repo.go:159 repo.go:284 repo.go:377 repo.go:434
 msgid "<name> <url>"
 msgstr ""
 
-#: repo.go:185
+#: repo.go:184
 msgid "Repo \"%s\" already exists"
 msgstr ""
 
-#: repo.go:221
+#: repo.go:220
 msgid "Set the reference of the repository"
 msgstr ""
 
-#: repo.go:222
+#: repo.go:221
 msgid "<name> <ref>"
 msgstr ""
 
-#: repo.go:284
+#: repo.go:283
 msgid "Set the main url of the repository"
 msgstr ""
 
-#: repo.go:347
+#: repo.go:346
 msgid "Manage mirrors of repos"
 msgstr ""
 
-#: repo.go:377
+#: repo.go:376
 msgid "Add a mirror URL to repository"
 msgstr ""
 
-#: repo.go:434
+#: repo.go:433
 msgid "Remove mirror from the repository"
 msgstr ""
 
-#: repo.go:453
+#: repo.go:452
 msgid "Ignore if mirror does not exist"
 msgstr ""
 
-#: repo.go:458
+#: repo.go:457
 msgid "Match partial URL (e.g., github.com instead of full URL)"
 msgstr ""
 
-#: repo.go:523
+#: repo.go:522
 msgid "No mirrors containing \"%s\" found in repo \"%s\""
 msgstr ""
 
-#: repo.go:525
+#: repo.go:524
 msgid "URL \"%s\" does not exist in repo \"%s\""
 msgstr ""
 
-#: repo.go:541 repo.go:613
+#: repo.go:540 repo.go:612
 msgid "Removed %d mirrors from repo \"%s\"\n"
 msgstr ""
 
-#: repo.go:553
+#: repo.go:552
 msgid "Remove all mirrors from the repository"
 msgstr ""
 
-#: repo.go:635
+#: repo.go:634
 msgid "Name of the new repo"
 msgstr ""
 
-#: repo.go:641
+#: repo.go:640
 msgid "URL of the new repo"
 msgstr ""
 
-#: repo.go:665
+#: repo.go:664
 msgid "Name of the repo to be deleted"
 msgstr ""
 
@@ -766,23 +899,11 @@ msgstr ""
 msgid "Search packages"
 msgstr ""
 
-#: search.go:50
-msgid "Search by name"
-msgstr ""
-
-#: search.go:55
-msgid "Search by description"
-msgstr ""
-
-#: search.go:60
-msgid "Search by repository"
-msgstr ""
-
 #: search.go:65
 msgid "Search by provides"
 msgstr ""
 
-#: search.go:126
+#: search.go:125
 msgid "Error while executing search"
 msgstr ""
 
@@ -790,22 +911,22 @@ msgstr ""
 msgid "Upgrade all installed packages"
 msgstr ""
 
-#: upgrade.go:89
+#: upgrade.go:87
 msgid "Updating system packages..."
 msgstr ""
 
-#: upgrade.go:95
+#: upgrade.go:93
 msgid "Error updating system packages"
 msgstr ""
 
-#: upgrade.go:97
+#: upgrade.go:95
 msgid "System packages updated successfully"
 msgstr ""
 
-#: upgrade.go:113 upgrade.go:130
+#: upgrade.go:111 upgrade.go:128
 msgid "Error checking for updates"
 msgstr ""
 
-#: upgrade.go:133
+#: upgrade.go:131
 msgid "There is nothing to do."
 msgstr ""
