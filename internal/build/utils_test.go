@@ -180,6 +180,49 @@ func TestGoArchToRPMISA(t *testing.T) {
 	}
 }
 
+func TestEscapeGlobChars(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "квадратные скобки",
+			input:    "/path/to/file[1].txt",
+			expected: `/path/to/file\[1\].txt`,
+		},
+		{
+			name:     "фигурные скобки",
+			input:    "/path/to/{GUID}/file.txt",
+			expected: `/path/to/\{GUID\}/file.txt`,
+		},
+		{
+			name:     "оба типа скобок",
+			input:    "/path[1]/{GUID}/file.txt",
+			expected: `/path\[1\]/\{GUID\}/file.txt`,
+		},
+		{
+			name:     "обычный путь",
+			input:    "/usr/share/doc/README.md",
+			expected: "/usr/share/doc/README.md",
+		},
+		{
+			name:     "UUID в фигурных скобках",
+			input:    "{07FD8DFA-DFE0-4089-AL24-0730933CC80A}/3rd-Party.txt",
+			expected: `\{07FD8DFA-DFE0-4089-AL24-0730933CC80A\}/3rd-Party.txt`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := escapeGlobChars(tt.input)
+			if result != tt.expected {
+				t.Errorf("escapeGlobChars(%q) = %q, ожидается %q", tt.input, result, tt.expected)
+			}
+		})
+	}
+}
+
 func TestExtractRepoNameFromPath(t *testing.T) {
 	tests := []struct {
 		name         string

@@ -36,14 +36,14 @@ func matchNamePattern(name, pattern string) bool {
 	return matched
 }
 
-// escapeGlob escapes special glob characters (*, ?, [, ]) in a path
+// escapeGlob escapes special glob characters (*, ?, [, ], {, }) in a path
 // so that they are treated as literal characters instead of glob patterns.
 // This is needed when a directory or filename contains these characters.
 func escapeGlob(path string) string {
 	var buf strings.Builder
 	for _, r := range path {
 		switch r {
-		case '*', '?', '[', ']':
+		case '*', '?', '[', ']', '{', '}':
 			buf.WriteRune('\\')
 		}
 		buf.WriteRune(r)
@@ -53,8 +53,9 @@ func escapeGlob(path string) string {
 
 // splitGlobPath splits a path into a base directory and a glob pattern.
 // It finds the first glob special character (* or ?) and splits there.
-// Square brackets [ ] are always treated as literal characters since they
-// appear in real file paths (e.g., "config[amd64].txt").
+// Square brackets [ ] and curly braces { } are always treated as literal
+// characters since they appear in real file paths (e.g., "config[amd64].txt",
+// "libfoo.so.{version}").
 func splitGlobPath(searchPath string) (basepath, pattern string) {
 	// Find the first * or ? which indicates the start of a glob pattern
 	for i, r := range searchPath {
@@ -226,7 +227,7 @@ func filesFindCmd(hc interp.HandlerContext, cmd string, args []string) error {
 
 		// Use filepath.Walk to traverse the directory and match files manually.
 		// This approach correctly handles files and directories with glob special
-		// characters ([, ], *, ?) in their names, treating them as literals.
+		// characters ([, ], {, }, *, ?) in their names, treating them as literals.
 		err = filepath.Walk(basepath, func(p string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err

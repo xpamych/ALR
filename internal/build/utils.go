@@ -178,18 +178,19 @@ func normalizeContents(contents []*files.Content) {
 		// Escape glob special characters in Source and Destination paths
 		// to prevent nfpm from treating them as glob patterns.
 		// This fixes issues with files like "[Archive]-Old-Roadmaps.md"
+		// or "{07FD8DFA-DFE0-4089-AL24-0730933CC80A}/3rd-Party.txt"
 		content.Source = escapeGlobChars(content.Source)
 		content.Destination = escapeGlobChars(content.Destination)
 	}
 }
 
-// escapeGlobChars escapes glob special characters ([, ]) in a path
+// escapeGlobChars escapes glob special characters ([, ], {, }) in a path
 // so that nfpm treats them as literal characters.
 func escapeGlobChars(path string) string {
 	var buf strings.Builder
 	for _, r := range path {
 		switch r {
-		case '[', ']':
+		case '[', ']', '{', '}':
 			buf.WriteRune('\\')
 		}
 		buf.WriteRune(r)
