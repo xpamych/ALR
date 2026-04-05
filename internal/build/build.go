@@ -751,20 +751,35 @@ func (i *Builder) installOptDeps(
 }
 
 // printDependencyTree рекурсивно выводит дерево зависимостей
+// path используется для отслеживания текущего пути (для обнаружения циклов)
 func (i *Builder) printDependencyTree(
 	w *os.File,
 	node *DependencyNode,
 	tree *UnifiedDependencyTree,
 	prefix string,
 	isLast bool,
-	visited map[string]bool,
+	path map[string]bool,
 	redColor, yellowColor, blueColor, grayColor lipgloss.Color,
 	versionStyle, repoStyle lipgloss.Style,
 ) {
-	if visited[node.PkgName] {
+	// Проверяем цикл на текущем пути
+	if path[node.PkgName] {
+		// Цикл обнаружен, показываем [circular]
+		connectorStyle := lipgloss.NewStyle().Foreground(grayColor)
+		circularStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
+		var connector string
+		if isLast {
+			connector = "└── "
+		} else {
+			connector = "├── "
+		}
+		fmt.Fprintf(w, "%s%s%s\n", prefix, connectorStyle.Render(connector), circularStyle.Render(node.PkgName+" [circular]"))
 		return
 	}
-	visited[node.PkgName] = true
+	
+	// Добавляем текущий узел в путь
+	path[node.PkgName] = true
+	defer delete(path, node.PkgName) // Удаляем при выходе из функции
 	
 	// Определяем символы для дерева
 	var connector string
@@ -813,7 +828,7 @@ func (i *Builder) printDependencyTree(
 	for idx, childName := range children {
 		if childNode, ok := tree.Nodes[childName]; ok {
 			isLastChild := idx == len(children)-1 && len(sysDeps) == 0
-			i.printDependencyTree(w, childNode, tree, childPrefix, isLastChild, visited,
+			i.printDependencyTree(w, childNode, tree, childPrefix, isLastChild, path,
 				redColor, yellowColor, blueColor, grayColor, versionStyle, repoStyle)
 		}
 	}
@@ -924,11 +939,11 @@ func (i *Builder) InstallPkgs(
 		
 		fmt.Fprintln(os.Stderr, titleStyle.Render("📦 "+gotext.Get("Installation summary")))
 		
-		// Рисуем дерево зависимостей
-		visited := make(map[string]bool)
+		// Рисуем дерево зависимостей (path отслеживает текущий путь для обнаружения циклов)
 		for _, pkgName := range pkgs {
 			if node, ok := tree.Nodes[pkgName]; ok {
-				i.printDependencyTree(os.Stderr, node, tree, "", true, visited,
+				path := make(map[string]bool)
+				i.printDependencyTree(os.Stderr, node, tree, "", true, path,
 					redColor, yellowColor, blueColor, grayColor, versionStyle, repoStyle)
 			}
 		}
