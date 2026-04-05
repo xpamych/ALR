@@ -30,7 +30,9 @@ type DependencyNode struct {
 	Package      *alrsh.Package
 	BasePkgName  string
 	PkgName      string   // Имя конкретного подпакета (может отличаться от BasePkgName)
-	Dependencies []string // Имена зависимостей
+	Dependencies []string // Имена runtime зависимостей (depends)
+	BuildDeps    []string // Имена зависимостей для сборки (build_deps)
+	IsTarget     bool     // true если это целевой пакет (запрошен пользователем)
 }
 
 // ResolveDependencyTree рекурсивно разрешает все зависимости и возвращает
@@ -118,17 +120,18 @@ func (b *Builder) ResolveDependencyTree(
 			deps := pkg.Depends.Resolved()
 			buildDeps := pkg.BuildDepends.Resolved()
 
-			// Объединяем зависимости
-			allDeps := append([]string{}, deps...)
-			allDeps = append(allDeps, buildDeps...)
-
 			// Добавляем узел в resolved с ключом = имя подпакета
 			resolved[pkgName] = &DependencyNode{
 				Package:      &pkg,
 				BasePkgName:  baseName,
 				PkgName:      pkgName,
-				Dependencies: allDeps,
+				Dependencies: deps,
+				BuildDeps:    buildDeps,
 			}
+
+			// Объединяем все зависимости для рекурсивного разрешения
+			allDeps := append([]string{}, deps...)
+			allDeps = append(allDeps, buildDeps...)
 
 			// Рекурсивно разрешаем зависимости
 			if len(allDeps) > 0 {
@@ -157,6 +160,7 @@ func (b *Builder) ResolveDependencyTree(
 
 // TopologicalSort выполняет топологическую сортировку пакетов по зависимостям
 // Возвращает список имен подпакетов в порядке сборки (от корней к листьям)
+// Учитывает как runtime depends, так и build_deps
 func TopologicalSort(nodes map[string]*DependencyNode) ([]string, error) {
 	// Список для результата
 	var result []string
@@ -185,8 +189,11 @@ func TopologicalSort(nodes map[string]*DependencyNode) ([]string, error) {
 
 		inStack[pkgName] = true
 
-		// Посещаем все зависимости
-		for _, dep := range node.Dependencies {
+		// Посещаем все зависимости (runtime + build)
+		allDeps := append([]string{}, node.Dependencies...)
+		allDeps = append(allDeps, node.BuildDeps...)
+
+		for _, dep := range allDeps {
 			// Используем имя зависимости напрямую (это имя подпакета)
 			if err := visit(dep); err != nil {
 				return err
@@ -208,4 +215,64 @@ func TopologicalSort(nodes map[string]*DependencyNode) ([]string, error) {
 	}
 
 	return result, nil
+}
+
+// MarkTargetPackages помечает указанные пакеты как целевые (запрошенные пользователем)
+func MarkTargetPackages(nodes map[string]*DependencyNode, targetPkgNames []string) {
+	for _, name := range targetPkgNames {
+		if node, ok := nodes[name]; ok {
+			node.IsTarget = true
+		}
+	}
+}
+
+// GetAllDependencies возвращает полный список всех зависимостей (runtime + build)
+// для всех пакетов в дереве, исключая целевые пакеты
+func GetAllDependencies(nodes map[string]*DependencyNode) []string {
+	depMap := make(map[string]bool)
+
+	for _, node := range nodes {
+		if node.IsTarget {
+			// Для целевых пакетов не включаем их зависимости в общий список
+			// они будут обработаны отдельно
+			continue
+		}
+
+		// Добавляем все зависимости (runtime + build)
+		for _, dep := range node.Dependencies {
+			depMap[dep] = true
+		}
+		for _, dep := range node.BuildDeps {
+			depMap[dep] = true
+		}
+	}
+
+	var result []string
+	for dep := range depMap {
+		result = append(result, dep)
+	}
+
+	return result
+}
+
+// GetTargetPackages возвращает список целевых пакетов
+func GetTargetPackages(nodes map[string]*DependencyNode) []*DependencyNode {
+	var result []*DependencyNode
+	for _, node := range nodes {
+		if node.IsTarget {
+			result = append(result, node)
+		}
+	}
+	return result
+}
+
+// GetDependencyOnlyPackages возвращает список пакетов-зависимостей (не целевых)
+func GetDependencyOnlyPackages(nodes map[string]*DependencyNode) []*DependencyNode {
+	var result []*DependencyNode
+	for _, node := range nodes {
+		if !node.IsTarget {
+			result = append(result, node)
+		}
+	}
+	return result
 }
