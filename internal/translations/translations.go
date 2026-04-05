@@ -21,9 +21,6 @@ package translations
 
 import (
 	"embed"
-	"io/fs"
-	"os"
-	"path"
 
 	"github.com/jeandeaual/go-locale"
 	"github.com/leonelquinteros/gotext"
@@ -32,21 +29,44 @@ import (
 //go:embed po
 var poFS embed.FS
 
+// Supported languages
+const (
+	LangRussian = "ru"
+	LangEnglish = "en"
+	LangDefault = LangRussian // Russian is default
+)
+
 func Setup() {
 	userLanguage, err := locale.GetLanguage()
 	if err != nil {
-		panic(err)
+		userLanguage = LangDefault
 	}
 
-	_, err = fs.Stat(poFS, path.Join("po", userLanguage))
-	if err != nil {
-		if os.IsNotExist(err) {
-			return
-		}
-		panic(err)
+	// Check if user language is supported
+	supportedLangs := map[string]bool{
+		LangRussian: true,
+		LangEnglish: true,
 	}
 
+	// If user language is not supported, use default (Russian)
+	if !supportedLangs[userLanguage] {
+		userLanguage = LangDefault
+	}
+
+	// Create locales for all supported languages
+	var locales []*gotext.Locale
+
+	// Add user language first (primary)
 	loc := gotext.NewLocaleFSWithPath(userLanguage, &poFS, "po")
 	loc.SetDomain("default")
-	gotext.SetLocales([]*gotext.Locale{loc})
+	locales = append(locales, loc)
+
+	// Add fallback locale (Russian) if primary is different
+	if userLanguage != LangDefault {
+		fallbackLoc := gotext.NewLocaleFSWithPath(LangDefault, &poFS, "po")
+		fallbackLoc.SetDomain("default")
+		locales = append(locales, fallbackLoc)
+	}
+
+	gotext.SetLocales(locales)
 }

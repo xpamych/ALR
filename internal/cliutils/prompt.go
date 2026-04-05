@@ -238,7 +238,7 @@ func PromptViewMultipleScripts(ctx context.Context, scripts []ScriptInfo, style 
 	prompt := &survey.MultiSelect{
 		Options: options,
 		Message: gotext.Get("Select packages to view build scripts"),
-		Help:    gotext.Get("Use space to select, enter to confirm"),
+		Help:    gotext.Get("↑↓ to move, space to select, → to select all, ← to clear, enter to confirm"),
 	}
 
 	var choices []int
