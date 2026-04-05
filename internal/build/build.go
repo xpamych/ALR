@@ -861,6 +861,7 @@ func (i *Builder) InstallPkgs(
 
 	// Шаг 5: Собираем и устанавливаем все ALR пакеты в правильном порядке
 	slog.Info(gotext.Get("Building %d packages", len(allPackages)))
+	slog.Debug("Package build order", "order", allPackages)
 
 	for _, pkgName := range allPackages {
 		node, ok := tree.Nodes[pkgName]
