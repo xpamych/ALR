@@ -146,8 +146,8 @@ func setLogLevel(newLevel string) {
 }
 
 func main() {
-	logger.SetupDefault()
 	translations.Setup()
+	logger.SetupDefault()
 
 	ctx := context.Background()
 
