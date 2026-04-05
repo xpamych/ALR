@@ -237,7 +237,8 @@ func PromptViewMultipleScripts(ctx context.Context, scripts []ScriptInfo, style 
 	// Показываем диалог с чекбоксами
 	prompt := &survey.MultiSelect{
 		Options: options,
-		Message: gotext.Get("Select packages to view build scripts (space to select, enter to confirm)"),
+		Message: gotext.Get("Select packages to view build scripts"),
+		Help:    gotext.Get("Use space to select, enter to confirm"),
 	}
 
 	var choices []int

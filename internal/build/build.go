@@ -353,7 +353,7 @@ func (b *Builder) BuildPackage(
 		varsOfPackages = remainingVars
 	}
 
-	slog.Info(gotext.Get("Building package"), "name", basePkg)
+	// Примечание: вывод "Building package" перенесен в InstallPkgs для единообразия
 
 	for _, vars := range varsOfPackages {
 		cont, err := b.checkerExecutor.PerformChecks(ctx, input, vars)
@@ -754,19 +754,28 @@ func (i *Builder) InstallPkgs(
 		return nil, nil
 	}
 
-	slog.Info(gotext.Get("Resolving dependencies for packages"), "packages", pkgs)
-
 	// Шаг 1: Построить единое дерево зависимостей
 	tree, err := i.ResolveUnifiedDependencyTree(ctx, input, pkgs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve dependency tree: %w", err)
 	}
 
-	slog.Debug("Dependency tree resolved",
-		"alr_packages", len(tree.AllALRPackages),
-		"system_deps", len(tree.AllSystemDeps),
-		"opt_deps", len(tree.AllOptDeps),
-		"build_deps", len(tree.AllBuildDeps))
+	// Формируем список целевых пакетов с версиями
+	var pkgList []string
+	for _, pkgName := range pkgs {
+		if node, ok := tree.Nodes[pkgName]; ok && node.Package != nil {
+			pkgList = append(pkgList, fmt.Sprintf("%s-%s", pkgName, node.Package.Version))
+		} else {
+			pkgList = append(pkgList, pkgName)
+		}
+	}
+	slog.Info(gotext.Get("Resolving dependencies for packages"), "packages", pkgList)
+
+	slog.Debug(gotext.Get("Dependency tree resolved: %d ALR packages, %d system deps, %d opt deps, %d build deps"),
+		len(tree.AllALRPackages),
+		len(tree.AllSystemDeps),
+		len(tree.AllOptDeps),
+		len(tree.AllBuildDeps))
 
 	// Помечаем целевые пакеты
 	targetSet := make(map[string]bool)
@@ -845,12 +854,12 @@ func (i *Builder) InstallPkgs(
 	}
 
 	// Шаг 5: Собираем и устанавливаем все ALR пакеты в правильном порядке
-	slog.Info(gotext.Get("Building packages"), "count", len(allPackages))
+	slog.Info(gotext.Get("Building %d packages", len(allPackages)))
 
 	for _, pkgName := range allPackages {
 		node, ok := tree.Nodes[pkgName]
 		if !ok || node == nil || node.Package == nil {
-			slog.Debug("Package not found in tree, skipping", "name", pkgName)
+			slog.Debug(gotext.Get("Package %s not found in tree, skipping", pkgName))
 			continue
 		}
 
@@ -864,7 +873,7 @@ func (i *Builder) InstallPkgs(
 		}
 
 		if len(needBuildPkgs) == 0 && !node.IsTarget {
-			slog.Debug("Package already installed, skipping", "name", pkgName)
+			slog.Debug(gotext.Get("Package %s already installed, skipping", pkgName))
 			continue
 		}
 
@@ -901,9 +910,9 @@ func (i *Builder) InstallPkgs(
 
 		// Собираем пакет
 		if node.IsTarget {
-			slog.Info(gotext.Get("Building package"), "name", pkgName)
+			slog.Info(gotext.Get("Building package %s-%s", pkgName, pkg.Version))
 		} else {
-			slog.Info(gotext.Get("Building dependency"), "name", pkgName)
+			slog.Info(gotext.Get("Building dependency %s-%s", pkgName, pkg.Version))
 		}
 
 		res, err := i.BuildPackageFromDb(
@@ -979,7 +988,7 @@ func (i *Builder) InstallPkgs(
 				NoConfirm: !input.BuildOpts().Interactive,
 			})
 			if err != nil {
-				slog.Warn("Failed to remove build dependencies", "error", err)
+				slog.Warn(gotext.Get("Failed to remove build dependencies: %v", err))
 			}
 		}
 	}
