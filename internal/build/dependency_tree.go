@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"git.alr-pkg.ru/Plemya-x/ALR/internal/overrides"
 	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
@@ -78,13 +79,18 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 
 	// resolve рекурсивно разрешает зависимости
 	var resolve func(pkgNames []string, isBuildDep bool) error
+	resolveCallCount := 0
 	resolve = func(pkgNames []string, isBuildDep bool) error {
+		resolveCallCount++
 		if len(pkgNames) == 0 {
 			return nil
 		}
 
+		slog.Debug("Resolving dependencies", "call", resolveCallCount, "packages", len(pkgNames), "time", time.Now().Format("15:04:05.000"))
+
 		// Находим пакеты
 		found, notFound, err := b.repos.FindPkgs(ctx, pkgNames)
+		slog.Debug("FindPkgs completed", "call", resolveCallCount, "found", len(found), "notFound", len(notFound), "time", time.Now().Format("15:04:05.000"))
 		if err != nil {
 			return fmt.Errorf("failed to find packages: %w", err)
 		}
@@ -121,11 +127,17 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 		}
 
 		// Обрабатываем найденные ALR пакеты
+		pkgCounter := 0
 		for pkgName, pkgList := range found {
+			pkgCounter++
 			if visited[pkgName] {
 				continue
 			}
 			visited[pkgName] = true
+
+			if pkgCounter%5 == 0 || pkgCounter == 1 {
+				slog.Debug("Processing package", "call", resolveCallCount, "pkg", pkgCounter, "name", pkgName, "time", time.Now().Format("15:04:05.000"))
+			}
 
 			if len(pkgList) == 0 {
 				continue
