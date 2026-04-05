@@ -209,3 +209,63 @@ func ChooseOptDepends(ctx context.Context, options []string, verb string, intera
 
 	return out, nil
 }
+
+// ScriptInfo содержит информацию о скрипте пакета
+type ScriptInfo struct {
+	Name       string
+	ScriptPath string
+}
+
+// PromptViewMultipleScripts показывает один диалог для выбора скриптов из нескольких пакетов
+// Возвращает true если пользователь хочет продолжить, false если отменить
+func PromptViewMultipleScripts(ctx context.Context, scripts []ScriptInfo, style string, interactive bool) (bool, error) {
+	if !interactive || len(scripts) == 0 {
+		return true, nil
+	}
+
+	// Если только один пакет - используем старую логику
+	if len(scripts) == 1 {
+		return true, PromptViewScript(ctx, scripts[0].ScriptPath, scripts[0].Name, style, interactive)
+	}
+
+	// Формируем список имен пакетов для выбора
+	options := make([]string, len(scripts))
+	for i, script := range scripts {
+		options[i] = script.Name
+	}
+
+	// Показываем диалог с чекбоксами
+	prompt := &survey.MultiSelect{
+		Options: options,
+		Message: gotext.Get("Select packages to view build scripts (space to select, enter to confirm)"),
+	}
+
+	var choices []int
+	err := survey.AskOne(prompt, &choices)
+	if err != nil {
+		return false, err
+	}
+
+	// Показываем выбранные скрипты
+	for _, choiceIndex := range choices {
+		script := scripts[choiceIndex]
+		err := ShowScript(script.ScriptPath, script.Name, style)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	// Если были просмотрены скрипты, спрашиваем о продолжении
+	if len(choices) > 0 {
+		cont, err := YesNoPrompt(ctx, gotext.Get("Would you still like to continue?"), interactive, false)
+		if err != nil {
+			return false, err
+		}
+		if !cont {
+			slog.Error(gotext.Get("User chose not to continue after reading script(s)"))
+			return false, nil
+		}
+	}
+
+	return true, nil
+}

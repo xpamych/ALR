@@ -249,6 +249,7 @@ type BuildArgs struct {
 	Info             *distro.OSRelease
 	PkgFormat_       string
 	SkipDepsBuilding bool // Пропустить сборку зависимостей (используется при вызове из BuildALRDeps)
+	SkipViewScript   bool // Пропустить просмотр скрипта (используется когда скрипты уже показаны)
 }
 
 func (b *BuildArgs) BuildOpts() *types.BuildOpts {
@@ -350,13 +351,6 @@ func (b *Builder) BuildPackage(
 
 		// Обновляем varsOfPackages только теми пакетами, которые нужно собрать
 		varsOfPackages = remainingVars
-	}
-
-	slog.Debug("ViewScript")
-	slog.Debug("", "varsOfPackages", varsOfPackages[0])
-	err = b.scriptViewerExecutor.ViewScript(ctx, input, sf, basePkg)
-	if err != nil {
-		return nil, err
 	}
 
 	slog.Info(gotext.Get("Building package"), "name", basePkg)
@@ -1157,8 +1151,17 @@ func (b *Builder) BuildAndInstallFromOrder(
 	tree *DependencyTree,
 	pkgOrder []string,
 ) ([]*BuiltDep, error) {
-	var allBuiltDeps []*BuiltDep
+	type pkgBuildInfo struct {
+		node        *DependencyNode
+		scriptInfo  *ScriptInfo
+		buildInput  *BuildInput
+		basePkgName string
+	}
 
+	var allBuiltDeps []*BuiltDep
+	var packagesToBuild []pkgBuildInfo
+
+	// ФАЗА 1: Определяем какие пакеты нужно собирать (не из кеша)
 	for _, pkgName := range pkgOrder {
 		node, ok := tree.Nodes[pkgName]
 		if !ok || node == nil || node.Package == nil {
@@ -1202,6 +1205,39 @@ func (b *Builder) BuildAndInstallFromOrder(
 			continue
 		}
 
+		// Добавляем в список для сборки
+		packagesToBuild = append(packagesToBuild, pkgBuildInfo{
+			node:        node,
+			scriptInfo:  scriptInfo,
+			buildInput:  buildInput,
+			basePkgName: basePkgName,
+		})
+	}
+
+	// ФАЗА 2: Показываем диалог со всеми скриптами
+	if len(packagesToBuild) > 0 && input.BuildOpts().Interactive {
+		var scripts []cliutils.ScriptInfo
+		for _, pkgInfo := range packagesToBuild {
+			scripts = append(scripts, cliutils.ScriptInfo{
+				Name:       pkgInfo.node.PkgName,
+				ScriptPath: pkgInfo.scriptInfo.Script,
+			})
+		}
+
+		cont, err := cliutils.PromptViewMultipleScripts(ctx, scripts, b.cfg.PagerStyle(), input.BuildOpts().Interactive)
+		if err != nil {
+			return nil, err
+		}
+		if !cont {
+			return nil, errors.New("user cancelled")
+		}
+	}
+
+	// ФАЗА 3: Собираем пакеты
+	for _, pkgInfo := range packagesToBuild {
+		node := pkgInfo.node
+		pkgName := node.PkgName
+
 		// Собираем пакет
 		if node.IsTarget {
 			slog.Info(gotext.Get("Building package"), "name", pkgName)
@@ -1212,7 +1248,7 @@ func (b *Builder) BuildAndInstallFromOrder(
 		res, err := b.BuildPackageFromDb(
 			ctx,
 			&BuildPackageFromDbArgs{
-				Package:  pkg,
+				Package:  node.Package,
 				Packages: []string{pkgName},
 				BuildArgs: BuildArgs{
 					Opts:             input.BuildOpts(),
