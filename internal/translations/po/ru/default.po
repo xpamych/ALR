@@ -1096,8 +1096,8 @@ msgstr "Системные пакеты:"
 msgid "ALR packages:"
 msgstr "ALR пакеты:"
 
-msgid "Proceed with installation? [Д/н]: "
-msgstr "Продолжить установку? [Д/н]: "
+msgid "Proceed with installation?"
+msgstr "Продолжить установку?"
 
 msgid "Processing optional dependencies"
 msgstr "Обработка опциональных зависимостей"

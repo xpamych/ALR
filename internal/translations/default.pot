@@ -734,7 +734,7 @@ msgstr ""
 msgid "ALR packages:"
 msgstr ""
 
-msgid "Proceed with installation? [Д/н]: "
+msgid "Proceed with installation?"
 msgstr ""
 
 #: internal/utils/cmd.go:54

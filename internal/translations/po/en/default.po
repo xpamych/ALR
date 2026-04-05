@@ -105,5 +105,5 @@ msgstr "System packages:"
 msgid "ALR packages:"
 msgstr "ALR packages:"
 
-msgid "Proceed with installation? [Д/н]: "
-msgstr "Proceed with installation? [Y/n]: "
+msgid "Proceed with installation?"
+msgstr "Proceed with installation?"

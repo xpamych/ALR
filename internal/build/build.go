@@ -27,7 +27,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
@@ -845,10 +844,6 @@ func (i *Builder) InstallPkgs(
 			Bold(true).
 			Foreground(lipgloss.Color("#F59E0B"))
 		
-		promptStyle := lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("#6C5DD3"))
-		
 		fmt.Fprintln(os.Stderr)
 		fmt.Fprintln(os.Stderr, titleStyle.Render("📦 "+gotext.Get("Installation summary")))
 		
@@ -887,13 +882,14 @@ func (i *Builder) InstallPkgs(
 			}
 		}
 		
-		fmt.Fprintln(os.Stderr)
-		fmt.Fprint(os.Stderr, promptStyle.Render(gotext.Get("Proceed with installation? [Д/н]: ")))
-		
-		var response string
-		fmt.Scanln(&response)
-		response = strings.ToLower(strings.TrimSpace(response))
-		if response != "" && response != "д" && response != "да" && response != "y" && response != "yes" {
+		// Запрашиваем подтверждение через survey (корректно обрабатывает Ctrl+C)
+		cont, err := cliutils.YesNoPrompt(ctx, gotext.Get("Proceed with installation?"), true, true)
+		if err != nil {
+			// Пользователь нажал Ctrl+C или произошла ошибка ввода
+			fmt.Fprintln(os.Stderr)
+			return nil, errors.New("installation cancelled by user")
+		}
+		if !cont {
 			return nil, errors.New("installation cancelled by user")
 		}
 		
