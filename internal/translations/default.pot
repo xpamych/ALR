@@ -725,16 +725,16 @@ msgstr ""
 msgid "Processing repository changes..."
 msgstr ""
 
-msgid "Installation summary:"
+msgid "Installation summary"
 msgstr ""
 
-msgid "System packages to install"
+msgid "System packages:"
 msgstr ""
 
-msgid "ALR packages to build/install"
+msgid "ALR packages:"
 msgstr ""
 
-msgid "Proceed with installation? [Y/n]: "
+msgid "Proceed with installation? [Д/н]: "
 msgstr ""
 
 #: internal/utils/cmd.go:54

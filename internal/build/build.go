@@ -30,6 +30,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/leonelquinteros/gotext"
 
 	"git.alr-pkg.ru/Plemya-x/ALR/internal/cliutils"
@@ -821,37 +822,78 @@ func (i *Builder) InstallPkgs(
 	// Показываем сводку и запрашиваем подтверждение (один раз)
 	userConfirmed := false
 	if input.BuildOpts().Interactive && (len(tree.AllSystemDeps) > 0 || len(allPackages) > 0) {
+		// Стили для красивого вывода
+		titleStyle := lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("#6C5DD3")).
+			MarginBottom(1)
+		
+		headerStyle := lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("#3B82F6"))
+		
+		pkgStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#E2E8F0"))
+		
+		repoStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#94A3B8"))
+		
+		versionStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#10B981"))
+		
+		countStyle := lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("#F59E0B"))
+		
+		promptStyle := lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("#6C5DD3"))
+		
 		fmt.Fprintln(os.Stderr)
-		fmt.Fprintln(os.Stderr, "=============================================")
-		fmt.Fprintln(os.Stderr, gotext.Get("Installation summary:"))
-		fmt.Fprintln(os.Stderr, "=============================================")
+		fmt.Fprintln(os.Stderr, titleStyle.Render("📦 "+gotext.Get("Installation summary")))
 		
 		if len(tree.AllSystemDeps) > 0 {
-			fmt.Fprintf(os.Stderr, "\n%s:\n", gotext.Get("System packages to install"))
+			fmt.Fprintf(os.Stderr, "\n%s %s\n",
+				headerStyle.Render("🖥️  "+gotext.Get("System packages:")),
+				countStyle.Render(fmt.Sprintf("(%d)", len(tree.AllSystemDeps))))
+			
 			for _, pkg := range tree.AllSystemDeps {
-				fmt.Fprintf(os.Stderr, "  - %s\n", pkg)
+				fmt.Fprintf(os.Stderr, "   %s %s\n",
+					lipgloss.NewStyle().Foreground(lipgloss.Color("#64748B")).Render("•"),
+					pkgStyle.Render(pkg))
 			}
 		}
 		
 		if len(allPackages) > 0 {
-			fmt.Fprintf(os.Stderr, "\n%s:\n", gotext.Get("ALR packages to build/install"))
+			fmt.Fprintf(os.Stderr, "\n%s %s\n",
+				headerStyle.Render("📋 "+gotext.Get("ALR packages:")),
+				countStyle.Render(fmt.Sprintf("(%d)", len(allPackages))))
+			
 			for _, pkg := range allPackages {
 				node := tree.Nodes[pkg]
 				if node != nil && node.Package != nil {
-					fmt.Fprintf(os.Stderr, "  - %s (from %s)\n", pkg, node.Package.Repository)
+					version := node.Package.Version
+					repo := node.Package.Repository
+					fmt.Fprintf(os.Stderr, "   %s %s %s %s\n",
+						lipgloss.NewStyle().Foreground(lipgloss.Color("#64748B")).Render("•"),
+						pkgStyle.Render(pkg),
+						versionStyle.Render(version),
+						repoStyle.Render("("+repo+")"))
 				} else {
-					fmt.Fprintf(os.Stderr, "  - %s\n", pkg)
+					fmt.Fprintf(os.Stderr, "   %s %s\n",
+						lipgloss.NewStyle().Foreground(lipgloss.Color("#64748B")).Render("•"),
+						pkgStyle.Render(pkg))
 				}
 			}
 		}
 		
 		fmt.Fprintln(os.Stderr)
-		fmt.Fprint(os.Stderr, gotext.Get("Proceed with installation? [Y/n]: "))
+		fmt.Fprint(os.Stderr, promptStyle.Render(gotext.Get("Proceed with installation? [Д/н]: ")))
 		
 		var response string
 		fmt.Scanln(&response)
 		response = strings.ToLower(strings.TrimSpace(response))
-		if response != "" && response != "y" && response != "yes" {
+		if response != "" && response != "д" && response != "да" && response != "y" && response != "yes" {
 			return nil, errors.New("installation cancelled by user")
 		}
 		

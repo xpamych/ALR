@@ -96,14 +96,14 @@ msgstr "Processing repository packages (full)..."
 msgid "Processing repository changes..."
 msgstr "Processing repository changes..."
 
-msgid "Installation summary:"
-msgstr "Installation summary:"
+msgid "Installation summary"
+msgstr "Installation summary"
 
-msgid "System packages to install"
-msgstr "System packages to install"
+msgid "System packages:"
+msgstr "System packages:"
 
-msgid "ALR packages to build/install"
-msgstr "ALR packages to build/install"
+msgid "ALR packages:"
+msgstr "ALR packages:"
 
-msgid "Proceed with installation? [Y/n]: "
+msgid "Proceed with installation? [Д/н]: "
 msgstr "Proceed with installation? [Y/n]: "
