@@ -31,6 +31,7 @@ import (
 	"strings"
 
 	"git.alr-pkg.ru/xpamych/vercmp"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-git/v5"
 	gitConfig "github.com/go-git/go-git/v5/config"
@@ -513,12 +514,25 @@ func (rs *Repos) processRepoFull(ctx context.Context, repo types.Repo, repoDir s
 
 	slog.Info(gotext.Get("Processing repository packages..."), "repo", repo.Name, "count", len(matches))
 
+	// Создаём стили для прогресс-бара
+	barStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("35"))
+	emptyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+
 	processed := 0
 	for _, match := range matches {
 		processed++
-		if processed%10 == 0 {
-			slog.Debug(gotext.Get("Processing repository packages..."), "repo", repo.Name, "progress", processed, "total", len(matches))
-		}
+
+		// Рисуем прогресс-бар
+		progress := float64(processed) / float64(len(matches))
+		barWidth := 30
+		filled := int(progress * float64(barWidth))
+		empty := barWidth - filled
+
+		bar := barStyle.Render(strings.Repeat("█", filled))
+		emptyBar := emptyStyle.Render(strings.Repeat("░", empty))
+
+		fmt.Fprintf(os.Stderr, "\r%s%s %3.0f%% (%d/%d)", bar, emptyBar, progress*100, processed, len(matches))
+
 		runner, err := rs.processRepoChangesRunner(repoDir, filepath.Dir(match))
 		if err != nil {
 			return fmt.Errorf("error creating runner for %s: %w", match, err)
@@ -532,10 +546,12 @@ func (rs *Repos) processRepoFull(ctx context.Context, repo types.Repo, repoDir s
 		err = rs.updatePkg(ctx, repo, runner, scriptFl)
 		scriptFl.Close()
 		if err != nil {
+			fmt.Fprintln(os.Stderr) // новая строка перед ошибкой
 			return fmt.Errorf("error processing %s: %w", match, err)
 		}
 	}
 
+	fmt.Fprintln(os.Stderr) // новая строка после завершения
 	slog.Info(gotext.Get("Repository packages processed"), "repo", repo.Name, "count", len(matches))
 
 	return nil

@@ -23,8 +23,11 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
+	"strings"
 
 	"git.alr-pkg.ru/xpamych/vercmp"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/leonelquinteros/gotext"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/exp/maps"
@@ -179,8 +182,14 @@ func checkForUpdates(
 
 	slog.Info(gotext.Get("Checking for ALR package updates..."), "count", len(pkgNames))
 
+	// Создаём стили для прогресс-бара
+	barStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("35"))
+	emptyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+
 	var out []UpdateInfo
 	checked := 0
+	total := len(pkgNames)
+
 	for _, pkgName := range pkgNames {
 		matches := build.RegexpALRPackageName.FindStringSubmatch(pkgName)
 		if matches != nil {
@@ -225,10 +234,20 @@ func checkForUpdates(
 		}
 
 		checked++
-		if checked%10 == 0 {
-			slog.Debug(gotext.Get("Checked packages for updates"), "progress", checked, "total", len(pkgNames))
-		}
+
+		// Рисуем прогресс-бар
+		progress := float64(checked) / float64(total)
+		barWidth := 30
+		filled := int(progress * float64(barWidth))
+		empty := barWidth - filled
+
+		bar := barStyle.Render(strings.Repeat("█", filled))
+		emptyBar := emptyStyle.Render(strings.Repeat("░", empty))
+
+		fmt.Fprintf(os.Stderr, "\r%s%s %3.0f%% (%d/%d)", bar, emptyBar, progress*100, checked, total)
 	}
+
+	fmt.Fprintln(os.Stderr) // новая строка после завершения
 
 	slog.Info(gotext.Get("Finished checking for updates"), "updates_available", len(out))
 
