@@ -85,8 +85,10 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 	resolveCallCount := 0
 	totalProcessed := 0
 	
-	// Стили для прогресс-бара
-	barStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("35"))
+	// Стили прогресс-бара с градиентом логотипа ALR (красный → синий → жёлтый)
+	barGrad1 := lipgloss.NewStyle().Foreground(lipgloss.Color("203")) // коралловый
+	barGrad2 := lipgloss.NewStyle().Foreground(lipgloss.Color("33"))  // синий
+	barGrad3 := lipgloss.NewStyle().Foreground(lipgloss.Color("220")) // золотой
 	emptyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
 	
 	resolve = func(pkgNames []string, isBuildDep bool) error {
@@ -159,9 +161,21 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 					filled = barWidth
 				}
 				empty := barWidth - filled
-				bar := barStyle.Render(strings.Repeat("█", filled))
+				
+				// Градиент: красный → синий → жёлтый
+				var bar strings.Builder
+				for i := 0; i < filled; i++ {
+					pct := float64(i) / float64(barWidth)
+					if pct < 0.33 {
+						bar.WriteString(barGrad1.Render("█"))
+					} else if pct < 0.66 {
+						bar.WriteString(barGrad2.Render("█"))
+					} else {
+						bar.WriteString(barGrad3.Render("█"))
+					}
+				}
 				emptyBar := emptyStyle.Render(strings.Repeat("░", empty))
-				fmt.Fprintf(os.Stderr, "\r%s%s %3.0f%% [%d/%d] %s", bar, emptyBar, progress*100, pkgCounter, totalPkgs, pkgName)
+				fmt.Fprintf(os.Stderr, "\r%s%s %3.0f%% [%d/%d]", bar.String(), emptyBar, progress*100, pkgCounter, totalPkgs)
 			}
 
 			if len(pkgList) == 0 {
