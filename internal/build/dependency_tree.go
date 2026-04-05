@@ -207,14 +207,15 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 		return nil, err
 	}
 
-	// Реверсируем порядок - от листьев к корню (зависимости первыми)
+	// Порядок уже от листьев к корню (зависимости добавлены после рекурсии)
 	// Исключаем целевые пакеты - они будут добавлены в конец в InstallPkgs
-	for i := len(order) - 1; i >= 0; i-- {
-		pkgName := order[i]
+	slog.Debug("Dependency resolution order", "order", order)
+	for _, pkgName := range order {
 		if !targetSet[pkgName] {
 			tree.AllALRPackages = append(tree.AllALRPackages, pkgName)
 		}
 	}
+	slog.Debug("AllALRPackages after filtering", "packages", tree.AllALRPackages)
 
 	return tree, nil
 }
