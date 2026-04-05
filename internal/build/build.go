@@ -750,6 +750,90 @@ func (i *Builder) installOptDeps(
 	return builtDeps, nil
 }
 
+// printDependencyTree рекурсивно выводит дерево зависимостей
+func (i *Builder) printDependencyTree(
+	w *os.File,
+	node *DependencyNode,
+	tree *UnifiedDependencyTree,
+	prefix string,
+	isLast bool,
+	visited map[string]bool,
+	redColor, yellowColor, blueColor, grayColor lipgloss.Color,
+	versionStyle, repoStyle lipgloss.Style,
+) {
+	if visited[node.PkgName] {
+		return
+	}
+	visited[node.PkgName] = true
+	
+	// Определяем символы для дерева
+	var connector string
+	if isLast {
+		connector = "└── "
+	} else {
+		connector = "├── "
+	}
+	
+	// Выбираем цвет в зависимости от типа пакета
+	var pkgColor lipgloss.Color
+	if node.IsTarget {
+		pkgColor = redColor // Целевые пакеты - красные
+	} else {
+		pkgColor = yellowColor // Зависимости - желтые
+	}
+	
+	pkgStyle := lipgloss.NewStyle().Foreground(pkgColor)
+	connectorStyle := lipgloss.NewStyle().Foreground(grayColor)
+	
+	// Формируем строку с пакетом
+	var pkgLine string
+	if node.Package != nil {
+		version := versionStyle.Render(node.Package.Version)
+		repo := repoStyle.Render("(" + node.Package.Repository + ")")
+		pkgLine = fmt.Sprintf("%s %s %s", pkgStyle.Render(node.PkgName), version, repo)
+	} else {
+		pkgLine = pkgStyle.Render(node.PkgName)
+	}
+	
+	fmt.Fprintf(w, "%s%s%s\n", prefix, connectorStyle.Render(connector), pkgLine)
+	
+	// Рекурсивно выводим зависимости
+	childPrefix := prefix
+	if isLast {
+		childPrefix += "    "
+	} else {
+		childPrefix += "│   "
+	}
+	
+	// Собираем всех детей (runtime зависимости + системные зависимости)
+	children := node.Dependencies
+	sysDeps := node.SystemDeps
+	
+	// Сначала ALR зависимости
+	for idx, childName := range children {
+		if childNode, ok := tree.Nodes[childName]; ok {
+			isLastChild := idx == len(children)-1 && len(sysDeps) == 0
+			i.printDependencyTree(w, childNode, tree, childPrefix, isLastChild, visited,
+				redColor, yellowColor, blueColor, grayColor, versionStyle, repoStyle)
+		}
+	}
+	
+	// Затем системные зависимости (синим цветом)
+	if len(sysDeps) > 0 {
+		sysStyle := lipgloss.NewStyle().Foreground(blueColor)
+		for idx, sysPkg := range sysDeps {
+			isLastSys := idx == len(sysDeps)-1
+			var sysConnector string
+			if isLastSys {
+				sysConnector = "└── "
+			} else {
+				sysConnector = "├── "
+			}
+			fmt.Fprintf(w, "%s%s%s\n", childPrefix, connectorStyle.Render(sysConnector), sysStyle.Render(sysPkg))
+		}
+	}
+}
+
 func (i *Builder) InstallPkgs(
 	ctx context.Context,
 	input interface {
@@ -821,64 +905,31 @@ func (i *Builder) InstallPkgs(
 	// Показываем сводку и запрашиваем подтверждение (один раз)
 	userConfirmed := false
 	if input.BuildOpts().Interactive && (len(tree.AllSystemDeps) > 0 || len(allPackages) > 0) {
-		// Стили для красивого вывода
+		// Цвета из прогресс-бара: красный -> желтый -> синий
+		redColor := lipgloss.Color("#ef4444")     // Целевые пакеты
+		yellowColor := lipgloss.Color("#eab308")  // Зависимости ALR
+		blueColor := lipgloss.Color("#3b82f6")    // Системные пакеты
+		grayColor := lipgloss.Color("#64748B")    // Разделители дерева
+		
 		titleStyle := lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("#6C5DD3")).
 			MarginBottom(1)
 		
-		headerStyle := lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("#3B82F6"))
-		
-		pkgStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#E2E8F0"))
-		
-		repoStyle := lipgloss.NewStyle().
+		versionStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#94A3B8"))
 		
-		versionStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#10B981"))
+		repoStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#475569"))
 		
-		countStyle := lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("#F59E0B"))
-		
-		fmt.Fprintln(os.Stderr)
 		fmt.Fprintln(os.Stderr, titleStyle.Render("📦 "+gotext.Get("Installation summary")))
 		
-		if len(tree.AllSystemDeps) > 0 {
-			fmt.Fprintf(os.Stderr, "\n%s %s\n",
-				headerStyle.Render("🖥️  "+gotext.Get("System packages:")),
-				countStyle.Render(fmt.Sprintf("(%d)", len(tree.AllSystemDeps))))
-			
-			for _, pkg := range tree.AllSystemDeps {
-				fmt.Fprintf(os.Stderr, "   %s %s\n",
-					lipgloss.NewStyle().Foreground(lipgloss.Color("#64748B")).Render("•"),
-					pkgStyle.Render(pkg))
-			}
-		}
-		
-		if len(allPackages) > 0 {
-			fmt.Fprintf(os.Stderr, "\n%s %s\n",
-				headerStyle.Render("📋 "+gotext.Get("ALR packages:")),
-				countStyle.Render(fmt.Sprintf("(%d)", len(allPackages))))
-			
-			for _, pkg := range allPackages {
-				node := tree.Nodes[pkg]
-				if node != nil && node.Package != nil {
-					version := node.Package.Version
-					repo := node.Package.Repository
-					fmt.Fprintf(os.Stderr, "   %s %s %s %s\n",
-						lipgloss.NewStyle().Foreground(lipgloss.Color("#64748B")).Render("•"),
-						pkgStyle.Render(pkg),
-						versionStyle.Render(version),
-						repoStyle.Render("("+repo+")"))
-				} else {
-					fmt.Fprintf(os.Stderr, "   %s %s\n",
-						lipgloss.NewStyle().Foreground(lipgloss.Color("#64748B")).Render("•"),
-						pkgStyle.Render(pkg))
-				}
+		// Рисуем дерево зависимостей
+		visited := make(map[string]bool)
+		for _, pkgName := range pkgs {
+			if node, ok := tree.Nodes[pkgName]; ok {
+				i.printDependencyTree(os.Stderr, node, tree, "", true, visited,
+					redColor, yellowColor, blueColor, grayColor, versionStyle, repoStyle)
 			}
 		}
 		

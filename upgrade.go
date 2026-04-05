@@ -191,9 +191,24 @@ func checkForUpdates(
 
 	slog.Info(gotext.Get("Checking for ALR package updates..."), "count", len(pkgNames))
 
-	// Создаём стили для прогресс-бара
-	barStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("35"))
-	emptyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+	// RGB градиент для прогресс-бара (красный → желтый → синий)
+	gradientColor := func(pos float64) string {
+		var r, g, b int
+		if pos < 0.5 {
+			// Красный → жёлтый
+			t := pos * 2
+			r = int(239 + t*(234-239))
+			g = int(68 + t*(179-68))
+			b = int(68 + t*(8-68))
+		} else {
+			// Жёлтый → синий
+			t := (pos - 0.5) * 2
+			r = int(234 + t*(59-234))
+			g = int(179 + t*(130-179))
+			b = int(8 + t*(246-8))
+		}
+		return fmt.Sprintf("#%02x%02x%02x", r, g, b)
+	}
 
 	var out []UpdateInfo
 	checked := 0
@@ -244,16 +259,23 @@ func checkForUpdates(
 
 		checked++
 
-		// Рисуем прогресс-бар
+		// Рисуем прогресс-бар из точек с RGB-градиентом
 		progress := float64(checked) / float64(total)
-		barWidth := 30
+		barWidth := 40
 		filled := int(progress * float64(barWidth))
-		empty := barWidth - filled
-
-		bar := barStyle.Render(strings.Repeat("█", filled))
-		emptyBar := emptyStyle.Render(strings.Repeat("░", empty))
-
-		fmt.Fprintf(os.Stderr, "\r%s%s %3.0f%% (%d/%d)", bar, emptyBar, progress*100, checked, total)
+		
+		var bar strings.Builder
+		for i := 0; i < barWidth; i++ {
+			pos := float64(i) / float64(barWidth-1)
+			color := lipgloss.Color(gradientColor(pos))
+			if i < filled {
+				bar.WriteString(lipgloss.NewStyle().Foreground(color).Render("●"))
+			} else {
+				bar.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Render("○"))
+			}
+		}
+		
+		fmt.Fprintf(os.Stderr, "\r%s %3.0f%% (%d/%d)", bar.String(), progress*100, checked, total)
 	}
 
 	fmt.Fprintln(os.Stderr) // новая строка после завершения
