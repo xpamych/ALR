@@ -78,19 +78,20 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 	var order []string
 
 	// resolve рекурсивно разрешает зависимости
-	var resolve func(pkgNames []string, isBuildDep bool) error
+	// parentPkg - имя пакета, который запрашивает эти зависимости (для привязки системных зависимостей)
+	var resolve func(pkgNames []string, isBuildDep bool, parentPkg string) error
 	resolveCallCount := 0
 	totalProcessed := 0
 	
 	// Счётчик обработанных пакетов для отладки
 	
-	resolve = func(pkgNames []string, isBuildDep bool) error {
+	resolve = func(pkgNames []string, isBuildDep bool, parentPkg string) error {
 		resolveCallCount++
 		if len(pkgNames) == 0 {
 			return nil
 		}
 
-		slog.Debug(fmt.Sprintf("[TIME: %s] Resolving dependencies", time.Now().Format("15:04:05.000")), "call", resolveCallCount, "packages", len(pkgNames))
+		slog.Debug(fmt.Sprintf("[TIME: %s] Resolving dependencies", time.Now().Format("15:04:05.000")), "call", resolveCallCount, "packages", len(pkgNames), "parent", parentPkg)
 
 		// Находим пакеты
 		found, notFound, err := b.repos.FindPkgs(ctx, pkgNames)
@@ -117,11 +118,27 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 			}
 		}
 
-		// Обрабатываем системные зависимости
+		// Обрабатываем системные зависимости - привязываем к родительскому пакету
 		for _, pkgName := range notFound {
 			if !systemVisited[pkgName] {
 				systemVisited[pkgName] = true
 				tree.AllSystemDeps = append(tree.AllSystemDeps, pkgName)
+			}
+			// Привязываем системную зависимость к родительскому пакету
+			if parentPkg != "" {
+				if node, ok := tree.Nodes[parentPkg]; ok {
+					// Проверяем, не добавлена ли уже
+					alreadyAdded := false
+					for _, sd := range node.SystemDeps {
+						if sd == pkgName {
+							alreadyAdded = true
+							break
+						}
+					}
+					if !alreadyAdded {
+						node.SystemDeps = append(node.SystemDeps, pkgName)
+					}
+				}
 			}
 			// Отслеживаем build зависимости для удаления
 			if isBuildDep && !buildDepVisited[pkgName] {
@@ -197,12 +214,12 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 			// Рекурсивно обрабатываем ВСЕ зависимости сначала
 			// Сначала build (они глубже), затем runtime
 			if len(buildDeps) > 0 {
-				if err := resolve(buildDeps, true); err != nil {
+				if err := resolve(buildDeps, true, pkgName); err != nil {
 					return err
 				}
 			}
 			if len(deps) > 0 {
-				if err := resolve(deps, false); err != nil {
+				if err := resolve(deps, false, pkgName); err != nil {
 					return err
 				}
 			}
@@ -220,8 +237,8 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 		targetSet[pkgName] = true
 	}
 
-	// Начинаем разрешение с начальных пакетов
-	if err := resolve(initialPkgs, false); err != nil {
+	// Начинаем разрешение с начальных пакетов (без родителя)
+	if err := resolve(initialPkgs, false, ""); err != nil {
 		return nil, err
 	}
 
