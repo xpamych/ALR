@@ -178,6 +178,17 @@ func (d *Database) IsEmpty() bool {
 	return count == 0
 }
 
+// HasRepoPackages проверяет, есть ли пакеты указанного репозитория в БД
+func (d *Database) HasRepoPackages(repoName string) bool {
+	count, err := d.engine.Where("repository = ?", repoName).Count(new(alrsh.Package))
+	if err != nil {
+		slog.Warn("Error checking repository packages", "repo", repoName, "error", err)
+		return false
+	}
+	slog.Debug("HasRepoPackages check", "repo", repoName, "count", count)
+	return count > 0
+}
+
 func (d *Database) Close() error {
 	return d.engine.Close()
 }

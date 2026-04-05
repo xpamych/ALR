@@ -201,17 +201,17 @@ func (rs *Repos) pullRepoFromURL(ctx context.Context, rawRepoUrl string, repo *t
 			return err
 		}
 
-		isEmpty := rs.db.IsEmpty()
-		slog.Debug("Repository status check", "name", repo.Name, "old_hash", old.Hash().String(), "new_hash", revHash.String(), "db_empty", isEmpty)
+		hasPackages := rs.db.HasRepoPackages(repo.Name)
+		slog.Debug("Repository status check", "name", repo.Name, "old_hash", old.Hash().String(), "new_hash", revHash.String(), "has_packages", hasPackages)
 
 		if old.Hash() == *revHash {
 			slog.Info(gotext.Get("Repository up to date"), "name", repo.Name)
-			// Если репозиторий не изменился и БД не пустая, пропускаем обработку
-			if !isEmpty {
-				slog.Debug("Repository unchanged and DB not empty, skipping processing", "name", repo.Name)
+			// Если репозиторий не изменился и пакеты есть в БД, пропускаем обработку
+			if hasPackages {
+				slog.Debug("Repository unchanged and packages exist in DB, skipping processing", "name", repo.Name)
 				return nil
 			}
-			slog.Info("Repository unchanged but DB is empty, processing anyway", "name", repo.Name)
+			slog.Info("Repository unchanged but no packages in DB, processing anyway", "name", repo.Name)
 		}
 	} else {
 		slog.Debug("Fresh git clone, processing repository", "name", repo.Name)
@@ -232,10 +232,8 @@ func (rs *Repos) pullRepoFromURL(ctx context.Context, rawRepoUrl string, repo *t
 		return err
 	}
 
-	// If the DB was not present at startup, that means it's
-	// empty. In this case, we need to update the DB fully
-	// rather than just incrementally.
-	if rs.db.IsEmpty() || freshGit {
+	// Если в БД нет пакетов этого репозитория или это fresh clone - полная обработка
+	if !rs.db.HasRepoPackages(repo.Name) || freshGit {
 		slog.Info(gotext.Get("Processing repository packages (full)..."), "name", repo.Name)
 		err = rs.processRepoFull(ctx, *repo, repoDir)
 		if err != nil {
