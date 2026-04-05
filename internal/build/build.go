@@ -393,16 +393,11 @@ func (b *Builder) BuildPackage(
 	}
 	sources, checksums = removeDuplicatesSources(sources, checksums)
 
-	var alrBuildDeps []*BuiltDep
-	var installedBuildDeps []string
-
-	// Пропускаем установку build_deps если флаг установлен (все зависимости уже установлены)
-	if !input.skipDepsBuilding {
-		slog.Debug("installBuildDeps")
-		alrBuildDeps, installedBuildDeps, err = b.installBuildDeps(ctx, input, buildDepends)
-		if err != nil {
-			return nil, err
-		}
+	slog.Debug("installBuildDeps")
+	// build_deps всегда устанавливаются - они нужны для сборки
+	alrBuildDeps, installedBuildDeps, err := b.installBuildDeps(ctx, input, buildDepends)
+	if err != nil {
+		return nil, err
 	}
 
 	slog.Debug("installOptDeps")
@@ -486,8 +481,8 @@ func (b *Builder) BuildPackage(
 
 	builtDeps = removeDuplicates(append(builtDeps, res...))
 
-	// Удаляем build_deps только если они устанавливались в этом вызове
-	if !input.skipDepsBuilding && len(installedBuildDeps) > 0 {
+	// Удаляем build_deps после сборки
+	if len(installedBuildDeps) > 0 {
 		err = b.removeBuildDeps(ctx, input, installedBuildDeps)
 		if err != nil {
 			return nil, err
