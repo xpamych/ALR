@@ -20,8 +20,11 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
+	"strings"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
 	"git.alr-pkg.ru/Plemya-x/ALR/internal/overrides"
 	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
 )
@@ -80,6 +83,12 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 	// resolve рекурсивно разрешает зависимости
 	var resolve func(pkgNames []string, isBuildDep bool) error
 	resolveCallCount := 0
+	totalProcessed := 0
+	
+	// Стили для прогресс-бара
+	barStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("35"))
+	emptyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+	
 	resolve = func(pkgNames []string, isBuildDep bool) error {
 		resolveCallCount++
 		if len(pkgNames) == 0 {
@@ -128,8 +137,10 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 
 		// Обрабатываем найденные ALR пакеты
 		pkgCounter := 0
+		totalPkgs := len(found)
 		for pkgName, pkgList := range found {
 			pkgCounter++
+			totalProcessed++
 			if visited[pkgName] {
 				continue
 			}
@@ -137,6 +148,20 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 
 			if pkgCounter%5 == 0 || pkgCounter == 1 {
 				slog.Debug(fmt.Sprintf("[TIME: %s] Processing package", time.Now().Format("15:04:05.000")), "call", resolveCallCount, "pkg", pkgCounter, "name", pkgName)
+			}
+			
+			// Обновляем прогресс-бар каждые 5 пакетов
+			if totalProcessed%5 == 0 {
+				progress := float64(pkgCounter) / float64(totalPkgs)
+				barWidth := 25
+				filled := int(progress * float64(barWidth))
+				if filled > barWidth {
+					filled = barWidth
+				}
+				empty := barWidth - filled
+				bar := barStyle.Render(strings.Repeat("█", filled))
+				emptyBar := emptyStyle.Render(strings.Repeat("░", empty))
+				fmt.Fprintf(os.Stderr, "\r%s%s %3.0f%% [%d/%d] %s", bar, emptyBar, progress*100, pkgCounter, totalPkgs, pkgName)
 			}
 
 			if len(pkgList) == 0 {
@@ -204,6 +229,11 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 
 			// Добавляем пакет ПОСЛЕ зависимостей (от листьев к корню)
 			order = append(order, pkgName)
+		}
+		
+		// Перенос строки после завершения прогресса
+		if totalProcessed > 0 {
+			fmt.Fprintln(os.Stderr)
 		}
 
 		return nil
