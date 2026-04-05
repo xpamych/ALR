@@ -86,11 +86,11 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 			return nil
 		}
 
-		slog.Debug("Resolving dependencies", "call", resolveCallCount, "packages", len(pkgNames), "time", time.Now().Format("15:04:05.000"))
+		slog.Debug(fmt.Sprintf("[TIME: %s] Resolving dependencies", time.Now().Format("15:04:05.000")), "call", resolveCallCount, "packages", len(pkgNames))
 
 		// Находим пакеты
 		found, notFound, err := b.repos.FindPkgs(ctx, pkgNames)
-		slog.Debug("FindPkgs completed", "call", resolveCallCount, "found", len(found), "notFound", len(notFound), "time", time.Now().Format("15:04:05.000"))
+		slog.Debug(fmt.Sprintf("[TIME: %s] FindPkgs completed", time.Now().Format("15:04:05.000")), "call", resolveCallCount, "found", len(found), "notFound", len(notFound))
 		if err != nil {
 			return fmt.Errorf("failed to find packages: %w", err)
 		}
@@ -136,7 +136,7 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 			visited[pkgName] = true
 
 			if pkgCounter%5 == 0 || pkgCounter == 1 {
-				slog.Debug("Processing package", "call", resolveCallCount, "pkg", pkgCounter, "name", pkgName, "time", time.Now().Format("15:04:05.000"))
+				slog.Debug(fmt.Sprintf("[TIME: %s] Processing package", time.Now().Format("15:04:05.000")), "call", resolveCallCount, "pkg", pkgCounter, "name", pkgName)
 			}
 
 			if len(pkgList) == 0 {

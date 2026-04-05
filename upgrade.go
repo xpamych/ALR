@@ -99,7 +99,7 @@ func UpgradeCmd() *cli.Command {
 				slog.Info(gotext.Get("System packages updated successfully"))
 			}
 
-			slog.Debug("Starting upgrade process", "time", time.Now().Format("15:04:05.000"))
+			slog.Debug(fmt.Sprintf("[TIME: %s] Starting upgrade process", time.Now().Format("15:04:05.000")))
 
 			builder, err := build.NewMainBuilder(
 				deps.Cfg,
@@ -112,15 +112,15 @@ func UpgradeCmd() *cli.Command {
 				return err
 			}
 
-			slog.Debug("Starting checkForUpdates", "time", time.Now().Format("15:04:05.000"))
+			slog.Debug(fmt.Sprintf("[TIME: %s] Starting checkForUpdates", time.Now().Format("15:04:05.000")))
 			updates, err := checkForUpdates(ctx, deps.Manager, deps.DB, deps.Info)
-			slog.Debug("Finished checkForUpdates", "time", time.Now().Format("15:04:05.000"), "updates_count", len(updates))
+			slog.Debug(fmt.Sprintf("[TIME: %s] Finished checkForUpdates", time.Now().Format("15:04:05.000")), "updates_count", len(updates))
 			if err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error checking for updates"), err)
 			}
 
 			if len(updates) > 0 {
-				slog.Debug("Starting InstallPkgs", "time", time.Now().Format("15:04:05.000"), "packages", len(updates))
+				slog.Debug(fmt.Sprintf("[TIME: %s] Starting InstallPkgs", time.Now().Format("15:04:05.000")), "packages", len(updates))
 				_, err = builder.InstallPkgs(
 					ctx,
 					&build.BuildArgs{
