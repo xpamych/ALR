@@ -71,3 +71,18 @@ msgstr "User chose not to continue after reading script(s)"
 
 msgid "Would you like to view the build script for %s"
 msgstr "Would you like to view the build script for %s"
+
+msgid "Processing repository packages..."
+msgstr "Processing repository packages..."
+
+msgid "Repository packages processed"
+msgstr "Repository packages processed"
+
+msgid "Checking for ALR package updates..."
+msgstr "Checking for ALR package updates..."
+
+msgid "Checked packages for updates"
+msgstr "Checked packages for updates"
+
+msgid "Finished checking for updates"
+msgstr "Finished checking for updates"

@@ -757,6 +757,12 @@ msgstr "Не удалось прочитать обновлённый файл"
 msgid "No alr.sh files found in repository"
 msgstr "Файлы alr.sh не найдены в репозитории"
 
+msgid "Processing repository packages..."
+msgstr "Обработка пакетов репозитория..."
+
+msgid "Repository packages processed"
+msgstr "Пакеты репозитория обработаны"
+
 #: internal/utils/cmd.go:54
 msgid "You need to be root to perform this action"
 msgstr "Вы должны быть root чтобы выполнить это"

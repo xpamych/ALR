@@ -710,6 +710,12 @@ msgstr ""
 msgid "No alr.sh files found in repository"
 msgstr ""
 
+msgid "Processing repository packages..."
+msgstr ""
+
+msgid "Repository packages processed"
+msgstr ""
+
 #: internal/utils/cmd.go:54
 msgid "You need to be root to perform this action"
 msgstr ""

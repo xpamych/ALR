@@ -475,6 +475,8 @@ func isValidScriptPath(path string) bool {
 }
 
 func (rs *Repos) processRepoFull(ctx context.Context, repo types.Repo, repoDir string) error {
+	slog.Info(gotext.Get("Processing repository packages..."), "repo", repo.Name)
+
 	rootScript := filepath.Join(repoDir, "alr.sh")
 	if fi, err := os.Stat(rootScript); err == nil && !fi.IsDir() {
 		slog.Debug("Found root alr.sh, processing single-script repository", "repo", repo.Name)
@@ -509,10 +511,14 @@ func (rs *Repos) processRepoFull(ctx context.Context, repo types.Repo, repoDir s
 		return nil
 	}
 
-	slog.Debug("Found multiple alr.sh files, processing multi-package repository",
-		"repo", repo.Name, "count", len(matches))
+	slog.Info(gotext.Get("Processing repository packages..."), "repo", repo.Name, "count", len(matches))
 
+	processed := 0
 	for _, match := range matches {
+		processed++
+		if processed%10 == 0 {
+			slog.Debug(gotext.Get("Processing repository packages..."), "repo", repo.Name, "progress", processed, "total", len(matches))
+		}
 		runner, err := rs.processRepoChangesRunner(repoDir, filepath.Dir(match))
 		if err != nil {
 			return fmt.Errorf("error creating runner for %s: %w", match, err)
@@ -529,6 +535,8 @@ func (rs *Repos) processRepoFull(ctx context.Context, repo types.Repo, repoDir s
 			return fmt.Errorf("error processing %s: %w", match, err)
 		}
 	}
+
+	slog.Info(gotext.Get("Repository packages processed"), "repo", repo.Name, "count", len(matches))
 
 	return nil
 }
