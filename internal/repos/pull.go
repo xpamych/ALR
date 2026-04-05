@@ -201,13 +201,20 @@ func (rs *Repos) pullRepoFromURL(ctx context.Context, rawRepoUrl string, repo *t
 			return err
 		}
 
+		isEmpty := rs.db.IsEmpty()
+		slog.Debug("Repository status check", "name", repo.Name, "old_hash", old.Hash().String(), "new_hash", revHash.String(), "db_empty", isEmpty)
+
 		if old.Hash() == *revHash {
 			slog.Info(gotext.Get("Repository up to date"), "name", repo.Name)
 			// Если репозиторий не изменился и БД не пустая, пропускаем обработку
-			if !rs.db.IsEmpty() {
+			if !isEmpty {
+				slog.Debug("Repository unchanged and DB not empty, skipping processing", "name", repo.Name)
 				return nil
 			}
+			slog.Info("Repository unchanged but DB is empty, processing anyway", "name", repo.Name)
 		}
+	} else {
+		slog.Debug("Fresh git clone, processing repository", "name", repo.Name)
 	}
 
 	slog.Info(gotext.Get("Checking out repository..."), "name", repo.Name)

@@ -162,7 +162,11 @@ func (d *Database) DeletePkgs(_ context.Context, where string, args ...any) erro
 
 func (d *Database) IsEmpty() bool {
 	count, err := d.engine.Count(new(alrsh.Package))
-	return err != nil || count == 0
+	if err != nil {
+		slog.Warn("Error checking if database is empty", "error", err)
+		return true
+	}
+	return count == 0
 }
 
 func (d *Database) Close() error {
