@@ -1119,12 +1119,3 @@ msgstr "Хотите удалить все зависимости сборки?"
 
 msgid "Failed to remove build dependencies: %v"
 msgstr "Не удалось удалить зависимости сборки: %v"
-
-msgid "Would you still like to continue?"
-msgstr "Всё ещё хотите продолжить?"
-
-msgid "User chose not to continue after reading script(s)"
-msgstr "Пользователь решил не продолжать после просмотра скрипта(ов)"
-
-msgid "Would you like to view the build script for %s"
-msgstr "Хотите просмотреть скрипт сборки для %s"

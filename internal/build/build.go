@@ -782,11 +782,11 @@ func (i *Builder) InstallPkgs(
 	}
 	slog.Info(gotext.Get("Resolving dependencies for packages"), "packages", pkgList)
 
-	slog.Debug(gotext.Get("Dependency tree resolved: %d ALR packages, %d system deps, %d opt deps, %d build deps"),
-		len(tree.AllALRPackages),
-		len(tree.AllSystemDeps),
-		len(tree.AllOptDeps),
-		len(tree.AllBuildDeps))
+	slog.Debug(gotext.Get("Dependency tree resolved"),
+		"alr_packages", len(tree.AllALRPackages),
+		"system_deps", len(tree.AllSystemDeps),
+		"opt_deps", len(tree.AllOptDeps),
+		"build_deps", len(tree.AllBuildDeps))
 
 	// Помечаем целевые пакеты
 	targetSet := make(map[string]bool)
