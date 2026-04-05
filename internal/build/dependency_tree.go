@@ -173,9 +173,13 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 			}
 
 			// Отслеживаем build зависимости для удаления
-			for _, bd := range buildDeps {
+			slog.Debug(fmt.Sprintf("[TIME: %s] Checking build deps", time.Now().Format("15:04:05.000")), "pkg", pkgName, "count", len(buildDeps))
+			for i, bd := range buildDeps {
 				// Проверяем, есть ли в системе
 				if b.mgr != nil {
+					if i%5 == 0 {
+						slog.Debug(fmt.Sprintf("[TIME: %s] ListAvailable", time.Now().Format("15:04:05.000")), "pkg", pkgName, "dep", bd, "idx", i)
+					}
 					available, _ := b.mgr.ListAvailable(bd)
 					for _, av := range available {
 						if av == bd && !buildDepVisited[bd] {
