@@ -716,6 +716,15 @@ msgstr ""
 msgid "Repository packages processed"
 msgstr ""
 
+msgid "Checking out repository..."
+msgstr ""
+
+msgid "Processing repository packages (full)..."
+msgstr ""
+
+msgid "Processing repository changes..."
+msgstr ""
+
 #: internal/utils/cmd.go:54
 msgid "You need to be root to perform this action"
 msgstr ""

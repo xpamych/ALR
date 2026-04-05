@@ -86,3 +86,12 @@ msgstr "Checked packages for updates"
 
 msgid "Finished checking for updates"
 msgstr "Finished checking for updates"
+
+msgid "Checking out repository..."
+msgstr "Checking out repository..."
+
+msgid "Processing repository packages (full)..."
+msgstr "Processing repository packages (full)..."
+
+msgid "Processing repository changes..."
+msgstr "Processing repository changes..."

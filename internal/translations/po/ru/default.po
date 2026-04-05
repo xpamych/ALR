@@ -725,6 +725,15 @@ msgstr "Скачивание репозитория"
 msgid "Repository up to date"
 msgstr "Репозиторий уже обновлён"
 
+msgid "Checking out repository..."
+msgstr "Переключение репозитория..."
+
+msgid "Processing repository packages (full)..."
+msgstr "Обработка пакетов репозитория (полная)..."
+
+msgid "Processing repository changes..."
+msgstr "Обработка изменений репозитория..."
+
 #: internal/repos/pull.go:239
 msgid "Git repository does not appear to be a valid ALR repo"
 msgstr "Репозиторий Git не поддерживается репозиторием ALR"

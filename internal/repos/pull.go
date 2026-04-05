@@ -203,9 +203,14 @@ func (rs *Repos) pullRepoFromURL(ctx context.Context, rawRepoUrl string, repo *t
 
 		if old.Hash() == *revHash {
 			slog.Info(gotext.Get("Repository up to date"), "name", repo.Name)
+			// Если репозиторий не изменился и БД не пустая, пропускаем обработку
+			if !rs.db.IsEmpty() {
+				return nil
+			}
 		}
 	}
 
+	slog.Info(gotext.Get("Checking out repository..."), "name", repo.Name)
 	err = w.Checkout(&git.CheckoutOptions{
 		Hash:  plumbing.NewHash(revHash.String()),
 		Force: true,
@@ -224,11 +229,13 @@ func (rs *Repos) pullRepoFromURL(ctx context.Context, rawRepoUrl string, repo *t
 	// empty. In this case, we need to update the DB fully
 	// rather than just incrementally.
 	if rs.db.IsEmpty() || freshGit {
+		slog.Info(gotext.Get("Processing repository packages (full)..."), "name", repo.Name)
 		err = rs.processRepoFull(ctx, *repo, repoDir)
 		if err != nil {
 			return err
 		}
 	} else {
+		slog.Info(gotext.Get("Processing repository changes..."), "name", repo.Name)
 		err = rs.processRepoChanges(ctx, *repo, r, w, old, new)
 		if err != nil {
 			return err
