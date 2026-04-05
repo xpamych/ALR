@@ -167,10 +167,14 @@ func (b *AppBuilder) WithManager() *AppBuilder {
 		return b
 	}
 
-	b.deps.Manager = manager.Detect()
-	if b.deps.Manager == nil {
+	mgr := manager.Detect()
+	if mgr == nil {
 		b.err = cliutils.FormatCliExit(gotext.Get("Unable to detect a supported package manager on the system"), nil)
+		return b
 	}
+
+	// Оборачиваем в CachedManager для кэширования ListAvailable
+	b.deps.Manager = manager.NewCachedManager(mgr)
 
 	return b
 }
