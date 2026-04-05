@@ -196,14 +196,24 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 		return nil
 	}
 
+	// Создаем множество целевых пакетов для исключения из AllALRPackages
+	targetSet := make(map[string]bool)
+	for _, pkgName := range initialPkgs {
+		targetSet[pkgName] = true
+	}
+
 	// Начинаем разрешение с начальных пакетов
 	if err := resolve(initialPkgs, false); err != nil {
 		return nil, err
 	}
 
 	// Реверсируем порядок - от листьев к корню (зависимости первыми)
+	// Исключаем целевые пакеты - они будут добавлены в конец в InstallPkgs
 	for i := len(order) - 1; i >= 0; i-- {
-		tree.AllALRPackages = append(tree.AllALRPackages, order[i])
+		pkgName := order[i]
+		if !targetSet[pkgName] {
+			tree.AllALRPackages = append(tree.AllALRPackages, pkgName)
+		}
 	}
 
 	return tree, nil
