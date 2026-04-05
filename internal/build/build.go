@@ -39,13 +39,14 @@ import (
 )
 
 type BuildInput struct {
-	opts             *types.BuildOpts
-	info             *distro.OSRelease
-	pkgFormat        string
-	script           string
-	repository       string
-	packages         []string
-	skipDepsBuilding bool // Пропустить сборку зависимостей (используется при вызове из BuildALRDeps)
+	opts              *types.BuildOpts
+	info              *distro.OSRelease
+	pkgFormat         string
+	script            string
+	repository        string
+	packages          []string
+	skipDepsBuilding  bool // Пропустить сборку зависимостей (используется при вызове из BuildALRDeps)
+	skipBuildDeps     bool // Пропустить установку build_deps (используется при единой установке)
 }
 
 func (bi *BuildInput) GobEncode() ([]byte, error) {
@@ -250,6 +251,7 @@ type BuildArgs struct {
 	PkgFormat_       string
 	SkipDepsBuilding bool // Пропустить сборку зависимостей (используется при вызове из BuildALRDeps)
 	SkipViewScript   bool // Пропустить просмотр скрипта (используется когда скрипты уже показаны)
+	SkipBuildDeps    bool // Пропустить установку build_deps (используется при единой установке)
 }
 
 func (b *BuildArgs) BuildOpts() *types.BuildOpts {
@@ -290,6 +292,7 @@ func (b *Builder) BuildPackageFromDb(
 		opts:             args.Opts,
 		info:             args.Info,
 		skipDepsBuilding: args.SkipDepsBuilding,
+		skipBuildDeps:    args.SkipBuildDeps,
 	})
 }
 
@@ -387,18 +390,21 @@ func (b *Builder) BuildPackage(
 	}
 	sources, checksums = removeDuplicatesSources(sources, checksums)
 
-	slog.Debug("installBuildDeps")
-	// build_deps всегда устанавливаются - они нужны для сборки
-	// Примечание: удаление build_deps теперь происходит в InstallPkgs
-	alrBuildDeps, _, err := b.installBuildDeps(ctx, input, buildDepends)
-	if err != nil {
-		return nil, err
-	}
+	var alrBuildDeps []*BuiltDep
+	
+	// Устанавливаем build_deps только если не в режиме единой установки
+	if !input.skipBuildDeps {
+		slog.Debug("installBuildDeps")
+		alrBuildDeps, _, err = b.installBuildDeps(ctx, input, buildDepends)
+		if err != nil {
+			return nil, err
+		}
 
-	slog.Debug("installOptDeps")
-	_, err = b.installOptDeps(ctx, input, optDepends)
-	if err != nil {
-		return nil, err
+		slog.Debug("installOptDeps")
+		_, err = b.installOptDeps(ctx, input, optDepends)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	depNames := make(map[string]struct{})
@@ -925,6 +931,7 @@ func (i *Builder) InstallPkgs(
 					Info:             input.OSRelease(),
 					PkgFormat_:       input.PkgFormat(),
 					SkipDepsBuilding: true, // Все зависимости уже установлены
+					SkipBuildDeps:    true, // build_deps уже установлены в InstallPkgs
 				},
 			},
 		)
