@@ -140,6 +140,37 @@ func (y *YUM) ListAvailable(prefix string) ([]string, error) {
 	return pkgs, nil
 }
 
+// IsAvailable проверяет, доступен ли конкретный пакет в репозиториях
+func (y *YUM) IsAvailable(name string) (bool, error) {
+	cmd := exec.Command("yum", "repoquery", "--qf", "%{name}", "--quiet", name)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return false, fmt.Errorf("yum: isavailable: %w", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return false, fmt.Errorf("yum: isavailable: %w", err)
+	}
+
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		if scanner.Text() == name {
+			cmd.Wait()
+			return true, nil
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return false, fmt.Errorf("yum: isavailable: %w", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return false, fmt.Errorf("yum: isavailable: %w", err)
+	}
+
+	return false, nil
+}
+
 func (y *YUM) UpgradeAll(opts *Opts) error {
 	opts = ensureOpts(opts)
 	cmd := y.getCmd(opts, "yum", "upgrade")

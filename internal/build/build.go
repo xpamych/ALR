@@ -26,7 +26,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
+	"time"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/leonelquinteros/gotext"
 
 	"git.alr-pkg.ru/Plemya-x/ALR/internal/cliutils"
@@ -39,13 +42,14 @@ import (
 )
 
 type BuildInput struct {
-	opts             *types.BuildOpts
-	info             *distro.OSRelease
-	pkgFormat        string
-	script           string
-	repository       string
-	packages         []string
-	skipDepsBuilding bool // Пропустить сборку зависимостей (используется при вызове из BuildALRDeps)
+	opts              *types.BuildOpts
+	info              *distro.OSRelease
+	pkgFormat         string
+	script            string
+	repository        string
+	packages          []string
+	skipDepsBuilding  bool // Пропустить сборку зависимостей (используется при вызове из BuildALRDeps)
+	skipBuildDeps     bool // Пропустить установку build_deps (используется при единой установке)
 }
 
 func (bi *BuildInput) GobEncode() ([]byte, error) {
@@ -249,6 +253,8 @@ type BuildArgs struct {
 	Info             *distro.OSRelease
 	PkgFormat_       string
 	SkipDepsBuilding bool // Пропустить сборку зависимостей (используется при вызове из BuildALRDeps)
+	SkipViewScript   bool // Пропустить просмотр скрипта (используется когда скрипты уже показаны)
+	SkipBuildDeps    bool // Пропустить установку build_deps (используется при единой установке)
 }
 
 func (b *BuildArgs) BuildOpts() *types.BuildOpts {
@@ -289,6 +295,7 @@ func (b *Builder) BuildPackageFromDb(
 		opts:             args.Opts,
 		info:             args.Info,
 		skipDepsBuilding: args.SkipDepsBuilding,
+		skipBuildDeps:    args.SkipBuildDeps,
 	})
 }
 
@@ -352,14 +359,7 @@ func (b *Builder) BuildPackage(
 		varsOfPackages = remainingVars
 	}
 
-	slog.Debug("ViewScript")
-	slog.Debug("", "varsOfPackages", varsOfPackages[0])
-	err = b.scriptViewerExecutor.ViewScript(ctx, input, sf, basePkg)
-	if err != nil {
-		return nil, err
-	}
-
-	slog.Info(gotext.Get("Building package"), "name", basePkg)
+	// Примечание: вывод "Building package" перенесен в InstallPkgs для единообразия
 
 	for _, vars := range varsOfPackages {
 		cont, err := b.checkerExecutor.PerformChecks(ctx, input, vars)
@@ -393,16 +393,21 @@ func (b *Builder) BuildPackage(
 	}
 	sources, checksums = removeDuplicatesSources(sources, checksums)
 
-	slog.Debug("installBuildDeps")
-	alrBuildDeps, installedBuildDeps, err := b.installBuildDeps(ctx, input, buildDepends)
-	if err != nil {
-		return nil, err
-	}
+	var alrBuildDeps []*BuiltDep
+	
+	// Устанавливаем build_deps только если не в режиме единой установки
+	if !input.skipBuildDeps {
+		slog.Debug("installBuildDeps")
+		alrBuildDeps, _, err = b.installBuildDeps(ctx, input, buildDepends)
+		if err != nil {
+			return nil, err
+		}
 
-	slog.Debug("installOptDeps")
-	_, err = b.installOptDeps(ctx, input, optDepends)
-	if err != nil {
-		return nil, err
+		slog.Debug("installOptDeps")
+		_, err = b.installOptDeps(ctx, input, optDepends)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	depNames := make(map[string]struct{})
@@ -480,39 +485,12 @@ func (b *Builder) BuildPackage(
 
 	builtDeps = removeDuplicates(append(builtDeps, res...))
 
-	err = b.removeBuildDeps(ctx, input, installedBuildDeps)
-	if err != nil {
-		return nil, err
-	}
+	// Примечание: удаление build_deps теперь происходит один раз в конце InstallPkgs
+	// чтобы избежать дублирования промптов
 
 	return builtDeps, nil
 }
 
-func (b *Builder) removeBuildDeps(ctx context.Context, input interface {
-	BuildOptsProvider
-}, deps []string,
-) error {
-	if len(deps) > 0 {
-		remove, err := cliutils.YesNoPrompt(ctx, gotext.Get("Would you like to remove the build dependencies?"), input.BuildOpts().Interactive, false)
-		if err != nil {
-			return err
-		}
-
-		if remove {
-			err = b.installerExecutor.Remove(
-				ctx,
-				deps,
-				&manager.Opts{
-					NoConfirm: !input.BuildOpts().Interactive,
-				},
-			)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
 
 type InstallPkgsArgs struct {
 	BuildArgs
@@ -529,43 +507,19 @@ func (b *Builder) InstallALRPackages(
 	},
 	alrPkgs []alrsh.Package,
 ) error {
-	for _, pkg := range alrPkgs {
-		res, err := b.BuildPackageFromDb(
-			ctx,
-			&BuildPackageFromDbArgs{
-				Package:  &pkg,
-				Packages: []string{},
-				BuildArgs: BuildArgs{
-					Opts:       input.BuildOpts(),
-					Info:       input.OSRelease(),
-					PkgFormat_: input.PkgFormat(),
-				},
-			},
-		)
-		if err != nil {
-			return err
-		}
-
-		err = b.installerExecutor.InstallLocal(
-			ctx,
-			GetBuiltPaths(res),
-			&manager.Opts{
-				NoConfirm: !input.BuildOpts().Interactive,
-			},
-		)
-		if err != nil {
-			return err
-		}
-
-		// Отслеживание установки ALR пакетов
-		for _, dep := range res {
-			if stats.ShouldTrackPackage(dep.Name) {
-				stats.TrackInstallation(ctx, dep.Name, "upgrade")
-			}
-		}
+	if len(alrPkgs) == 0 {
+		return nil
 	}
 
-	return nil
+	// Получаем имена всех пакетов для установки
+	pkgNames := make([]string, len(alrPkgs))
+	for i, pkg := range alrPkgs {
+		pkgNames[i] = pkg.Name
+	}
+
+	// Используем тот же алгоритм что и InstallPkgs
+	_, err := b.InstallPkgs(ctx, input, pkgNames)
+	return err
 }
 
 func (b *Builder) BuildALRDeps(
@@ -581,128 +535,60 @@ func (b *Builder) BuildALRDeps(
 		return nil, nil, nil
 	}
 
-	slog.Info(gotext.Get("Installing dependencies"))
-
-	// Шаг 1: Рекурсивно разрешаем ВСЕ зависимости
-	depTree, systemDeps, err := b.ResolveDependencyTree(ctx, input, depends)
+	// Используем единое дерево зависимостей
+	tree, err := b.ResolveUnifiedDependencyTree(ctx, input, depends)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to resolve dependency tree: %w", err)
 	}
 
-	// Системные зависимости возвращаем как repoDeps
-	repoDeps = systemDeps
+	repoDeps = tree.AllSystemDeps
 
-	// Шаг 2: Топологическая сортировка (от корней к листьям)
-	sortedPkgs, err := TopologicalSort(depTree)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to sort dependencies: %w", err)
-	}
+	// Собираем все ALR пакеты из дерева
+	var allBuiltDeps []*BuiltDep
 
-	// Шаг 2.5: Фильтруем уже установленные пакеты
-	// Собираем пакеты вместе с их ключами (именами поиска)
-	type pkgWithKey struct {
-		key string
-		pkg alrsh.Package
-	}
-	var allPkgsWithKeys []pkgWithKey
-	for key, node := range depTree {
-		if node.Package != nil {
-			allPkgsWithKeys = append(allPkgsWithKeys, pkgWithKey{key: key, pkg: *node.Package})
-		}
-	}
-
-	var allPkgs []alrsh.Package
-	for _, p := range allPkgsWithKeys {
-		allPkgs = append(allPkgs, p.pkg)
-	}
-
-	slog.Debug("allPkgs count", "count", len(allPkgs))
-	for _, p := range allPkgsWithKeys {
-		slog.Debug("package in depTree", "key", p.key, "name", p.pkg.Name, "repo", p.pkg.Repository)
-	}
-
-	needBuildPkgs, err := b.installerExecutor.FilterPackagesByVersion(ctx, allPkgs, input.OSRelease())
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to filter packages: %w", err)
-	}
-
-	// Создаём множество имён пакетов, которые нужно собрать
-	needBuildNames := make(map[string]bool)
-	for _, pkg := range needBuildPkgs {
-		needBuildNames[pkg.Name] = true
-	}
-
-	slog.Debug("needBuildPkgs count", "count", len(needBuildPkgs))
-	for _, pkg := range needBuildPkgs {
-		slog.Debug("package needs build", "name", pkg.Name)
-	}
-
-	// Строим needBuildSet по КЛЮЧАМ depTree, а не по pkg.Name
-	// Это важно, т.к. ключ может быть именем из Provides (python3-pyside6),
-	// а pkg.Name - фактическое имя пакета (python3-shiboken6)
-	needBuildSet := make(map[string]bool)
-	for _, p := range allPkgsWithKeys {
-		if needBuildNames[p.pkg.Name] {
-			needBuildSet[p.key] = true
-		}
-	}
-
-	// Шаг 3: Группируем подпакеты по basePkgName для оптимизации сборки
-	// Если несколько подпакетов из одного мультипакета, собираем их вместе
-	slog.Debug("sortedPkgs", "pkgs", sortedPkgs)
-
-	// Шаг 4: Собираем пакеты в правильном порядке, проверяя кеш
-	for _, pkgName := range sortedPkgs {
-		node := depTree[pkgName]
-		if node == nil {
-			slog.Debug("node is nil", "pkgName", pkgName)
+	for _, pkgName := range tree.AllALRPackages {
+		node, ok := tree.Nodes[pkgName]
+		if !ok || node == nil || node.Package == nil {
 			continue
 		}
 
-		pkg := node.Package
-		basePkgName := node.BasePkgName
+		// Проверяем нужна ли сборка
+		needBuildPkgs, err := b.installerExecutor.FilterPackagesByVersion(ctx, []alrsh.Package{*node.Package}, input.OSRelease())
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to filter package %s: %w", pkgName, err)
+		}
 
-		// Пропускаем уже установленные пакеты
-		if !needBuildSet[pkgName] {
-			slog.Debug("skipping (not in needBuildSet)", "pkgName", pkgName)
+		if len(needBuildPkgs) == 0 {
 			continue
 		}
 
-		// Собираем только запрошенный подпакет (или все, если запрошен basePkgName)
-		packagesToBuilt := []string{pkgName}
-
-		// Проверяем кеш для запрошенного подпакета
-		scriptInfo := b.scriptResolver.ResolveScript(ctx, pkg)
+		// Проверяем кеш
+		scriptInfo := b.scriptResolver.ResolveScript(ctx, node.Package)
 		buildInput := &BuildInput{
 			script:     scriptInfo.Script,
 			repository: scriptInfo.Repository,
-			packages:   packagesToBuilt,
+			packages:   []string{pkgName},
 			pkgFormat:  input.PkgFormat(),
 			opts:       input.BuildOpts(),
 			info:       input.OSRelease(),
 		}
 
-		cachedDeps, allInCache, err := b.checkCacheForAllSubpackages(ctx, buildInput, basePkgName, packagesToBuilt)
+		cachedDeps, allInCache, err := b.checkCacheForAllSubpackages(ctx, buildInput, node.BasePkgName, []string{pkgName})
 		if err != nil {
 			return nil, nil, err
 		}
 
 		if allInCache {
-			// Подпакет в кеше, используем его
-			slog.Debug("using cached package", "pkgName", pkgName)
-			buildDeps = append(buildDeps, cachedDeps...)
+			allBuiltDeps = append(allBuiltDeps, cachedDeps...)
 			continue
 		}
 
-		slog.Debug("building package", "pkgName", pkgName)
-
-		// Собираем только запрошенный подпакет
-		// SkipDepsBuilding: true предотвращает рекурсивный вызов BuildALRDeps
+		// Собираем пакет
 		res, err := b.BuildPackageFromDb(
 			ctx,
 			&BuildPackageFromDbArgs{
-				Package:  pkg,
-				Packages: packagesToBuilt,
+				Package:  node.Package,
+				Packages: []string{pkgName},
 				BuildArgs: BuildArgs{
 					Opts:             input.BuildOpts(),
 					Info:             input.OSRelease(),
@@ -712,16 +598,16 @@ func (b *Builder) BuildALRDeps(
 			},
 		)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed build package from db: %w", err)
+			return nil, nil, fmt.Errorf("failed to build %s: %w", pkgName, err)
 		}
 
-		buildDeps = append(buildDeps, res...)
+		allBuiltDeps = append(allBuiltDeps, res...)
 	}
 
-	buildDeps = removeDuplicates(buildDeps)
-
-	return buildDeps, repoDeps, nil
+	return allBuiltDeps, repoDeps, nil
 }
+
+
 
 // findAllSubpackages находит все подпакеты для базового пакета
 func (b *Builder) findAllSubpackages(ctx context.Context, basePkgName, repository string) ([]string, error) {
@@ -864,6 +750,105 @@ func (i *Builder) installOptDeps(
 	return builtDeps, nil
 }
 
+// printDependencyTree рекурсивно выводит дерево зависимостей
+// path используется для отслеживания текущего пути (для обнаружения циклов)
+func (i *Builder) printDependencyTree(
+	w *os.File,
+	node *DependencyNode,
+	tree *UnifiedDependencyTree,
+	prefix string,
+	isLast bool,
+	path map[string]bool,
+	redColor, yellowColor, blueColor, grayColor lipgloss.Color,
+	versionStyle, repoStyle lipgloss.Style,
+) {
+	// Проверяем цикл на текущем пути
+	if path[node.PkgName] {
+		// Цикл обнаружен, показываем [circular]
+		connectorStyle := lipgloss.NewStyle().Foreground(grayColor)
+		circularStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
+		var connector string
+		if isLast {
+			connector = "└── "
+		} else {
+			connector = "├── "
+		}
+		fmt.Fprintf(w, "%s%s%s\n", prefix, connectorStyle.Render(connector), circularStyle.Render(node.PkgName+" [circular]"))
+		return
+	}
+	
+	// Добавляем текущий узел в путь
+	path[node.PkgName] = true
+	defer delete(path, node.PkgName) // Удаляем при выходе из функции
+	
+	// Определяем символы для дерева
+	var connector string
+	if isLast {
+		connector = "└── "
+	} else {
+		connector = "├── "
+	}
+	
+	// Выбираем цвет в зависимости от типа пакета
+	var pkgColor lipgloss.Color
+	if node.IsTarget {
+		pkgColor = redColor // Целевые пакеты - красные
+	} else {
+		pkgColor = yellowColor // Зависимости - желтые
+	}
+	
+	pkgStyle := lipgloss.NewStyle().Foreground(pkgColor)
+	connectorStyle := lipgloss.NewStyle().Foreground(grayColor)
+	
+	// Формируем строку с пакетом
+	var pkgLine string
+	if node.Package != nil {
+		version := versionStyle.Render(node.Package.Version)
+		repo := repoStyle.Render("(" + node.Package.Repository + ")")
+		pkgLine = fmt.Sprintf("%s %s %s", pkgStyle.Render(node.PkgName), version, repo)
+	} else {
+		pkgLine = pkgStyle.Render(node.PkgName)
+	}
+	
+	fmt.Fprintf(w, "%s%s%s\n", prefix, connectorStyle.Render(connector), pkgLine)
+	
+	// Рекурсивно выводим зависимости
+	childPrefix := prefix
+	if isLast {
+		childPrefix += "    "
+	} else {
+		childPrefix += "│   "
+	}
+	
+	// Собираем всех детей (runtime зависимости + системные зависимости)
+	children := node.Dependencies
+	sysDeps := node.SystemDeps
+	
+	// Сначала ALR зависимости
+	for idx, childName := range children {
+		if childNode, ok := tree.Nodes[childName]; ok {
+			isLastChild := idx == len(children)-1 && len(sysDeps) == 0
+			i.printDependencyTree(w, childNode, tree, childPrefix, isLastChild, path,
+				redColor, yellowColor, blueColor, grayColor, versionStyle, repoStyle)
+		}
+	}
+	
+	// Затем системные зависимости (синим цветом)
+	if len(sysDeps) > 0 {
+		sysStyle := lipgloss.NewStyle().Foreground(blueColor)
+		for idx, sysPkg := range sysDeps {
+			isLastSys := idx == len(sysDeps)-1
+			var sysConnector string
+			if isLastSys {
+				sysConnector = "└── "
+			} else {
+				sysConnector = "├── "
+			}
+			fmt.Fprintf(w, "%s%s%s\n", childPrefix, connectorStyle.Render(sysConnector), sysStyle.Render(sysPkg))
+		}
+	}
+}
+
 func (i *Builder) InstallPkgs(
 	ctx context.Context,
 	input interface {
@@ -873,43 +858,301 @@ func (i *Builder) InstallPkgs(
 	},
 	pkgs []string,
 ) ([]*BuiltDep, error) {
-	builtDeps, repoDeps, err := i.BuildALRDeps(ctx, input, pkgs)
-	if err != nil {
-		return nil, err
+	if len(pkgs) == 0 {
+		return nil, nil
 	}
 
-	if len(builtDeps) > 0 {
-		err = i.installerExecutor.InstallLocal(ctx, GetBuiltPaths(builtDeps), &manager.Opts{
-			NoConfirm: !input.BuildOpts().Interactive,
+	slog.Debug(fmt.Sprintf("[TIME: %s] InstallPkgs: starting", time.Now().Format("15:04:05.000")), "packages", len(pkgs))
+
+	// Шаг 1: Построить единое дерево зависимостей
+	slog.Debug(fmt.Sprintf("[TIME: %s] InstallPkgs: resolving dependency tree...", time.Now().Format("15:04:05.000")))
+	tree, err := i.ResolveUnifiedDependencyTree(ctx, input, pkgs)
+	slog.Debug(fmt.Sprintf("[TIME: %s] InstallPkgs: dependency tree resolved", time.Now().Format("15:04:05.000")))
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve dependency tree: %w", err)
+	}
+
+	// Формируем список целевых пакетов с версиями
+	var pkgList []string
+	for _, pkgName := range pkgs {
+		if node, ok := tree.Nodes[pkgName]; ok && node.Package != nil {
+			pkgList = append(pkgList, fmt.Sprintf("%s-%s", pkgName, node.Package.Version))
+		} else {
+			pkgList = append(pkgList, pkgName)
+		}
+	}
+	slog.Info(gotext.Get("Resolving dependencies for packages"), "packages", pkgList)
+
+	slog.Debug(gotext.Get("Dependency tree resolved"),
+		"alr_packages", len(tree.AllALRPackages),
+		"system_deps", len(tree.AllSystemDeps),
+		"opt_deps", len(tree.AllOptDeps),
+		"build_deps", len(tree.AllBuildDeps))
+
+	// Помечаем целевые пакеты
+	targetSet := make(map[string]bool)
+	for _, pkgName := range pkgs {
+		targetSet[pkgName] = true
+		if node, ok := tree.Nodes[pkgName]; ok {
+			node.IsTarget = true
+		}
+	}
+
+	// Формируем полный список пакетов для сборки (зависимости + целевые)
+	var allPackages []string
+	for _, pkgName := range tree.AllALRPackages {
+		allPackages = append(allPackages, pkgName)
+	}
+	for _, pkgName := range pkgs {
+		// Добавляем целевые пакеты если их ещё нет в списке
+		found := false
+		for _, existing := range allPackages {
+			if existing == pkgName {
+				found = true
+				break
+			}
+		}
+		if !found {
+			allPackages = append(allPackages, pkgName)
+		}
+	}
+
+	// Показываем сводку и запрашиваем подтверждение (один раз)
+	userConfirmed := false
+	if input.BuildOpts().Interactive && (len(tree.AllSystemDeps) > 0 || len(allPackages) > 0) {
+		// Цвета из прогресс-бара: красный -> желтый -> синий
+		redColor := lipgloss.Color("#ef4444")     // Целевые пакеты
+		yellowColor := lipgloss.Color("#eab308")  // Зависимости ALR
+		blueColor := lipgloss.Color("#3b82f6")    // Системные пакеты
+		grayColor := lipgloss.Color("#64748B")    // Разделители дерева
+		
+		titleStyle := lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("#6C5DD3")).
+			MarginBottom(1)
+		
+		versionStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#94A3B8"))
+		
+		repoStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#475569"))
+		
+		fmt.Fprintln(os.Stderr, titleStyle.Render("📦 "+gotext.Get("Installation summary")))
+		
+		// Рисуем дерево зависимостей (path отслеживает текущий путь для обнаружения циклов)
+		for _, pkgName := range pkgs {
+			if node, ok := tree.Nodes[pkgName]; ok {
+				path := make(map[string]bool)
+				i.printDependencyTree(os.Stderr, node, tree, "", true, path,
+					redColor, yellowColor, blueColor, grayColor, versionStyle, repoStyle)
+			}
+		}
+		
+		// Запрашиваем подтверждение через survey (корректно обрабатывает Ctrl+C)
+		cont, err := cliutils.YesNoPrompt(ctx, gotext.Get("Proceed with installation?"), true, true)
+		if err != nil {
+			// Пользователь нажал Ctrl+C или произошла ошибка ввода
+			fmt.Fprintln(os.Stderr)
+			return nil, errors.New("installation cancelled by user")
+		}
+		if !cont {
+			return nil, errors.New("installation cancelled by user")
+		}
+		
+		// После подтверждения устанавливаем всё без дополнительных запросов
+		userConfirmed = true
+	}
+
+	var allBuiltDeps []*BuiltDep
+	var installedBuildDeps []string
+
+	// Шаг 2: Устанавливаем ВСЕ системные зависимости одним вызовом
+	if len(tree.AllSystemDeps) > 0 {
+		slog.Info(gotext.Get("Installing system dependencies"), "count", len(tree.AllSystemDeps))
+		err = i.installerExecutor.Install(ctx, tree.AllSystemDeps, &manager.Opts{
+			NoConfirm: userConfirmed, // true после подтверждения, иначе используем Interactive
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to install system dependencies: %w", err)
+		}
+		_ = i.installerExecutor.CheckVersionsAfterInstall(ctx, tree.AllSystemDeps)
+	}
+
+	// Шаг 3: Обрабатываем опциональные зависимости (если есть)
+	if len(tree.AllOptDeps) > 0 && input.BuildOpts().Interactive {
+		slog.Info(gotext.Get("Processing optional dependencies"))
+		_, err := i.installOptDeps(ctx, input, tree.AllOptDeps)
+		if err != nil {
+			return nil, fmt.Errorf("failed to install optional dependencies: %w", err)
+		}
+	}
+
+	// Шаг 4: Показываем скрипты всех пакетов перед сборкой
+	if input.BuildOpts().Interactive {
+		var scripts []cliutils.ScriptInfo
+		for _, pkgName := range allPackages {
+			if node, ok := tree.Nodes[pkgName]; ok && node.Package != nil {
+				scriptInfo := i.scriptResolver.ResolveScript(ctx, node.Package)
+				scripts = append(scripts, cliutils.ScriptInfo{
+					Name:       pkgName,
+					ScriptPath: scriptInfo.Script,
+				})
+			}
+		}
+
+		if len(scripts) > 0 {
+			cont, err := cliutils.PromptViewMultipleScripts(ctx, scripts, i.cfg.PagerStyle(), input.BuildOpts().Interactive)
+			if err != nil {
+				return nil, err
+			}
+			if !cont {
+				return nil, errors.New("user cancelled")
+			}
+		}
+	}
+
+	// Шаг 5: Собираем и устанавливаем все ALR пакеты в правильном порядке
+	slog.Info(gotext.Get("Building %d packages", len(allPackages)))
+	slog.Debug("Package build order", "order", allPackages)
+
+	for _, pkgName := range allPackages {
+		node, ok := tree.Nodes[pkgName]
+		if !ok || node == nil || node.Package == nil {
+			slog.Debug(gotext.Get("Package %s not found in tree, skipping", pkgName))
+			continue
+		}
+
+		pkg := node.Package
+		basePkgName := node.BasePkgName
+
+		// Проверяем нужна ли сборка
+		needBuildPkgs, err := i.installerExecutor.FilterPackagesByVersion(ctx, []alrsh.Package{*pkg}, input.OSRelease())
+		if err != nil {
+			return nil, fmt.Errorf("failed to filter package %s: %w", pkgName, err)
+		}
+
+		if len(needBuildPkgs) == 0 && !node.IsTarget {
+			slog.Debug(gotext.Get("Package %s already installed, skipping", pkgName))
+			continue
+		}
+
+		// Проверяем кеш
+		scriptInfo := i.scriptResolver.ResolveScript(ctx, pkg)
+		buildInput := &BuildInput{
+			script:     scriptInfo.Script,
+			repository: scriptInfo.Repository,
+			packages:   []string{pkgName},
+			pkgFormat:  input.PkgFormat(),
+			opts:       input.BuildOpts(),
+			info:       input.OSRelease(),
+		}
+
+		cachedDeps, allInCache, err := i.checkCacheForAllSubpackages(ctx, buildInput, basePkgName, []string{pkgName})
+		if err != nil {
+			return nil, err
+		}
+
+		if allInCache {
+			slog.Info(gotext.Get("Using cached package"), "name", pkgName)
+			allBuiltDeps = append(allBuiltDeps, cachedDeps...)
+			// Устанавливаем кешированный пакет
+			if len(cachedDeps) > 0 && !node.IsTarget {
+				err = i.installerExecutor.InstallLocal(ctx, GetBuiltPaths(cachedDeps), &manager.Opts{
+					NoConfirm: userConfirmed, // true после подтверждения
+				})
+				if err != nil {
+					return nil, fmt.Errorf("failed to install cached %s: %w", pkgName, err)
+				}
+			}
+			continue
+		}
+
+		// Собираем пакет
+		if node.IsTarget {
+			slog.Info(gotext.Get("Building package %s-%s", pkgName, pkg.Version))
+		} else {
+			slog.Info(gotext.Get("Building dependency %s-%s", pkgName, pkg.Version))
+		}
+
+		res, err := i.BuildPackageFromDb(
+			ctx,
+			&BuildPackageFromDbArgs{
+				Package:  pkg,
+				Packages: []string{pkgName},
+				BuildArgs: BuildArgs{
+					Opts:             input.BuildOpts(),
+					Info:             input.OSRelease(),
+					PkgFormat_:       input.PkgFormat(),
+					SkipDepsBuilding: true, // Все зависимости уже установлены
+					SkipBuildDeps:    true, // build_deps уже установлены в InstallPkgs
+				},
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to build %s: %w", pkgName, err)
+		}
+
+		allBuiltDeps = append(allBuiltDeps, res...)
+
+		// Устанавливаем собранный пакет сразу, чтобы он был доступен для следующих
+		if len(res) > 0 && !node.IsTarget {
+			err = i.installerExecutor.InstallLocal(ctx, GetBuiltPaths(res), &manager.Opts{
+				NoConfirm: userConfirmed, // true после подтверждения
+			})
+			if err != nil {
+				return nil, fmt.Errorf("failed to install %s: %w", pkgName, err)
+			}
+		}
+
+		// Собираем установленные build deps для удаления в конце
+		for _, bd := range node.BuildDeps {
+			installedBuildDeps = append(installedBuildDeps, bd)
+		}
+	}
+
+	// Шаг 6: Устанавливаем целевые пакеты
+	var targetDeps []*BuiltDep
+	for _, dep := range allBuiltDeps {
+		if targetSet[dep.Name] {
+			targetDeps = append(targetDeps, dep)
+		}
+	}
+
+	if len(targetDeps) > 0 {
+		slog.Info(gotext.Get("Installing target packages"))
+		err = i.installerExecutor.InstallLocal(ctx, GetBuiltPaths(targetDeps), &manager.Opts{
+			NoConfirm: userConfirmed, // true после подтверждения
 		})
 		if err != nil {
 			return nil, err
 		}
 
-		// Отслеживание установки локальных пакетов
-		for _, dep := range builtDeps {
+		// Отслеживание установки
+		for _, dep := range targetDeps {
 			if stats.ShouldTrackPackage(dep.Name) {
 				stats.TrackInstallation(ctx, dep.Name, "install")
 			}
 		}
 	}
 
-	if len(repoDeps) > 0 {
-		err = i.installerExecutor.Install(ctx, repoDeps, &manager.Opts{
-			NoConfirm: !input.BuildOpts().Interactive,
-		})
+	// Шаг 7: Один финальный промпт на удаление всех build зависимостей
+	installedBuildDeps = removeDuplicates(installedBuildDeps)
+	if len(installedBuildDeps) > 0 {
+		remove, err := cliutils.YesNoPrompt(ctx, gotext.Get("Would you like to remove all build dependencies?"), input.BuildOpts().Interactive, false)
 		if err != nil {
 			return nil, err
 		}
 
-		_ = i.installerExecutor.CheckVersionsAfterInstall(ctx, repoDeps)
-
-		for _, pkg := range repoDeps {
-			if stats.ShouldTrackPackage(pkg) {
-				stats.TrackInstallation(ctx, pkg, "install")
+		if remove {
+			err = i.installerExecutor.Remove(ctx, installedBuildDeps, &manager.Opts{
+				NoConfirm: !input.BuildOpts().Interactive,
+			})
+			if err != nil {
+				slog.Warn(gotext.Get("Failed to remove build dependencies: %v", err))
 			}
 		}
 	}
 
-	return builtDeps, nil
+	return allBuiltDeps, nil
 }
+

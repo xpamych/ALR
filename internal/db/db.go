@@ -25,6 +25,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/leonelquinteros/gotext"
 	_ "modernc.org/sqlite"
@@ -35,10 +36,18 @@ import (
 	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
 )
 
-const CurrentVersion = 5
+const CurrentVersion = 6
 
 type Version struct {
 	Version int `xorm:"'version'"`
+}
+
+// PackageAvailabilityCache хранит информацию о доступности пакетов в репозиториях
+type PackageAvailabilityCache struct {
+	Name         string `xorm:"'name' pk"`
+	Manager      string `xorm:"'manager' pk"` // dnf, apt, pacman и т.д.
+	IsAvailable  bool   `xorm:"'is_available'"`
+	CheckedAt    int64  `xorm:"'checked_at'"`
 }
 
 type Config interface {
@@ -87,7 +96,7 @@ func (d *Database) Init(ctx context.Context) error {
 	if err := d.Connect(); err != nil {
 		return err
 	}
-	if err := d.engine.Sync2(new(alrsh.Package), new(Version)); err != nil {
+	if err := d.engine.Sync2(new(alrsh.Package), new(Version), new(PackageAvailabilityCache)); err != nil {
 		return err
 	}
 	ver, ok := d.GetVersion(ctx)
@@ -162,9 +171,61 @@ func (d *Database) DeletePkgs(_ context.Context, where string, args ...any) erro
 
 func (d *Database) IsEmpty() bool {
 	count, err := d.engine.Count(new(alrsh.Package))
-	return err != nil || count == 0
+	if err != nil {
+		slog.Warn("Error checking if database is empty", "error", err)
+		return true
+	}
+	return count == 0
+}
+
+// HasRepoPackages проверяет, есть ли пакеты указанного репозитория в БД
+func (d *Database) HasRepoPackages(repoName string) bool {
+	count, err := d.engine.Where("repository = ?", repoName).Count(new(alrsh.Package))
+	if err != nil {
+		slog.Warn("Error checking repository packages", "repo", repoName, "error", err)
+		return false
+	}
+	slog.Debug("HasRepoPackages check", "repo", repoName, "count", count)
+	return count > 0
 }
 
 func (d *Database) Close() error {
 	return d.engine.Close()
+}
+
+// GetPackageAvailability получает информацию о доступности пакета из кэша
+func (d *Database) GetPackageAvailability(name, manager string) (bool, bool) {
+	var cache PackageAvailabilityCache
+	has, err := d.engine.Where("name = ? AND manager = ?", name, manager).Get(&cache)
+	if err != nil || !has {
+		return false, false
+	}
+	return cache.IsAvailable, true
+}
+
+// SetPackageAvailability сохраняет информацию о доступности пакета в кэш
+func (d *Database) SetPackageAvailability(name, manager string, isAvailable bool) error {
+	cache := &PackageAvailabilityCache{
+		Name:        name,
+		Manager:     manager,
+		IsAvailable: isAvailable,
+		CheckedAt:   time.Now().Unix(),
+	}
+	
+	// Проверяем, существует ли запись
+	var existing PackageAvailabilityCache
+	has, err := d.engine.Where("name = ? AND manager = ?", name, manager).Get(&existing)
+	if err != nil {
+		return err
+	}
+	
+	if has {
+		// Обновляем существующую запись
+		_, err = d.engine.Where("name = ? AND manager = ?", name, manager).Update(cache)
+	} else {
+		// Вставляем новую запись
+		_, err = d.engine.Insert(cache)
+	}
+	
+	return err
 }

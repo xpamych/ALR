@@ -710,6 +710,33 @@ msgstr ""
 msgid "No alr.sh files found in repository"
 msgstr ""
 
+msgid "Processing repository packages..."
+msgstr ""
+
+msgid "Repository packages processed"
+msgstr ""
+
+msgid "Checking out repository..."
+msgstr ""
+
+msgid "Processing repository packages (full)..."
+msgstr ""
+
+msgid "Processing repository changes..."
+msgstr ""
+
+msgid "Installation summary"
+msgstr ""
+
+msgid "System packages:"
+msgstr ""
+
+msgid "ALR packages:"
+msgstr ""
+
+msgid "Proceed with installation?"
+msgstr ""
+
 #: internal/utils/cmd.go:54
 msgid "You need to be root to perform this action"
 msgstr ""
@@ -929,4 +956,13 @@ msgstr ""
 
 #: upgrade.go:131
 msgid "There is nothing to do."
+msgstr ""
+
+msgid "Checking for ALR package updates..."
+msgstr ""
+
+msgid "Checked packages for updates"
+msgstr ""
+
+msgid "Finished checking for updates"
 msgstr ""

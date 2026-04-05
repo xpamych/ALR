@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"git.alr-pkg.ru/Plemya-x/ALR/internal/overrides"
 	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
@@ -30,44 +31,76 @@ type DependencyNode struct {
 	Package      *alrsh.Package
 	BasePkgName  string
 	PkgName      string   // Имя конкретного подпакета (может отличаться от BasePkgName)
-	Dependencies []string // Имена зависимостей
+	Dependencies []string // Имена runtime зависимостей (depends)
+	BuildDeps    []string // Имена зависимостей для сборки (build_deps)
+	SystemDeps   []string // Системные зависимости (не найденные в ALR)
+	IsTarget     bool     // true если это целевой пакет (запрошен пользователем)
 }
 
-// ResolveDependencyTree рекурсивно разрешает все зависимости и возвращает
-// плоский список всех уникальных пакетов, необходимых для сборки
-// и список системных зависимостей (не найденных в ALR-репозиториях)
-func (b *Builder) ResolveDependencyTree(
+// UnifiedDependencyTree представляет единое дерево зависимостей для однопроходной установки
+type UnifiedDependencyTree struct {
+	Nodes              map[string]*DependencyNode
+	AllALRPackages     []string // Все ALR пакеты в порядке топологической сортировки (от листьев)
+	AllSystemDeps      []string // Все системные зависимости (build + runtime)
+	AllOptDeps         []string // Все опциональные зависимости
+	AllBuildDeps       []string // Все build зависимости для отслеживания
+}
+
+// ResolveUnifiedDependencyTree строит единое дерево зависимостей
+// и возвращает все пакеты в порядке топологической сортировки
+func (b *Builder) ResolveUnifiedDependencyTree(
 	ctx context.Context,
 	input interface {
 		OsInfoProvider
 		PkgFormatProvider
 	},
 	initialPkgs []string,
-) (map[string]*DependencyNode, []string, error) {
-	resolved := make(map[string]*DependencyNode)
+) (*UnifiedDependencyTree, error) {
+	tree := &UnifiedDependencyTree{
+		Nodes:          make(map[string]*DependencyNode),
+		AllALRPackages: []string{},
+		AllSystemDeps:  []string{},
+		AllOptDeps:     []string{},
+		AllBuildDeps:   []string{},
+	}
+
 	visited := make(map[string]bool)
-	systemDeps := make(map[string]bool)
+	systemVisited := make(map[string]bool)
+	optVisited := make(map[string]bool)
+	buildDepVisited := make(map[string]bool)
 
 	overrideNames, err := overrides.Resolve(input.OSRelease(), overrides.DefaultOpts)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to resolve overrides: %w", err)
+		return nil, fmt.Errorf("failed to resolve overrides: %w", err)
 	}
 
-	var resolve func(pkgNames []string) error
-	resolve = func(pkgNames []string) error {
+	// Временное хранение порядка (реверсивное - от корня к листьям)
+	var order []string
+
+	// resolve рекурсивно разрешает зависимости
+	// parentPkg - имя пакета, который запрашивает эти зависимости (для привязки системных зависимостей)
+	var resolve func(pkgNames []string, isBuildDep bool, parentPkg string) error
+	resolveCallCount := 0
+	totalProcessed := 0
+	
+	// Счётчик обработанных пакетов для отладки
+	
+	resolve = func(pkgNames []string, isBuildDep bool, parentPkg string) error {
+		resolveCallCount++
 		if len(pkgNames) == 0 {
 			return nil
 		}
 
+		slog.Debug(fmt.Sprintf("[TIME: %s] Resolving dependencies", time.Now().Format("15:04:05.000")), "call", resolveCallCount, "packages", len(pkgNames), "parent", parentPkg)
+
 		// Находим пакеты
 		found, notFound, err := b.repos.FindPkgs(ctx, pkgNames)
+		slog.Debug(fmt.Sprintf("[TIME: %s] FindPkgs completed", time.Now().Format("15:04:05.000")), "call", resolveCallCount, "found", len(found), "notFound", len(notFound))
 		if err != nil {
 			return fmt.Errorf("failed to find packages: %w", err)
 		}
 
-		// При preferALRDeps=false: для пакетов, найденных в ALR, проверяем
-		// наличие в системном репо. Если пакет доступен в системном репо —
-		// предпочитаем системный пакет.
+		// Проверяем preferALRDeps
 		if b.cfg != nil && !b.cfg.PreferALRDeps() && b.mgr != nil {
 			for pkgName := range found {
 				available, err := b.mgr.ListAvailable(pkgName)
@@ -85,25 +118,54 @@ func (b *Builder) ResolveDependencyTree(
 			}
 		}
 
-		// Собираем системные зависимости (не найденные в ALR)
+		// Обрабатываем системные зависимости - привязываем к родительскому пакету
 		for _, pkgName := range notFound {
-			systemDeps[pkgName] = true
+			if !systemVisited[pkgName] {
+				systemVisited[pkgName] = true
+				tree.AllSystemDeps = append(tree.AllSystemDeps, pkgName)
+			}
+			// Привязываем системную зависимость к родительскому пакету
+			if parentPkg != "" {
+				if node, ok := tree.Nodes[parentPkg]; ok {
+					// Проверяем, не добавлена ли уже
+					alreadyAdded := false
+					for _, sd := range node.SystemDeps {
+						if sd == pkgName {
+							alreadyAdded = true
+							break
+						}
+					}
+					if !alreadyAdded {
+						node.SystemDeps = append(node.SystemDeps, pkgName)
+					}
+				}
+			}
+			// Отслеживаем build зависимости для удаления
+			if isBuildDep && !buildDepVisited[pkgName] {
+				buildDepVisited[pkgName] = true
+				tree.AllBuildDeps = append(tree.AllBuildDeps, pkgName)
+			}
 		}
 
-		// Обрабатываем найденные пакеты
+		// Обрабатываем найденные ALR пакеты
+		pkgCounter := 0
 		for pkgName, pkgList := range found {
+			pkgCounter++
+			totalProcessed++
 			if visited[pkgName] {
 				continue
 			}
 			visited[pkgName] = true
 
-			// Берем первый пакет из списка (или можно добавить выбор пользователя)
+			if pkgCounter%5 == 0 || pkgCounter == 1 {
+				slog.Debug(fmt.Sprintf("[TIME: %s] Processing package", time.Now().Format("15:04:05.000")), "call", resolveCallCount, "pkg", pkgCounter, "name", pkgName, "total", totalProcessed)
+			}
+
 			if len(pkgList) == 0 {
 				continue
 			}
 
 			pkg := pkgList[0]
-
 			alrsh.ResolvePackage(&pkg, overrideNames)
 
 			baseName := pkg.BasePkgName
@@ -111,52 +173,91 @@ func (b *Builder) ResolveDependencyTree(
 				baseName = pkg.Name
 			}
 
-			if resolved[pkgName] != nil {
-				continue
-			}
-
 			deps := pkg.Depends.Resolved()
 			buildDeps := pkg.BuildDepends.Resolved()
+			optDeps := pkg.OptDepends.Resolved()
 
-			// Объединяем зависимости
-			allDeps := append([]string{}, deps...)
-			allDeps = append(allDeps, buildDeps...)
-
-			// Добавляем узел в resolved с ключом = имя подпакета
-			resolved[pkgName] = &DependencyNode{
+			// Добавляем узел
+			tree.Nodes[pkgName] = &DependencyNode{
 				Package:      &pkg,
 				BasePkgName:  baseName,
 				PkgName:      pkgName,
-				Dependencies: allDeps,
+				Dependencies: deps,
+				BuildDeps:    buildDeps,
 			}
 
-			// Рекурсивно разрешаем зависимости
-			if len(allDeps) > 0 {
-				if err := resolve(allDeps); err != nil {
+			// Собираем опциональные зависимости
+			for _, optDep := range optDeps {
+				if !optVisited[optDep] {
+					optVisited[optDep] = true
+					tree.AllOptDeps = append(tree.AllOptDeps, optDep)
+				}
+			}
+
+			// Отслеживаем build зависимости для удаления
+			slog.Debug(fmt.Sprintf("[TIME: %s] Checking build deps", time.Now().Format("15:04:05.000")), "pkg", pkgName, "count", len(buildDeps))
+			for i, bd := range buildDeps {
+				// Проверяем, есть ли в системе
+				if b.mgr != nil {
+					if i%5 == 0 {
+						slog.Debug(fmt.Sprintf("[TIME: %s] IsAvailable", time.Now().Format("15:04:05.000")), "pkg", pkgName, "dep", bd, "idx", i)
+					}
+					isAvail, _ := b.mgr.IsAvailable(bd)
+					if isAvail && !buildDepVisited[bd] {
+						buildDepVisited[bd] = true
+						tree.AllBuildDeps = append(tree.AllBuildDeps, bd)
+					}
+				}
+			}
+
+			// Сначала добавляем в порядок (зависимости будут добавлены перед родителем)
+			// Рекурсивно обрабатываем ВСЕ зависимости сначала
+			// Сначала build (они глубже), затем runtime
+			if len(buildDeps) > 0 {
+				if err := resolve(buildDeps, true, pkgName); err != nil {
 					return err
 				}
 			}
+			if len(deps) > 0 {
+				if err := resolve(deps, false, pkgName); err != nil {
+					return err
+				}
+			}
+
+			// Добавляем пакет ПОСЛЕ зависимостей (от листьев к корню)
+			order = append(order, pkgName)
 		}
 
 		return nil
 	}
 
-	// Начинаем разрешение с начальных пакетов
-	if err := resolve(initialPkgs); err != nil {
-		return nil, nil, err
+	// Создаем множество целевых пакетов для исключения из AllALRPackages
+	targetSet := make(map[string]bool)
+	for _, pkgName := range initialPkgs {
+		targetSet[pkgName] = true
 	}
 
-	// Преобразуем map в слайс для системных зависимостей
-	var systemDepsList []string
-	for dep := range systemDeps {
-		systemDepsList = append(systemDepsList, dep)
+	// Начинаем разрешение с начальных пакетов (без родителя)
+	if err := resolve(initialPkgs, false, ""); err != nil {
+		return nil, err
 	}
 
-	return resolved, systemDepsList, nil
+	// Порядок уже от листьев к корню (зависимости добавлены после рекурсии)
+	// Исключаем целевые пакеты - они будут добавлены в конец в InstallPkgs
+	slog.Debug("Dependency resolution order", "order", order)
+	for _, pkgName := range order {
+		if !targetSet[pkgName] {
+			tree.AllALRPackages = append(tree.AllALRPackages, pkgName)
+		}
+	}
+	slog.Debug("AllALRPackages after filtering", "packages", tree.AllALRPackages)
+
+	return tree, nil
 }
 
 // TopologicalSort выполняет топологическую сортировку пакетов по зависимостям
 // Возвращает список имен подпакетов в порядке сборки (от корней к листьям)
+// Учитывает как runtime depends, так и build_deps
 func TopologicalSort(nodes map[string]*DependencyNode) ([]string, error) {
 	// Список для результата
 	var result []string
@@ -185,8 +286,11 @@ func TopologicalSort(nodes map[string]*DependencyNode) ([]string, error) {
 
 		inStack[pkgName] = true
 
-		// Посещаем все зависимости
-		for _, dep := range node.Dependencies {
+		// Посещаем все зависимости (runtime + build)
+		allDeps := append([]string{}, node.Dependencies...)
+		allDeps = append(allDeps, node.BuildDeps...)
+
+		for _, dep := range allDeps {
 			// Используем имя зависимости напрямую (это имя подпакета)
 			if err := visit(dep); err != nil {
 				return err
@@ -208,4 +312,64 @@ func TopologicalSort(nodes map[string]*DependencyNode) ([]string, error) {
 	}
 
 	return result, nil
+}
+
+// MarkTargetPackages помечает указанные пакеты как целевые (запрошенные пользователем)
+func MarkTargetPackages(nodes map[string]*DependencyNode, targetPkgNames []string) {
+	for _, name := range targetPkgNames {
+		if node, ok := nodes[name]; ok {
+			node.IsTarget = true
+		}
+	}
+}
+
+// GetAllDependencies возвращает полный список всех зависимостей (runtime + build)
+// для всех пакетов в дереве, исключая целевые пакеты
+func GetAllDependencies(nodes map[string]*DependencyNode) []string {
+	depMap := make(map[string]bool)
+
+	for _, node := range nodes {
+		if node.IsTarget {
+			// Для целевых пакетов не включаем их зависимости в общий список
+			// они будут обработаны отдельно
+			continue
+		}
+
+		// Добавляем все зависимости (runtime + build)
+		for _, dep := range node.Dependencies {
+			depMap[dep] = true
+		}
+		for _, dep := range node.BuildDeps {
+			depMap[dep] = true
+		}
+	}
+
+	var result []string
+	for dep := range depMap {
+		result = append(result, dep)
+	}
+
+	return result
+}
+
+// GetTargetPackages возвращает список целевых пакетов
+func GetTargetPackages(nodes map[string]*DependencyNode) []*DependencyNode {
+	var result []*DependencyNode
+	for _, node := range nodes {
+		if node.IsTarget {
+			result = append(result, node)
+		}
+	}
+	return result
+}
+
+// GetDependencyOnlyPackages возвращает список пакетов-зависимостей (не целевых)
+func GetDependencyOnlyPackages(nodes map[string]*DependencyNode) []*DependencyNode {
+	var result []*DependencyNode
+	for _, node := range nodes {
+		if !node.IsTarget {
+			result = append(result, node)
+		}
+	}
+	return result
 }

@@ -22,6 +22,7 @@ package repos
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
@@ -29,6 +30,7 @@ import (
 )
 
 func (rs *Repos) FindPkgs(ctx context.Context, pkgs []string) (map[string][]alrsh.Package, []string, error) {
+	slog.Debug("FindPkgs: started", "packages", pkgs)
 	found := make(map[string][]alrsh.Package)
 	var notFound []string
 
@@ -61,21 +63,26 @@ func (rs *Repos) FindPkgs(ctx context.Context, pkgs []string) (map[string][]alrs
 
 		default:
 			// Сначала ищем по точному имени пакета
+			slog.Debug("FindPkgs: searching by name", "name", searchName)
 			result, err = rs.db.GetPkgs(ctx, "name = ?", searchName)
 			if err != nil {
 				return nil, nil, fmt.Errorf("FindPkgs: get by name: %w", err)
 			}
+			slog.Debug("FindPkgs: search by name result", "name", searchName, "count", len(result))
 
 			// Затем по provides
 			if len(result) == 0 {
+				slog.Debug("FindPkgs: searching by provides", "name", searchName)
 				result, err = rs.db.GetPkgs(ctx, "json_array_contains(provides, ?)", searchName)
 				if err != nil {
 					return nil, nil, fmt.Errorf("FindPkgs: get by provides: %w", err)
 				}
+				slog.Debug("FindPkgs: search by provides result", "name", searchName, "count", len(result))
 			}
 
 			// В последнюю очередь по basepkg_name (для мультипакетов)
 			if len(result) == 0 {
+				slog.Debug("FindPkgs: searching by basepkg_name", "name", searchName)
 				result, err = rs.db.GetPkgs(ctx, "basepkg_name = ?", searchName)
 				if err != nil {
 					return nil, nil, fmt.Errorf("FindPkgs: get by basepkg_name: %w", err)

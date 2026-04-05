@@ -82,6 +82,8 @@ type Manager interface {
 	// ListAvailable returns names of available packages matching the given prefix.
 	// The prefix is used for filtering to avoid returning all packages.
 	ListAvailable(prefix string) ([]string, error)
+	// IsAvailable checks if a specific package is available in repositories.
+	IsAvailable(name string) (bool, error)
 }
 
 // Detect returns the package manager detected on the system

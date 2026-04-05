@@ -34,6 +34,9 @@ type Logger struct {
 func setupLogger() *chLog.Logger {
 	styles := chLog.DefaultStyles()
 	logger := chLog.New(os.Stderr)
+	styles.Levels[chLog.DebugLevel] = lipgloss.NewStyle().
+		SetString(gotext.Get("DEBUG")).
+		Foreground(lipgloss.Color("8"))
 	styles.Levels[chLog.InfoLevel] = lipgloss.NewStyle().
 		SetString("-->").
 		Foreground(lipgloss.Color("35"))

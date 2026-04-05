@@ -144,6 +144,40 @@ func (d *DNF) ListAvailable(prefix string) ([]string, error) {
 	return pkgs, nil
 }
 
+// IsAvailable проверяет, доступен ли конкретный пакет в репозиториях
+func (d *DNF) IsAvailable(name string) (bool, error) {
+	cmd := exec.Command("dnf", "repoquery", "--qf", "%{name}", "--quiet", name)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return false, fmt.Errorf("dnf: isavailable: %w", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return false, fmt.Errorf("dnf: isavailable: %w", err)
+	}
+
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		if scanner.Text() == name {
+			cmd.Wait()
+			return true, nil
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return false, fmt.Errorf("dnf: isavailable: %w", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 1 {
+			return false, nil
+		}
+		return false, fmt.Errorf("dnf: isavailable: %w", err)
+	}
+
+	return false, nil
+}
+
 // UpgradeAll обновляет все установленные пакеты
 func (d *DNF) UpgradeAll(opts *Opts) error {
 	opts = ensureOpts(opts)

@@ -31,6 +31,7 @@ import (
 	"strings"
 
 	"git.alr-pkg.ru/xpamych/vercmp"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-git/v5"
 	gitConfig "github.com/go-git/go-git/v5/config"
@@ -200,11 +201,23 @@ func (rs *Repos) pullRepoFromURL(ctx context.Context, rawRepoUrl string, repo *t
 			return err
 		}
 
+		hasPackages := rs.db.HasRepoPackages(repo.Name)
+		slog.Debug("Repository status check", "name", repo.Name, "old_hash", old.Hash().String(), "new_hash", revHash.String(), "has_packages", hasPackages)
+
 		if old.Hash() == *revHash {
 			slog.Info(gotext.Get("Repository up to date"), "name", repo.Name)
+			// Если репозиторий не изменился и пакеты есть в БД, пропускаем обработку
+			if hasPackages {
+				slog.Debug("Repository unchanged and packages exist in DB, skipping processing", "name", repo.Name)
+				return nil
+			}
+			slog.Info("Repository unchanged but no packages in DB, processing anyway", "name", repo.Name)
 		}
+	} else {
+		slog.Debug("Fresh git clone, processing repository", "name", repo.Name)
 	}
 
+	slog.Info(gotext.Get("Checking out repository..."), "name", repo.Name)
 	err = w.Checkout(&git.CheckoutOptions{
 		Hash:  plumbing.NewHash(revHash.String()),
 		Force: true,
@@ -219,15 +232,15 @@ func (rs *Repos) pullRepoFromURL(ctx context.Context, rawRepoUrl string, repo *t
 		return err
 	}
 
-	// If the DB was not present at startup, that means it's
-	// empty. In this case, we need to update the DB fully
-	// rather than just incrementally.
-	if rs.db.IsEmpty() || freshGit {
+	// Если в БД нет пакетов этого репозитория или это fresh clone - полная обработка
+	if !rs.db.HasRepoPackages(repo.Name) || freshGit {
+		slog.Info(gotext.Get("Processing repository packages (full)..."), "name", repo.Name)
 		err = rs.processRepoFull(ctx, *repo, repoDir)
 		if err != nil {
 			return err
 		}
 	} else {
+		slog.Info(gotext.Get("Processing repository changes..."), "name", repo.Name)
 		err = rs.processRepoChanges(ctx, *repo, r, w, old, new)
 		if err != nil {
 			return err
@@ -475,6 +488,8 @@ func isValidScriptPath(path string) bool {
 }
 
 func (rs *Repos) processRepoFull(ctx context.Context, repo types.Repo, repoDir string) error {
+	slog.Info(gotext.Get("Processing repository packages..."), "repo", repo.Name)
+
 	rootScript := filepath.Join(repoDir, "alr.sh")
 	if fi, err := os.Stat(rootScript); err == nil && !fi.IsDir() {
 		slog.Debug("Found root alr.sh, processing single-script repository", "repo", repo.Name)
@@ -509,10 +524,50 @@ func (rs *Repos) processRepoFull(ctx context.Context, repo types.Repo, repoDir s
 		return nil
 	}
 
-	slog.Debug("Found multiple alr.sh files, processing multi-package repository",
-		"repo", repo.Name, "count", len(matches))
+	slog.Info(gotext.Get("Processing repository packages..."), "repo", repo.Name, "count", len(matches))
 
+	// Функция для плавного RGB-градиента между тремя цветами
+	gradientColor := func(pos float64) string {
+		// Цвета логотипа: красный #ef4444 → жёлтый #eab308 → синий #3b82f6
+		var r, g, b int
+		if pos < 0.5 {
+			// Красный → жёлтый
+			t := pos * 2
+			r = int(239 + t*(234-239))
+			g = int(68 + t*(179-68))
+			b = int(68 + t*(8-68))
+		} else {
+			// Жёлтый → синий
+			t := (pos - 0.5) * 2
+			r = int(234 + t*(59-234))
+			g = int(179 + t*(130-179))
+			b = int(8 + t*(246-8))
+		}
+		return fmt.Sprintf("#%02x%02x%02x", r, g, b)
+	}
+
+	processed := 0
 	for _, match := range matches {
+		processed++
+
+		// Рисуем прогресс-бар из точек с плавным RGB-градиентом
+		progress := float64(processed) / float64(len(matches))
+		barWidth := 40
+		filled := int(progress * float64(barWidth))
+		
+		var bar strings.Builder
+		for i := 0; i < barWidth; i++ {
+			pos := float64(i) / float64(barWidth-1)
+			color := lipgloss.Color(gradientColor(pos))
+			if i < filled {
+				bar.WriteString(lipgloss.NewStyle().Foreground(color).Render("●"))
+			} else {
+				bar.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Render("○"))
+			}
+		}
+		
+		fmt.Fprintf(os.Stderr, "\r%s %3.0f%% (%d/%d)", bar.String(), progress*100, processed, len(matches))
+
 		runner, err := rs.processRepoChangesRunner(repoDir, filepath.Dir(match))
 		if err != nil {
 			return fmt.Errorf("error creating runner for %s: %w", match, err)
@@ -526,9 +581,13 @@ func (rs *Repos) processRepoFull(ctx context.Context, repo types.Repo, repoDir s
 		err = rs.updatePkg(ctx, repo, runner, scriptFl)
 		scriptFl.Close()
 		if err != nil {
+			fmt.Fprintln(os.Stderr) // новая строка перед ошибкой
 			return fmt.Errorf("error processing %s: %w", match, err)
 		}
 	}
+
+	fmt.Fprintln(os.Stderr) // новая строка после завершения
+	slog.Info(gotext.Get("Repository packages processed"), "repo", repo.Name, "count", len(matches))
 
 	return nil
 }
