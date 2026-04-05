@@ -26,6 +26,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/leonelquinteros/gotext"
 
@@ -760,8 +761,12 @@ func (i *Builder) InstallPkgs(
 		return nil, nil
 	}
 
+	slog.Debug("InstallPkgs: starting", "time", time.Now().Format("15:04:05.000"), "packages", len(pkgs))
+
 	// Шаг 1: Построить единое дерево зависимостей
+	slog.Debug("InstallPkgs: resolving dependency tree...", "time", time.Now().Format("15:04:05.000"))
 	tree, err := i.ResolveUnifiedDependencyTree(ctx, input, pkgs)
+	slog.Debug("InstallPkgs: dependency tree resolved", "time", time.Now().Format("15:04:05.000"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve dependency tree: %w", err)
 	}

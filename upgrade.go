@@ -25,6 +25,7 @@ import (
 	"log/slog"
 	"os"
 	"strings"
+	"time"
 
 	"git.alr-pkg.ru/xpamych/vercmp"
 	"github.com/charmbracelet/lipgloss"
@@ -98,6 +99,8 @@ func UpgradeCmd() *cli.Command {
 				slog.Info(gotext.Get("System packages updated successfully"))
 			}
 
+			slog.Debug("Starting upgrade process", "time", time.Now().Format("15:04:05.000"))
+
 			builder, err := build.NewMainBuilder(
 				deps.Cfg,
 				deps.Manager,
@@ -109,12 +112,15 @@ func UpgradeCmd() *cli.Command {
 				return err
 			}
 
+			slog.Debug("Starting checkForUpdates", "time", time.Now().Format("15:04:05.000"))
 			updates, err := checkForUpdates(ctx, deps.Manager, deps.DB, deps.Info)
+			slog.Debug("Finished checkForUpdates", "time", time.Now().Format("15:04:05.000"), "updates_count", len(updates))
 			if err != nil {
 				return cliutils.FormatCliExit(gotext.Get("Error checking for updates"), err)
 			}
 
 			if len(updates) > 0 {
+				slog.Debug("Starting InstallPkgs", "time", time.Now().Format("15:04:05.000"), "packages", len(updates))
 				_, err = builder.InstallPkgs(
 					ctx,
 					&build.BuildArgs{
@@ -167,7 +173,10 @@ func checkForUpdates(
 	db *database.Database,
 	info *distro.OSRelease,
 ) ([]UpdateInfo, error) {
+	slog.Debug("checkForUpdates: starting", "time", time.Now().Format("15:04:05.000"))
+
 	installed, err := mgr.ListInstalled(nil)
+	slog.Debug("checkForUpdates: ListInstalled done", "time", time.Now().Format("15:04:05.000"), "count", len(installed))
 	if err != nil {
 		return nil, err
 	}
@@ -249,6 +258,7 @@ func checkForUpdates(
 
 	fmt.Fprintln(os.Stderr) // новая строка после завершения
 
+	slog.Debug("checkForUpdates: finished", "time", time.Now().Format("15:04:05.000"), "updates_available", len(out))
 	slog.Info(gotext.Get("Finished checking for updates"), "updates_available", len(out))
 
 	return out, nil
