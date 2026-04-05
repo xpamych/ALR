@@ -526,37 +526,47 @@ func (rs *Repos) processRepoFull(ctx context.Context, repo types.Repo, repoDir s
 
 	slog.Info(gotext.Get("Processing repository packages..."), "repo", repo.Name, "count", len(matches))
 
-	// Стили прогресс-бара с градиентом логотипа ALR (красный → синий → жёлтый)
-	barGrad1 := lipgloss.NewStyle().Foreground(lipgloss.Color("203")) // #ef4444 - коралловый
-	barGrad2 := lipgloss.NewStyle().Foreground(lipgloss.Color("33"))  // #3b82f6 - синий  
-	barGrad3 := lipgloss.NewStyle().Foreground(lipgloss.Color("220")) // #eab308 - золотой
-	emptyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+	// Функция для плавного RGB-градиента между тремя цветами
+	gradientColor := func(pos float64) string {
+		// Цвета логотипа: красный #ef4444 → жёлтый #eab308 → синий #3b82f6
+		var r, g, b int
+		if pos < 0.5 {
+			// Красный → жёлтый
+			t := pos * 2
+			r = int(239 + t*(234-239))
+			g = int(68 + t*(179-68))
+			b = int(68 + t*(8-68))
+		} else {
+			// Жёлтый → синий
+			t := (pos - 0.5) * 2
+			r = int(234 + t*(59-234))
+			g = int(179 + t*(130-179))
+			b = int(8 + t*(246-8))
+		}
+		return fmt.Sprintf("#%02x%02x%02x", r, g, b)
+	}
 
 	processed := 0
 	for _, match := range matches {
 		processed++
 
-		// Рисуем прогресс-бар с градиентом
+		// Рисуем прогресс-бар из точек с плавным RGB-градиентом
 		progress := float64(processed) / float64(len(matches))
-		barWidth := 30
+		barWidth := 40
 		filled := int(progress * float64(barWidth))
-		empty := barWidth - filled
-
-		// Градиент: красный → синий → жёлтый
+		
 		var bar strings.Builder
-		for i := 0; i < filled; i++ {
-			pct := float64(i) / float64(barWidth)
-			if pct < 0.33 {
-				bar.WriteString(barGrad1.Render("█"))
-			} else if pct < 0.66 {
-				bar.WriteString(barGrad2.Render("█"))
+		for i := 0; i < barWidth; i++ {
+			pos := float64(i) / float64(barWidth-1)
+			color := lipgloss.Color(gradientColor(pos))
+			if i < filled {
+				bar.WriteString(lipgloss.NewStyle().Foreground(color).Render("●"))
 			} else {
-				bar.WriteString(barGrad3.Render("█"))
+				bar.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Render("○"))
 			}
 		}
-		emptyBar := emptyStyle.Render(strings.Repeat("░", empty))
-
-		fmt.Fprintf(os.Stderr, "\r%s%s %3.0f%% (%d/%d)", bar.String(), emptyBar, progress*100, processed, len(matches))
+		
+		fmt.Fprintf(os.Stderr, "\r%s %3.0f%% (%d/%d)", bar.String(), progress*100, processed, len(matches))
 
 		runner, err := rs.processRepoChangesRunner(repoDir, filepath.Dir(match))
 		if err != nil {

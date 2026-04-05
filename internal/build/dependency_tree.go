@@ -21,10 +21,8 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"strings"
 	"time"
 
-	"github.com/charmbracelet/lipgloss"
 	"git.alr-pkg.ru/Plemya-x/ALR/internal/overrides"
 	"git.alr-pkg.ru/Plemya-x/ALR/pkg/alrsh"
 )
@@ -85,11 +83,7 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 	resolveCallCount := 0
 	totalProcessed := 0
 	
-	// Стили прогресс-бара с градиентом логотипа ALR (красный → синий → жёлтый)
-	barGrad1 := lipgloss.NewStyle().Foreground(lipgloss.Color("203")) // коралловый
-	barGrad2 := lipgloss.NewStyle().Foreground(lipgloss.Color("33"))  // синий
-	barGrad3 := lipgloss.NewStyle().Foreground(lipgloss.Color("220")) // золотой
-	emptyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+	// Счётчик обработанных пакетов для отладки
 	
 	resolve = func(pkgNames []string, isBuildDep bool) error {
 		resolveCallCount++
@@ -139,7 +133,6 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 
 		// Обрабатываем найденные ALR пакеты
 		pkgCounter := 0
-		totalPkgs := len(found)
 		for pkgName, pkgList := range found {
 			pkgCounter++
 			totalProcessed++
@@ -149,33 +142,7 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 			visited[pkgName] = true
 
 			if pkgCounter%5 == 0 || pkgCounter == 1 {
-				slog.Debug(fmt.Sprintf("[TIME: %s] Processing package", time.Now().Format("15:04:05.000")), "call", resolveCallCount, "pkg", pkgCounter, "name", pkgName)
-			}
-			
-			// Обновляем прогресс-бар каждые 5 пакетов
-			if totalProcessed%5 == 0 {
-				progress := float64(pkgCounter) / float64(totalPkgs)
-				barWidth := 25
-				filled := int(progress * float64(barWidth))
-				if filled > barWidth {
-					filled = barWidth
-				}
-				empty := barWidth - filled
-				
-				// Градиент: красный → синий → жёлтый
-				var bar strings.Builder
-				for i := 0; i < filled; i++ {
-					pct := float64(i) / float64(barWidth)
-					if pct < 0.33 {
-						bar.WriteString(barGrad1.Render("█"))
-					} else if pct < 0.66 {
-						bar.WriteString(barGrad2.Render("█"))
-					} else {
-						bar.WriteString(barGrad3.Render("█"))
-					}
-				}
-				emptyBar := emptyStyle.Render(strings.Repeat("░", empty))
-				fmt.Fprintf(os.Stderr, "\r%s%s %3.0f%% [%d/%d]", bar.String(), emptyBar, progress*100, pkgCounter, totalPkgs)
+				slog.Debug(fmt.Sprintf("[TIME: %s] Processing package", time.Now().Format("15:04:05.000")), "call", resolveCallCount, "pkg", pkgCounter, "name", pkgName, "total", totalProcessed)
 			}
 
 			if len(pkgList) == 0 {
