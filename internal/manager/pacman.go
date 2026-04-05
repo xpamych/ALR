@@ -151,6 +151,19 @@ func (p *Pacman) ListAvailable(prefix string) ([]string, error) {
 	return pkgs, nil
 }
 
+// IsAvailable проверяет, доступен ли конкретный пакет в репозиториях
+func (p *Pacman) IsAvailable(name string) (bool, error) {
+	cmd := exec.Command("pacman", "-Sp", "--quiet", name)
+	err := cmd.Run()
+	if err != nil {
+		if _, ok := err.(*exec.ExitError); ok {
+			return false, nil
+		}
+		return false, fmt.Errorf("pacman: isavailable: %w", err)
+	}
+	return true, nil
+}
+
 func (p *Pacman) ListInstalled(opts *Opts) (map[string]string, error) {
 	out := map[string]string{}
 	cmd := exec.Command("pacman", "-Q")

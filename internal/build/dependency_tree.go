@@ -178,15 +178,12 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 				// Проверяем, есть ли в системе
 				if b.mgr != nil {
 					if i%5 == 0 {
-						slog.Debug(fmt.Sprintf("[TIME: %s] ListAvailable", time.Now().Format("15:04:05.000")), "pkg", pkgName, "dep", bd, "idx", i)
+						slog.Debug(fmt.Sprintf("[TIME: %s] IsAvailable", time.Now().Format("15:04:05.000")), "pkg", pkgName, "dep", bd, "idx", i)
 					}
-					available, _ := b.mgr.ListAvailable(bd)
-					for _, av := range available {
-						if av == bd && !buildDepVisited[bd] {
-							buildDepVisited[bd] = true
-							tree.AllBuildDeps = append(tree.AllBuildDeps, bd)
-							break
-						}
+					isAvail, _ := b.mgr.IsAvailable(bd)
+					if isAvail && !buildDepVisited[bd] {
+						buildDepVisited[bd] = true
+						tree.AllBuildDeps = append(tree.AllBuildDeps, bd)
 					}
 				}
 			}

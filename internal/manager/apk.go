@@ -158,6 +158,19 @@ func (a *APK) ListAvailable(prefix string) ([]string, error) {
 	return pkgs, nil
 }
 
+// IsAvailable проверяет, доступен ли конкретный пакет в репозиториях
+func (a *APK) IsAvailable(name string) (bool, error) {
+	cmd := exec.Command("apk", "search", "-q", "-e", name)
+	err := cmd.Run()
+	if err != nil {
+		if _, ok := err.(*exec.ExitError); ok {
+			return false, nil
+		}
+		return false, fmt.Errorf("apk: isavailable: %w", err)
+	}
+	return true, nil
+}
+
 func (a *APK) ListInstalled(opts *Opts) (map[string]string, error) {
 	out := map[string]string{}
 	cmd := exec.Command("apk", "list", "-I")

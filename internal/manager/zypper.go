@@ -154,6 +154,19 @@ func (z *Zypper) ListAvailable(prefix string) ([]string, error) {
 	return pkgs, nil
 }
 
+// IsAvailable проверяет, доступен ли конкретный пакет в репозиториях
+func (z *Zypper) IsAvailable(name string) (bool, error) {
+	cmd := exec.Command("zypper", "--quiet", "search", "--match-exact", "-s", name)
+	err := cmd.Run()
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 104 {
+			return false, nil
+		}
+		return false, fmt.Errorf("zypper: isavailable: %w", err)
+	}
+	return true, nil
+}
+
 func (z *Zypper) UpgradeAll(opts *Opts) error {
 	opts = ensureOpts(opts)
 	cmd := z.getCmd(opts, "zypper", "update", "-y")

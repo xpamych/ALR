@@ -173,8 +173,8 @@ func (b *AppBuilder) WithManager() *AppBuilder {
 		return b
 	}
 
-	// Оборачиваем в CachedManager для кэширования ListAvailable
-	b.deps.Manager = manager.NewCachedManager(mgr)
+	// Оборачиваем в CachedManager для кэширования IsAvailable
+	b.deps.Manager = manager.NewCachedManager(mgr, b.deps.DB)
 
 	return b
 }

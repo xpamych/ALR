@@ -21,53 +21,72 @@ import (
 	"sync"
 )
 
-// CachedManager оборачивает Manager и кэширует результаты ListAvailable
+// CachedManager оборачивает Manager и кэширует результаты
 type CachedManager struct {
 	Manager
-	cache     map[string][]string
-	cacheMu   sync.RWMutex
-	hitCount  int
-	missCount int
+	db         DBCacheInterface
+	cacheMu    sync.RWMutex
+	isAvailHit int
+	isAvailMiss int
+}
+
+// DBCacheInterface интерфейс для работы с кэшем в БД
+type DBCacheInterface interface {
+	GetPackageAvailability(name, manager string) (isAvailable bool, found bool)
+	SetPackageAvailability(name, manager string, isAvailable bool) error
 }
 
 // NewCachedManager создаёт новый CachedManager
-func NewCachedManager(m Manager) *CachedManager {
+func NewCachedManager(m Manager, db DBCacheInterface) *CachedManager {
 	return &CachedManager{
 		Manager: m,
-		cache:   make(map[string][]string),
+		db:      db,
 	}
 }
 
-// ListAvailable возвращает список доступных пакетов с кэшированием
+// ListAvailable возвращает список доступных пакетов с кэшированием (оставляем для обратной совместимости)
 func (c *CachedManager) ListAvailable(prefix string) ([]string, error) {
-	c.cacheMu.RLock()
-	if result, ok := c.cache[prefix]; ok {
-		c.hitCount++
-		c.cacheMu.RUnlock()
-		slog.Debug("ListAvailable cache hit", "prefix", prefix, "hits", c.hitCount)
-		return result, nil
+	return c.Manager.ListAvailable(prefix)
+}
+
+// IsAvailable проверяет, доступен ли пакет, с кэшированием в БД
+func (c *CachedManager) IsAvailable(name string) (bool, error) {
+	// Сначала проверяем кэш в БД
+	if c.db != nil {
+		if isAvail, found := c.db.GetPackageAvailability(name, c.Manager.Name()); found {
+			c.cacheMu.Lock()
+			c.isAvailHit++
+			c.cacheMu.Unlock()
+			slog.Debug("IsAvailable cache hit", "pkg", name, "manager", c.Manager.Name(), "available", isAvail)
+			return isAvail, nil
+		}
 	}
-	c.cacheMu.RUnlock()
 
 	// Кэш промах - вызываем реальный метод
-	result, err := c.Manager.ListAvailable(prefix)
+	isAvail, err := c.Manager.IsAvailable(name)
 	if err != nil {
-		return nil, err
+		return false, err
+	}
+
+	// Сохраняем в кэш БД
+	if c.db != nil {
+		if err := c.db.SetPackageAvailability(name, c.Manager.Name(), isAvail); err != nil {
+			slog.Warn("Failed to cache package availability", "pkg", name, "error", err)
+		}
 	}
 
 	c.cacheMu.Lock()
-	c.cache[prefix] = result
-	c.missCount++
+	c.isAvailMiss++
 	c.cacheMu.Unlock()
 
-	slog.Debug("ListAvailable cache miss", "prefix", prefix, "misses", c.missCount, "result_count", len(result))
+	slog.Debug("IsAvailable cache miss", "pkg", name, "manager", c.Manager.Name(), "available", isAvail)
 
-	return result, nil
+	return isAvail, nil
 }
 
 // GetCacheStats возвращает статистику кэша
 func (c *CachedManager) GetCacheStats() (hits, misses int) {
 	c.cacheMu.RLock()
 	defer c.cacheMu.RUnlock()
-	return c.hitCount, c.missCount
+	return c.isAvailHit, c.isAvailMiss
 }

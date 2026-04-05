@@ -104,6 +104,19 @@ func (a *APTRpm) ListAvailable(prefix string) ([]string, error) {
 	return aptCacheListAvailable(prefix)
 }
 
+// IsAvailable проверяет, доступен ли конкретный пакет в репозиториях
+func (a *APTRpm) IsAvailable(name string) (bool, error) {
+	cmd := exec.Command("apt-cache", "show", name)
+	err := cmd.Run()
+	if err != nil {
+		if _, ok := err.(*exec.ExitError); ok {
+			return false, nil
+		}
+		return false, fmt.Errorf("apt-rpm: isavailable: %w", err)
+	}
+	return true, nil
+}
+
 func (a *APTRpm) UpgradeAll(opts *Opts) error {
 	opts = ensureOpts(opts)
 	cmd := a.getCmd(opts, "apt-get", "dist-upgrade")
