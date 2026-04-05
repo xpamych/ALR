@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"os"
 	"time"
 
 	"git.alr-pkg.ru/Plemya-x/ALR/internal/overrides"
@@ -210,11 +209,6 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 
 			// Добавляем пакет ПОСЛЕ зависимостей (от листьев к корню)
 			order = append(order, pkgName)
-		}
-		
-		// Перенос строки после завершения прогресса
-		if totalProcessed > 0 {
-			fmt.Fprintln(os.Stderr)
 		}
 
 		return nil

@@ -21,11 +21,13 @@ import (
 	"io"
 	"math"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/leonelquinteros/gotext"
 )
 
@@ -108,9 +110,41 @@ func (m model) View() string {
 		)
 	}
 
-	leftPart := m.filename
+	// Функция для RGB-градиента: красный → жёлтый → синий
+	gradientColor := func(pos float64) string {
+		var r, g, b int
+		if pos < 0.5 {
+			// Красный → жёлтый
+			t := pos * 2
+			r = int(239 + t*(234-239))
+			g = int(68 + t*(179-68))
+			b = int(68 + t*(8-68))
+		} else {
+			// Жёлтый → синий
+			t := (pos - 0.5) * 2
+			r = int(234 + t*(59-234))
+			g = int(179 + t*(130-179))
+			b = int(8 + t*(246-8))
+		}
+		return fmt.Sprintf("#%02x%02x%02x", r, g, b)
+	}
 
-	rightPart := fmt.Sprintf("%.2f%% (%s/%s, %s/s) [%v:%v]\n", m.percent*100,
+	// Рисуем прогресс-бар из точек с градиентом
+	barWidth := 40
+	filled := int(m.percent * float64(barWidth))
+	
+	var bar strings.Builder
+	for i := 0; i < barWidth; i++ {
+		pos := float64(i) / float64(barWidth-1)
+		color := lipgloss.Color(gradientColor(pos))
+		if i < filled {
+			bar.WriteString(lipgloss.NewStyle().Foreground(color).Render("●"))
+		} else {
+			bar.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Render("○"))
+		}
+	}
+
+	rightPart := fmt.Sprintf(" %.2f%% (%s/%s, %s/s) [%v:%v]\n", m.percent*100,
 		prettyByteSize(m.downloaded),
 		prettyByteSize(m.total),
 		prettyByteSize(int64(m.speed)),
@@ -118,12 +152,10 @@ func (m model) View() string {
 		m.remaining,
 	)
 
-	m.progress.Width = m.width - len(leftPart) - len(rightPart) - 6
-	bar := m.progress.ViewAs(m.percent)
 	return fmt.Sprintf(
-		"%s %s %s",
-		leftPart,
-		bar,
+		"%s %s%s",
+		m.filename,
+		bar.String(),
 		rightPart,
 	)
 }
