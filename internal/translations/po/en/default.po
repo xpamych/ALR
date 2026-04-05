@@ -13,6 +13,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: internal/logger/log.go:37
+msgid "DEBUG"
+msgstr "DEBUG"
+
 #: internal/build/build.go
 msgid "Resolving dependencies for packages"
 msgstr "Resolving dependencies for packages"

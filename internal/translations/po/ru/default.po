@@ -701,7 +701,11 @@ msgid ""
 msgstr ""
 "Версия базы данных не существует. Запустите alr fix, если что-то не работает."
 
-#: internal/logger/log.go:41
+#: internal/logger/log.go:37
+msgid "DEBUG"
+msgstr "ОТЛАДКА"
+
+#: internal/logger/log.go:44
 msgid "ERROR"
 msgstr "ОШИБКА"
 
@@ -974,6 +978,15 @@ msgstr "Ошибка при проверке обновлений"
 #: upgrade.go:131
 msgid "There is nothing to do."
 msgstr "Действия не требуются."
+
+msgid "Checking for ALR package updates..."
+msgstr "Проверка обновлений ALR пакетов..."
+
+msgid "Checked packages for updates"
+msgstr "Проверено пакетов на обновления"
+
+msgid "Finished checking for updates"
+msgstr "Проверка обновлений завершена"
 
 #~ msgid "Clearing cache directory"
 #~ msgstr "Очистка каталога кэша"

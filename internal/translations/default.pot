@@ -930,3 +930,12 @@ msgstr ""
 #: upgrade.go:131
 msgid "There is nothing to do."
 msgstr ""
+
+msgid "Checking for ALR package updates..."
+msgstr ""
+
+msgid "Checked packages for updates"
+msgstr ""
+
+msgid "Finished checking for updates"
+msgstr ""

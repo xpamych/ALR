@@ -173,12 +173,19 @@ func checkForUpdates(
 
 	s := search.New(db)
 
+	// Предварительно получаем индексы групп захвата для производительности
+	pkgIdx := build.RegexpALRPackageName.SubexpIndex("package")
+	repoIdx := build.RegexpALRPackageName.SubexpIndex("repo")
+
+	slog.Info(gotext.Get("Checking for ALR package updates..."), "count", len(pkgNames))
+
 	var out []UpdateInfo
+	checked := 0
 	for _, pkgName := range pkgNames {
 		matches := build.RegexpALRPackageName.FindStringSubmatch(pkgName)
 		if matches != nil {
-			packageName := matches[build.RegexpALRPackageName.SubexpIndex("package")]
-			repoName := matches[build.RegexpALRPackageName.SubexpIndex("repo")]
+			packageName := matches[pkgIdx]
+			repoName := matches[repoIdx]
 
 			pkgs, err := s.Search(
 				ctx,
@@ -217,7 +224,13 @@ func checkForUpdates(
 			}
 		}
 
+		checked++
+		if checked%10 == 0 {
+			slog.Debug(gotext.Get("Checked packages for updates"), "progress", checked, "total", len(pkgNames))
+		}
 	}
+
+	slog.Info(gotext.Get("Finished checking for updates"), "updates_available", len(out))
 
 	return out, nil
 }
