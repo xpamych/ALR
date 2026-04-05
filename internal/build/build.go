@@ -26,6 +26,8 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/leonelquinteros/gotext"
@@ -816,6 +818,47 @@ func (i *Builder) InstallPkgs(
 		}
 	}
 
+	// Показываем сводку и запрашиваем подтверждение (один раз)
+	userConfirmed := false
+	if input.BuildOpts().Interactive && (len(tree.AllSystemDeps) > 0 || len(allPackages) > 0) {
+		fmt.Fprintln(os.Stderr)
+		fmt.Fprintln(os.Stderr, "=============================================")
+		fmt.Fprintln(os.Stderr, gotext.Get("Installation summary:"))
+		fmt.Fprintln(os.Stderr, "=============================================")
+		
+		if len(tree.AllSystemDeps) > 0 {
+			fmt.Fprintf(os.Stderr, "\n%s:\n", gotext.Get("System packages to install"))
+			for _, pkg := range tree.AllSystemDeps {
+				fmt.Fprintf(os.Stderr, "  - %s\n", pkg)
+			}
+		}
+		
+		if len(allPackages) > 0 {
+			fmt.Fprintf(os.Stderr, "\n%s:\n", gotext.Get("ALR packages to build/install"))
+			for _, pkg := range allPackages {
+				node := tree.Nodes[pkg]
+				if node != nil && node.Package != nil {
+					fmt.Fprintf(os.Stderr, "  - %s (from %s)\n", pkg, node.Package.Repository)
+				} else {
+					fmt.Fprintf(os.Stderr, "  - %s\n", pkg)
+				}
+			}
+		}
+		
+		fmt.Fprintln(os.Stderr)
+		fmt.Fprint(os.Stderr, gotext.Get("Proceed with installation? [Y/n]: "))
+		
+		var response string
+		fmt.Scanln(&response)
+		response = strings.ToLower(strings.TrimSpace(response))
+		if response != "" && response != "y" && response != "yes" {
+			return nil, errors.New("installation cancelled by user")
+		}
+		
+		// После подтверждения устанавливаем всё без дополнительных запросов
+		userConfirmed = true
+	}
+
 	var allBuiltDeps []*BuiltDep
 	var installedBuildDeps []string
 
@@ -823,7 +866,7 @@ func (i *Builder) InstallPkgs(
 	if len(tree.AllSystemDeps) > 0 {
 		slog.Info(gotext.Get("Installing system dependencies"), "count", len(tree.AllSystemDeps))
 		err = i.installerExecutor.Install(ctx, tree.AllSystemDeps, &manager.Opts{
-			NoConfirm: !input.BuildOpts().Interactive,
+			NoConfirm: userConfirmed, // true после подтверждения, иначе используем Interactive
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to install system dependencies: %w", err)
@@ -911,7 +954,7 @@ func (i *Builder) InstallPkgs(
 			// Устанавливаем кешированный пакет
 			if len(cachedDeps) > 0 && !node.IsTarget {
 				err = i.installerExecutor.InstallLocal(ctx, GetBuiltPaths(cachedDeps), &manager.Opts{
-					NoConfirm: !input.BuildOpts().Interactive,
+					NoConfirm: userConfirmed, // true после подтверждения
 				})
 				if err != nil {
 					return nil, fmt.Errorf("failed to install cached %s: %w", pkgName, err)
@@ -950,7 +993,7 @@ func (i *Builder) InstallPkgs(
 		// Устанавливаем собранный пакет сразу, чтобы он был доступен для следующих
 		if len(res) > 0 && !node.IsTarget {
 			err = i.installerExecutor.InstallLocal(ctx, GetBuiltPaths(res), &manager.Opts{
-				NoConfirm: !input.BuildOpts().Interactive,
+				NoConfirm: userConfirmed, // true после подтверждения
 			})
 			if err != nil {
 				return nil, fmt.Errorf("failed to install %s: %w", pkgName, err)
@@ -974,7 +1017,7 @@ func (i *Builder) InstallPkgs(
 	if len(targetDeps) > 0 {
 		slog.Info(gotext.Get("Installing target packages"))
 		err = i.installerExecutor.InstallLocal(ctx, GetBuiltPaths(targetDeps), &manager.Opts{
-			NoConfirm: !input.BuildOpts().Interactive,
+			NoConfirm: userConfirmed, // true после подтверждения
 		})
 		if err != nil {
 			return nil, err

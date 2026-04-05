@@ -725,6 +725,18 @@ msgstr ""
 msgid "Processing repository changes..."
 msgstr ""
 
+msgid "Installation summary:"
+msgstr ""
+
+msgid "System packages to install"
+msgstr ""
+
+msgid "ALR packages to build/install"
+msgstr ""
+
+msgid "Proceed with installation? [Y/n]: "
+msgstr ""
+
 #: internal/utils/cmd.go:54
 msgid "You need to be root to perform this action"
 msgstr ""
