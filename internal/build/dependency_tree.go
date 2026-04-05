@@ -36,54 +36,47 @@ type DependencyNode struct {
 	IsTarget     bool     // true если это целевой пакет (запрошен пользователем)
 }
 
-// PkgRef представляет ссылку на пакет с информацией о типе зависимости
-type PkgRef struct {
-	Name     string
-	IsBuild  bool // true если это build dependency
-	IsOpt    bool // true если это optional dependency
-	IsALR    bool // true если пакет найден в ALR
-	IsSystem bool // true если пакет будет установлен из системного репо
+// UnifiedDependencyTree представляет единое дерево зависимостей для однопроходной установки
+type UnifiedDependencyTree struct {
+	Nodes              map[string]*DependencyNode
+	AllALRPackages     []string // Все ALR пакеты в порядке топологической сортировки (от листьев)
+	AllSystemDeps      []string // Все системные зависимости (build + runtime)
+	AllOptDeps         []string // Все опциональные зависимости
+	AllBuildDeps       []string // Все build зависимости для отслеживания
 }
 
-// DependencyTree представляет полное дерево зависимостей
-type DependencyTree struct {
-	Nodes           map[string]*DependencyNode
-	BuildDepsOrder  []string // Порядок установки build зависимостей (от листьев)
-	RuntimeDepsOrder []string // Порядок установки runtime зависимостей (от листьев)
-	SystemBuildDeps []string // Системные build зависимости
-	SystemRuntimeDeps []string // Системные runtime зависимости
-	AllOptDeps      []string // Все опциональные зависимости
-}
-
-// ResolveDependencyTreeV2 рекурсивно разрешает все зависимости и возвращает
-// полное дерево с разделением на build и runtime зависимости
-func (b *Builder) ResolveDependencyTreeV2(
+// ResolveUnifiedDependencyTree строит единое дерево зависимостей
+// и возвращает все пакеты в порядке топологической сортировки
+func (b *Builder) ResolveUnifiedDependencyTree(
 	ctx context.Context,
 	input interface {
 		OsInfoProvider
 		PkgFormatProvider
 	},
 	initialPkgs []string,
-) (*DependencyTree, error) {
-	tree := &DependencyTree{
-		Nodes:             make(map[string]*DependencyNode),
-		BuildDepsOrder:    []string{},
-		RuntimeDepsOrder:  []string{},
-		SystemBuildDeps:   []string{},
-		SystemRuntimeDeps: []string{},
-		AllOptDeps:        []string{},
+) (*UnifiedDependencyTree, error) {
+	tree := &UnifiedDependencyTree{
+		Nodes:          make(map[string]*DependencyNode),
+		AllALRPackages: []string{},
+		AllSystemDeps:  []string{},
+		AllOptDeps:     []string{},
+		AllBuildDeps:   []string{},
 	}
 
 	visited := make(map[string]bool)
-	buildVisited := make(map[string]bool)
-	runtimeVisited := make(map[string]bool)
+	systemVisited := make(map[string]bool)
+	optVisited := make(map[string]bool)
+	buildDepVisited := make(map[string]bool)
 
 	overrideNames, err := overrides.Resolve(input.OSRelease(), overrides.DefaultOpts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve overrides: %w", err)
 	}
 
-	// resolve рекурсивно разрешает зависимости пакета
+	// Временное хранение порядка (реверсивное - от корня к листьям)
+	var order []string
+
+	// resolve рекурсивно разрешает зависимости
 	var resolve func(pkgNames []string, isBuildDep bool) error
 	resolve = func(pkgNames []string, isBuildDep bool) error {
 		if len(pkgNames) == 0 {
@@ -96,7 +89,7 @@ func (b *Builder) ResolveDependencyTreeV2(
 			return fmt.Errorf("failed to find packages: %w", err)
 		}
 
-		// Проверяем preferALRDeps - если false и пакет есть в системе, используем системный
+		// Проверяем preferALRDeps
 		if b.cfg != nil && !b.cfg.PreferALRDeps() && b.mgr != nil {
 			for pkgName := range found {
 				available, err := b.mgr.ListAvailable(pkgName)
@@ -114,18 +107,16 @@ func (b *Builder) ResolveDependencyTreeV2(
 			}
 		}
 
-		// Обрабатываем системные зависимости (не найденные в ALR)
+		// Обрабатываем системные зависимости
 		for _, pkgName := range notFound {
-			if isBuildDep {
-				if !buildVisited[pkgName] {
-					buildVisited[pkgName] = true
-					tree.SystemBuildDeps = append(tree.SystemBuildDeps, pkgName)
-				}
-			} else {
-				if !runtimeVisited[pkgName] {
-					runtimeVisited[pkgName] = true
-					tree.SystemRuntimeDeps = append(tree.SystemRuntimeDeps, pkgName)
-				}
+			if !systemVisited[pkgName] {
+				systemVisited[pkgName] = true
+				tree.AllSystemDeps = append(tree.AllSystemDeps, pkgName)
+			}
+			// Отслеживаем build зависимости для удаления
+			if isBuildDep && !buildDepVisited[pkgName] {
+				buildDepVisited[pkgName] = true
+				tree.AllBuildDeps = append(tree.AllBuildDeps, pkgName)
 			}
 		}
 
@@ -163,55 +154,55 @@ func (b *Builder) ResolveDependencyTreeV2(
 
 			// Собираем опциональные зависимости
 			for _, optDep := range optDeps {
-				found := false
-				for _, existing := range tree.AllOptDeps {
-					if existing == optDep {
-						found = true
-						break
-					}
-				}
-				if !found {
+				if !optVisited[optDep] {
+					optVisited[optDep] = true
 					tree.AllOptDeps = append(tree.AllOptDeps, optDep)
 				}
 			}
 
-			// Сначала рекурсивно обрабатываем все build зависимости
+			// Отслеживаем build зависимости для удаления
+			for _, bd := range buildDeps {
+				// Проверяем, есть ли в системе
+				if b.mgr != nil {
+					available, _ := b.mgr.ListAvailable(bd)
+					for _, av := range available {
+						if av == bd && !buildDepVisited[bd] {
+							buildDepVisited[bd] = true
+							tree.AllBuildDeps = append(tree.AllBuildDeps, bd)
+							break
+						}
+					}
+				}
+			}
+
+			// Рекурсивно обрабатываем ВСЕ зависимости сначала (чтобы они были в очереди раньше)
+			// Сначала build (они глубже), затем runtime
 			if len(buildDeps) > 0 {
 				if err := resolve(buildDeps, true); err != nil {
 					return err
 				}
 			}
-
-			// Затем рекурсивно обрабатываем runtime зависимости
 			if len(deps) > 0 {
 				if err := resolve(deps, false); err != nil {
 					return err
 				}
 			}
 
-			// Добавляем в правильный порядок (сначала листья, потом корни)
-			// Build deps добавляем в BuildDepsOrder
-			if isBuildDep {
-				if !buildVisited[pkgName] {
-					buildVisited[pkgName] = true
-					tree.BuildDepsOrder = append(tree.BuildDepsOrder, pkgName)
-				}
-			} else {
-				// Runtime deps добавляем в RuntimeDepsOrder
-				if !runtimeVisited[pkgName] {
-					runtimeVisited[pkgName] = true
-					tree.RuntimeDepsOrder = append(tree.RuntimeDepsOrder, pkgName)
-				}
-			}
+			// Добавляем в порядок (от корня к листьям - потом реверснем)
+			order = append(order, pkgName)
 		}
 
 		return nil
 	}
 
 	// Начинаем разрешение с начальных пакетов
-	// Сначала как runtime зависимости (чтобы они пошли в RuntimeDepsOrder)
 	if err := resolve(initialPkgs, false); err != nil {
 		return nil, err
+	}
+
+	// Реверсируем порядок - от листьев к корню (зависимости первыми)
+	for i := len(order) - 1; i >= 0; i-- {
+		tree.AllALRPackages = append(tree.AllALRPackages, order[i])
 	}
 
 	return tree, nil

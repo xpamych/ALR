@@ -389,7 +389,8 @@ func (b *Builder) BuildPackage(
 
 	slog.Debug("installBuildDeps")
 	// build_deps всегда устанавливаются - они нужны для сборки
-	alrBuildDeps, installedBuildDeps, err := b.installBuildDeps(ctx, input, buildDepends)
+	// Примечание: удаление build_deps теперь происходит в InstallPkgs
+	alrBuildDeps, _, err := b.installBuildDeps(ctx, input, buildDepends)
 	if err != nil {
 		return nil, err
 	}
@@ -475,42 +476,12 @@ func (b *Builder) BuildPackage(
 
 	builtDeps = removeDuplicates(append(builtDeps, res...))
 
-	// Удаляем build_deps после сборки
-	if len(installedBuildDeps) > 0 {
-		err = b.removeBuildDeps(ctx, input, installedBuildDeps)
-		if err != nil {
-			return nil, err
-		}
-	}
+	// Примечание: удаление build_deps теперь происходит один раз в конце InstallPkgs
+	// чтобы избежать дублирования промптов
 
 	return builtDeps, nil
 }
 
-func (b *Builder) removeBuildDeps(ctx context.Context, input interface {
-	BuildOptsProvider
-}, deps []string,
-) error {
-	if len(deps) > 0 {
-		remove, err := cliutils.YesNoPrompt(ctx, gotext.Get("Would you like to remove the build dependencies?"), input.BuildOpts().Interactive, false)
-		if err != nil {
-			return err
-		}
-
-		if remove {
-			err = b.installerExecutor.Remove(
-				ctx,
-				deps,
-				&manager.Opts{
-					NoConfirm: !input.BuildOpts().Interactive,
-				},
-			)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
 
 type InstallPkgsArgs struct {
 	BuildArgs
@@ -555,138 +526,35 @@ func (b *Builder) BuildALRDeps(
 		return nil, nil, nil
 	}
 
-	slog.Info(gotext.Get("Installing dependencies"))
-
-	// Используем новое дерево зависимостей
-	tree, err := b.ResolveDependencyTreeV2(ctx, input, depends)
+	// Используем единое дерево зависимостей
+	tree, err := b.ResolveUnifiedDependencyTree(ctx, input, depends)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to resolve dependency tree: %w", err)
 	}
 
-	// Системные зависимости
-	allSystemDeps := append([]string{}, tree.SystemBuildDeps...)
-	allSystemDeps = append(allSystemDeps, tree.SystemRuntimeDeps...)
-	repoDeps = removeDuplicates(allSystemDeps)
+	repoDeps = tree.AllSystemDeps
 
+	// Собираем все ALR пакеты из дерева
 	var allBuiltDeps []*BuiltDep
 
-	// ФАЗА 1: Собираем build зависимости
-	if len(tree.BuildDepsOrder) > 0 {
-		slog.Info(gotext.Get("Installing build dependencies"))
-
-		// Сначала системные build зависимости
-		if len(tree.SystemBuildDeps) > 0 {
-			err = b.installerExecutor.Install(ctx, tree.SystemBuildDeps, &manager.Opts{
-				NoConfirm: !input.BuildOpts().Interactive,
-			})
-			if err != nil {
-				return nil, nil, fmt.Errorf("failed to install system build dependencies: %w", err)
-			}
-		}
-
-		// Затем ALR build зависимости
-		built, err := b.BuildAndInstallFromOrder(ctx, input, tree, tree.BuildDepsOrder)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to build dependencies: %w", err)
-		}
-		allBuiltDeps = append(allBuiltDeps, built...)
-	}
-
-	// ФАЗА 2: Собираем runtime зависимости
-	if len(tree.RuntimeDepsOrder) > 0 {
-		slog.Info(gotext.Get("Installing runtime dependencies"))
-
-		// Сначала системные runtime зависимости
-		if len(tree.SystemRuntimeDeps) > 0 {
-			err = b.installerExecutor.Install(ctx, tree.SystemRuntimeDeps, &manager.Opts{
-				NoConfirm: !input.BuildOpts().Interactive,
-			})
-			if err != nil {
-				return nil, nil, fmt.Errorf("failed to install system runtime dependencies: %w", err)
-			}
-		}
-
-		// Затем ALR runtime зависимости
-		built, err := b.BuildAndInstallFromOrder(ctx, input, tree, tree.RuntimeDepsOrder)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to build dependencies: %w", err)
-		}
-		allBuiltDeps = append(allBuiltDeps, built...)
-	}
-
-	return allBuiltDeps, repoDeps, nil
-}
-
-// BuildALRDepsFromTree собирает зависимости из уже построенного дерева
-// Используется для фазы 1 установки - установка всех зависимостей перед сборкой целевых пакетов
-func (b *Builder) BuildALRDepsFromTree(
-	ctx context.Context,
-	input interface {
-		OsInfoProvider
-		BuildOptsProvider
-		PkgFormatProvider
-	},
-	depTree map[string]*DependencyNode,
-	depPkgNames []string,
-) (buildDeps []*BuiltDep, repoDeps []string, err error) {
-	if len(depPkgNames) == 0 {
-		return nil, nil, nil
-	}
-
-	slog.Debug("Building dependencies from tree", "count", len(depPkgNames))
-
-	// Топологическая сортировка зависимостей (от листьев к корню)
-	sortedPkgs, err := TopologicalSort(depTree)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to sort dependencies: %w", err)
-	}
-
-	// Фильтруем только пакеты-зависимости (не целевые)
-	var sortedDeps []string
-	for _, pkgName := range sortedPkgs {
-		if node, ok := depTree[pkgName]; ok && !node.IsTarget {
-			sortedDeps = append(sortedDeps, pkgName)
-		}
-	}
-
-	slog.Debug("Sorted dependencies", "order", sortedDeps)
-
-	// Получаем список пакетов, которые нужно собрать (не установлены или устарели)
-	var allPkgs []alrsh.Package
-	for _, node := range depTree {
-		if !node.IsTarget && node.Package != nil {
-			allPkgs = append(allPkgs, *node.Package)
-		}
-	}
-
-	needBuildPkgs, err := b.installerExecutor.FilterPackagesByVersion(ctx, allPkgs, input.OSRelease())
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to filter packages: %w", err)
-	}
-
-	needBuildNames := make(map[string]bool)
-	for _, pkg := range needBuildPkgs {
-		needBuildNames[pkg.Name] = true
-	}
-
-	// Собираем зависимости в правильном порядке
-	for _, pkgName := range sortedDeps {
-		node := depTree[pkgName]
-		if node == nil || node.Package == nil {
+	for _, pkgName := range tree.AllALRPackages {
+		node, ok := tree.Nodes[pkgName]
+		if !ok || node == nil || node.Package == nil {
 			continue
 		}
 
-		pkg := node.Package
-		basePkgName := node.BasePkgName
+		// Проверяем нужна ли сборка
+		needBuildPkgs, err := b.installerExecutor.FilterPackagesByVersion(ctx, []alrsh.Package{*node.Package}, input.OSRelease())
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to filter package %s: %w", pkgName, err)
+		}
 
-		// Пропускаем уже установленные пакеты
-		if !needBuildNames[pkg.Name] {
-			slog.Debug("Package already installed, skipping", "name", pkg.Name)
+		if len(needBuildPkgs) == 0 {
 			continue
 		}
 
 		// Проверяем кеш
-		scriptInfo := b.scriptResolver.ResolveScript(ctx, pkg)
+		scriptInfo := b.scriptResolver.ResolveScript(ctx, node.Package)
 		buildInput := &BuildInput{
 			script:     scriptInfo.Script,
 			repository: scriptInfo.Repository,
@@ -696,181 +564,41 @@ func (b *Builder) BuildALRDepsFromTree(
 			info:       input.OSRelease(),
 		}
 
-		cachedDeps, allInCache, err := b.checkCacheForAllSubpackages(ctx, buildInput, basePkgName, []string{pkgName})
+		cachedDeps, allInCache, err := b.checkCacheForAllSubpackages(ctx, buildInput, node.BasePkgName, []string{pkgName})
 		if err != nil {
 			return nil, nil, err
 		}
 
 		if allInCache {
-			slog.Debug("Using cached package", "name", pkgName)
-			buildDeps = append(buildDeps, cachedDeps...)
-			continue
-		}
-
-		// Устанавливаем системные зависимости для этого пакета (build_deps)
-		if len(node.SystemDeps) > 0 {
-			slog.Info(gotext.Get("Installing system build dependencies"), "package", pkgName, "deps", node.SystemDeps)
-			err = b.installerExecutor.Install(ctx, node.SystemDeps, &manager.Opts{
-				NoConfirm: !input.BuildOpts().Interactive,
-			})
-			if err != nil {
-				return nil, nil, fmt.Errorf("failed to install system dependencies for %s: %w", pkgName, err)
-			}
-		}
-
-		// Собираем пакет
-		slog.Info(gotext.Get("Building dependency"), "name", pkgName)
-
-		res, err := b.BuildPackageFromDb(
-			ctx,
-			&BuildPackageFromDbArgs{
-				Package:  pkg,
-				Packages: []string{pkgName},
-				BuildArgs: BuildArgs{
-					Opts:             input.BuildOpts(),
-					Info:             input.OSRelease(),
-					PkgFormat_:       input.PkgFormat(),
-					SkipDepsBuilding: true, // ALR зависимости уже собраны
-				},
-			},
-		)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to build dependency %s: %w", pkgName, err)
-		}
-
-		buildDeps = append(buildDeps, res...)
-
-		// Устанавливаем собранную зависимость сразу, чтобы она была доступна для следующих
-		if len(res) > 0 {
-			err = b.installerExecutor.InstallLocal(ctx, GetBuiltPaths(res), &manager.Opts{
-				NoConfirm: !input.BuildOpts().Interactive,
-			})
-			if err != nil {
-				return nil, nil, fmt.Errorf("failed to install dependency %s: %w", pkgName, err)
-			}
-		}
-	}
-
-	buildDeps = removeDuplicates(buildDeps)
-
-	return buildDeps, nil, nil
-}
-
-// BuildTargetPackages собирает целевые пакеты после установки всех зависимостей
-func (b *Builder) BuildTargetPackages(
-	ctx context.Context,
-	input interface {
-		OsInfoProvider
-		BuildOptsProvider
-		PkgFormatProvider
-	},
-	depTree map[string]*DependencyNode,
-	targetNodes []*DependencyNode,
-) ([]*BuiltDep, error) {
-	if len(targetNodes) == 0 {
-		return nil, nil
-	}
-
-	// Топологическая сортировка всех пакетов для правильного порядка сборки
-	sortedPkgs, err := TopologicalSort(depTree)
-	if err != nil {
-		return nil, fmt.Errorf("failed to sort packages: %w", err)
-	}
-
-	// Фильтруем только целевые пакеты в порядке сортировки
-	targetNames := make(map[string]bool)
-	for _, node := range targetNodes {
-		targetNames[node.PkgName] = true
-	}
-
-	var sortedTargets []string
-	for _, pkgName := range sortedPkgs {
-		if targetNames[pkgName] {
-			sortedTargets = append(sortedTargets, pkgName)
-		}
-	}
-
-	var allBuiltDeps []*BuiltDep
-
-	// Собираем целевые пакеты в правильном порядке
-	for _, pkgName := range sortedTargets {
-		node := depTree[pkgName]
-		if node == nil || node.Package == nil {
-			continue
-		}
-
-		pkg := node.Package
-		basePkgName := node.BasePkgName
-
-		// Проверяем нужна ли сборка
-		needBuildPkgs, err := b.installerExecutor.FilterPackagesByVersion(ctx, []alrsh.Package{*pkg}, input.OSRelease())
-		if err != nil {
-			return nil, fmt.Errorf("failed to filter package %s: %w", pkgName, err)
-		}
-
-		if len(needBuildPkgs) == 0 {
-			slog.Info(gotext.Get("Package is already installed"), "name", pkgName)
-			continue
-		}
-
-		// Проверяем кеш
-		scriptInfo := b.scriptResolver.ResolveScript(ctx, pkg)
-		buildInput := &BuildInput{
-			script:     scriptInfo.Script,
-			repository: scriptInfo.Repository,
-			packages:   []string{pkgName},
-			pkgFormat:  input.PkgFormat(),
-			opts:       input.BuildOpts(),
-			info:       input.OSRelease(),
-		}
-
-		cachedDeps, allInCache, err := b.checkCacheForAllSubpackages(ctx, buildInput, basePkgName, []string{pkgName})
-		if err != nil {
-			return nil, err
-		}
-
-		if allInCache {
-			slog.Info(gotext.Get("Using cached package"), "name", pkgName)
 			allBuiltDeps = append(allBuiltDeps, cachedDeps...)
 			continue
 		}
 
-		// Устанавливаем системные зависимости для целевого пакета
-		if len(node.SystemDeps) > 0 {
-			slog.Info(gotext.Get("Installing system build dependencies"), "package", pkgName, "deps", node.SystemDeps)
-			err = b.installerExecutor.Install(ctx, node.SystemDeps, &manager.Opts{
-				NoConfirm: !input.BuildOpts().Interactive,
-			})
-			if err != nil {
-				return nil, fmt.Errorf("failed to install system dependencies for %s: %w", pkgName, err)
-			}
-		}
-
-		// Собираем целевой пакет
-		slog.Info(gotext.Get("Building package"), "name", pkgName)
-
+		// Собираем пакет
 		res, err := b.BuildPackageFromDb(
 			ctx,
 			&BuildPackageFromDbArgs{
-				Package:  pkg,
+				Package:  node.Package,
 				Packages: []string{pkgName},
 				BuildArgs: BuildArgs{
 					Opts:             input.BuildOpts(),
 					Info:             input.OSRelease(),
 					PkgFormat_:       input.PkgFormat(),
-					SkipDepsBuilding: true, // Все зависимости уже установлены
+					SkipDepsBuilding: true,
 				},
 			},
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to build package %s: %w", pkgName, err)
+			return nil, nil, fmt.Errorf("failed to build %s: %w", pkgName, err)
 		}
 
 		allBuiltDeps = append(allBuiltDeps, res...)
 	}
 
-	return removeDuplicates(allBuiltDeps), nil
+	return allBuiltDeps, repoDeps, nil
 }
+
+
 
 // findAllSubpackages находит все подпакеты для базового пакета
 func (b *Builder) findAllSubpackages(ctx context.Context, basePkgName, repository string) ([]string, error) {
@@ -1028,74 +756,63 @@ func (i *Builder) InstallPkgs(
 
 	slog.Info(gotext.Get("Resolving dependencies for packages"), "packages", pkgs)
 
-	// Шаг 1: Построить полное дерево зависимостей
-	tree, err := i.ResolveDependencyTreeV2(ctx, input, pkgs)
+	// Шаг 1: Построить единое дерево зависимостей
+	tree, err := i.ResolveUnifiedDependencyTree(ctx, input, pkgs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve dependency tree: %w", err)
 	}
 
 	slog.Debug("Dependency tree resolved",
-		"build_deps", len(tree.BuildDepsOrder),
-		"runtime_deps", len(tree.RuntimeDepsOrder),
-		"system_build_deps", len(tree.SystemBuildDeps),
-		"system_runtime_deps", len(tree.SystemRuntimeDeps),
-		"opt_deps", len(tree.AllOptDeps))
+		"alr_packages", len(tree.AllALRPackages),
+		"system_deps", len(tree.AllSystemDeps),
+		"opt_deps", len(tree.AllOptDeps),
+		"build_deps", len(tree.AllBuildDeps))
+
+	// Помечаем целевые пакеты
+	targetSet := make(map[string]bool)
+	for _, pkgName := range pkgs {
+		targetSet[pkgName] = true
+		if node, ok := tree.Nodes[pkgName]; ok {
+			node.IsTarget = true
+		}
+	}
+
+	// Формируем полный список пакетов для сборки (зависимости + целевые)
+	var allPackages []string
+	for _, pkgName := range tree.AllALRPackages {
+		allPackages = append(allPackages, pkgName)
+	}
+	for _, pkgName := range pkgs {
+		// Добавляем целевые пакеты если их ещё нет в списке
+		found := false
+		for _, existing := range allPackages {
+			if existing == pkgName {
+				found = true
+				break
+			}
+		}
+		if !found {
+			allPackages = append(allPackages, pkgName)
+		}
+	}
 
 	var allBuiltDeps []*BuiltDep
+	var installedBuildDeps []string
 
-	// ФАЗА 1: Устанавливаем все build зависимости (начиная с самых дальних)
-	if len(tree.BuildDepsOrder) > 0 || len(tree.SystemBuildDeps) > 0 {
-		slog.Info(gotext.Get("Installing build dependencies"))
-
-		// Сначала системные build зависимости
-		if len(tree.SystemBuildDeps) > 0 {
-			slog.Info(gotext.Get("Installing system build dependencies"), "count", len(tree.SystemBuildDeps))
-			err = i.installerExecutor.Install(ctx, tree.SystemBuildDeps, &manager.Opts{
-				NoConfirm: !input.BuildOpts().Interactive,
-			})
-			if err != nil {
-				return nil, fmt.Errorf("failed to install system build dependencies: %w", err)
-			}
+	// Шаг 2: Устанавливаем ВСЕ системные зависимости одним вызовом
+	if len(tree.AllSystemDeps) > 0 {
+		slog.Info(gotext.Get("Installing system dependencies"), "count", len(tree.AllSystemDeps))
+		err = i.installerExecutor.Install(ctx, tree.AllSystemDeps, &manager.Opts{
+			NoConfirm: !input.BuildOpts().Interactive,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to install system dependencies: %w", err)
 		}
-
-		// Затем ALR build зависимости (уже в правильном порядке - от листьев к корню)
-		if len(tree.BuildDepsOrder) > 0 {
-			buildDeps, err := i.BuildAndInstallFromOrder(ctx, input, tree, tree.BuildDepsOrder)
-			if err != nil {
-				return nil, fmt.Errorf("failed to install build dependencies: %w", err)
-			}
-			allBuiltDeps = append(allBuiltDeps, buildDeps...)
-		}
+		_ = i.installerExecutor.CheckVersionsAfterInstall(ctx, tree.AllSystemDeps)
 	}
 
-	// ФАЗА 2: Устанавливаем все runtime зависимости
-	if len(tree.RuntimeDepsOrder) > 0 || len(tree.SystemRuntimeDeps) > 0 {
-		slog.Info(gotext.Get("Installing runtime dependencies"))
-
-		// Сначала системные runtime зависимости
-		if len(tree.SystemRuntimeDeps) > 0 {
-			slog.Info(gotext.Get("Installing system runtime dependencies"), "count", len(tree.SystemRuntimeDeps))
-			err = i.installerExecutor.Install(ctx, tree.SystemRuntimeDeps, &manager.Opts{
-				NoConfirm: !input.BuildOpts().Interactive,
-			})
-			if err != nil {
-				return nil, fmt.Errorf("failed to install system runtime dependencies: %w", err)
-			}
-			_ = i.installerExecutor.CheckVersionsAfterInstall(ctx, tree.SystemRuntimeDeps)
-		}
-
-		// Затем ALR runtime зависимости
-		if len(tree.RuntimeDepsOrder) > 0 {
-			runtimeDeps, err := i.BuildAndInstallFromOrder(ctx, input, tree, tree.RuntimeDepsOrder)
-			if err != nil {
-				return nil, fmt.Errorf("failed to install runtime dependencies: %w", err)
-			}
-			allBuiltDeps = append(allBuiltDeps, runtimeDeps...)
-		}
-	}
-
-	// ФАЗА 3: Обрабатываем опциональные зависимости
-	if len(tree.AllOptDeps) > 0 {
+	// Шаг 3: Обрабатываем опциональные зависимости (если есть)
+	if len(tree.AllOptDeps) > 0 && input.BuildOpts().Interactive {
 		slog.Info(gotext.Get("Processing optional dependencies"))
 		_, err := i.installOptDeps(ctx, input, tree.AllOptDeps)
 		if err != nil {
@@ -1103,66 +820,34 @@ func (i *Builder) InstallPkgs(
 		}
 	}
 
-	// ФАЗА 4: Собираем и устанавливаем целевые пакеты
-	slog.Info(gotext.Get("Building target packages"), "count", len(pkgs))
-
-	// Помечаем целевые пакеты
-	for _, pkgName := range pkgs {
-		if node, ok := tree.Nodes[pkgName]; ok {
-			node.IsTarget = true
-		}
-	}
-
-	targetDeps, err := i.BuildAndInstallFromOrder(ctx, input, tree, pkgs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to build target packages: %w", err)
-	}
-	allBuiltDeps = append(allBuiltDeps, targetDeps...)
-
-	// Устанавливаем все собранные целевые пакеты
-	if len(targetDeps) > 0 {
-		slog.Info(gotext.Get("Installing built packages"))
-		err = i.installerExecutor.InstallLocal(ctx, GetBuiltPaths(targetDeps), &manager.Opts{
-			NoConfirm: !input.BuildOpts().Interactive,
-		})
-		if err != nil {
-			return nil, err
+	// Шаг 4: Показываем скрипты всех пакетов перед сборкой
+	if input.BuildOpts().Interactive {
+		var scripts []cliutils.ScriptInfo
+		for _, pkgName := range allPackages {
+			if node, ok := tree.Nodes[pkgName]; ok && node.Package != nil {
+				scriptInfo := i.scriptResolver.ResolveScript(ctx, node.Package)
+				scripts = append(scripts, cliutils.ScriptInfo{
+					Name:       pkgName,
+					ScriptPath: scriptInfo.Script,
+				})
+			}
 		}
 
-		// Отслеживание установки
-		for _, dep := range targetDeps {
-			if stats.ShouldTrackPackage(dep.Name) {
-				stats.TrackInstallation(ctx, dep.Name, "install")
+		if len(scripts) > 0 {
+			cont, err := cliutils.PromptViewMultipleScripts(ctx, scripts, i.cfg.PagerStyle(), input.BuildOpts().Interactive)
+			if err != nil {
+				return nil, err
+			}
+			if !cont {
+				return nil, errors.New("user cancelled")
 			}
 		}
 	}
 
-	return allBuiltDeps, nil
-}
+	// Шаг 5: Собираем и устанавливаем все ALR пакеты в правильном порядке
+	slog.Info(gotext.Get("Building packages"), "count", len(allPackages))
 
-// BuildAndInstallFromOrder собирает и устанавливает пакеты в заданном порядке
-func (b *Builder) BuildAndInstallFromOrder(
-	ctx context.Context,
-	input interface {
-		OsInfoProvider
-		BuildOptsProvider
-		PkgFormatProvider
-	},
-	tree *DependencyTree,
-	pkgOrder []string,
-) ([]*BuiltDep, error) {
-	type pkgBuildInfo struct {
-		node        *DependencyNode
-		scriptInfo  *ScriptInfo
-		buildInput  *BuildInput
-		basePkgName string
-	}
-
-	var allBuiltDeps []*BuiltDep
-	var packagesToBuild []pkgBuildInfo
-
-	// ФАЗА 1: Определяем какие пакеты нужно собирать (не из кеша)
-	for _, pkgName := range pkgOrder {
+	for _, pkgName := range allPackages {
 		node, ok := tree.Nodes[pkgName]
 		if !ok || node == nil || node.Package == nil {
 			slog.Debug("Package not found in tree, skipping", "name", pkgName)
@@ -1173,7 +858,7 @@ func (b *Builder) BuildAndInstallFromOrder(
 		basePkgName := node.BasePkgName
 
 		// Проверяем нужна ли сборка
-		needBuildPkgs, err := b.installerExecutor.FilterPackagesByVersion(ctx, []alrsh.Package{*pkg}, input.OSRelease())
+		needBuildPkgs, err := i.installerExecutor.FilterPackagesByVersion(ctx, []alrsh.Package{*pkg}, input.OSRelease())
 		if err != nil {
 			return nil, fmt.Errorf("failed to filter package %s: %w", pkgName, err)
 		}
@@ -1184,7 +869,7 @@ func (b *Builder) BuildAndInstallFromOrder(
 		}
 
 		// Проверяем кеш
-		scriptInfo := b.scriptResolver.ResolveScript(ctx, pkg)
+		scriptInfo := i.scriptResolver.ResolveScript(ctx, pkg)
 		buildInput := &BuildInput{
 			script:     scriptInfo.Script,
 			repository: scriptInfo.Repository,
@@ -1194,7 +879,7 @@ func (b *Builder) BuildAndInstallFromOrder(
 			info:       input.OSRelease(),
 		}
 
-		cachedDeps, allInCache, err := b.checkCacheForAllSubpackages(ctx, buildInput, basePkgName, []string{pkgName})
+		cachedDeps, allInCache, err := i.checkCacheForAllSubpackages(ctx, buildInput, basePkgName, []string{pkgName})
 		if err != nil {
 			return nil, err
 		}
@@ -1202,41 +887,17 @@ func (b *Builder) BuildAndInstallFromOrder(
 		if allInCache {
 			slog.Info(gotext.Get("Using cached package"), "name", pkgName)
 			allBuiltDeps = append(allBuiltDeps, cachedDeps...)
+			// Устанавливаем кешированный пакет
+			if len(cachedDeps) > 0 && !node.IsTarget {
+				err = i.installerExecutor.InstallLocal(ctx, GetBuiltPaths(cachedDeps), &manager.Opts{
+					NoConfirm: !input.BuildOpts().Interactive,
+				})
+				if err != nil {
+					return nil, fmt.Errorf("failed to install cached %s: %w", pkgName, err)
+				}
+			}
 			continue
 		}
-
-		// Добавляем в список для сборки
-		packagesToBuild = append(packagesToBuild, pkgBuildInfo{
-			node:        node,
-			scriptInfo:  scriptInfo,
-			buildInput:  buildInput,
-			basePkgName: basePkgName,
-		})
-	}
-
-	// ФАЗА 2: Показываем диалог со всеми скриптами
-	if len(packagesToBuild) > 0 && input.BuildOpts().Interactive {
-		var scripts []cliutils.ScriptInfo
-		for _, pkgInfo := range packagesToBuild {
-			scripts = append(scripts, cliutils.ScriptInfo{
-				Name:       pkgInfo.node.PkgName,
-				ScriptPath: pkgInfo.scriptInfo.Script,
-			})
-		}
-
-		cont, err := cliutils.PromptViewMultipleScripts(ctx, scripts, b.cfg.PagerStyle(), input.BuildOpts().Interactive)
-		if err != nil {
-			return nil, err
-		}
-		if !cont {
-			return nil, errors.New("user cancelled")
-		}
-	}
-
-	// ФАЗА 3: Собираем пакеты
-	for _, pkgInfo := range packagesToBuild {
-		node := pkgInfo.node
-		pkgName := node.PkgName
 
 		// Собираем пакет
 		if node.IsTarget {
@@ -1245,10 +906,10 @@ func (b *Builder) BuildAndInstallFromOrder(
 			slog.Info(gotext.Get("Building dependency"), "name", pkgName)
 		}
 
-		res, err := b.BuildPackageFromDb(
+		res, err := i.BuildPackageFromDb(
 			ctx,
 			&BuildPackageFromDbArgs{
-				Package:  node.Package,
+				Package:  pkg,
 				Packages: []string{pkgName},
 				BuildArgs: BuildArgs{
 					Opts:             input.BuildOpts(),
@@ -1266,14 +927,63 @@ func (b *Builder) BuildAndInstallFromOrder(
 
 		// Устанавливаем собранный пакет сразу, чтобы он был доступен для следующих
 		if len(res) > 0 && !node.IsTarget {
-			err = b.installerExecutor.InstallLocal(ctx, GetBuiltPaths(res), &manager.Opts{
+			err = i.installerExecutor.InstallLocal(ctx, GetBuiltPaths(res), &manager.Opts{
 				NoConfirm: !input.BuildOpts().Interactive,
 			})
 			if err != nil {
 				return nil, fmt.Errorf("failed to install %s: %w", pkgName, err)
 			}
 		}
+
+		// Собираем установленные build deps для удаления в конце
+		for _, bd := range node.BuildDeps {
+			installedBuildDeps = append(installedBuildDeps, bd)
+		}
 	}
 
-	return removeDuplicates(allBuiltDeps), nil
+	// Шаг 6: Устанавливаем целевые пакеты
+	var targetDeps []*BuiltDep
+	for _, dep := range allBuiltDeps {
+		if targetSet[dep.Name] {
+			targetDeps = append(targetDeps, dep)
+		}
+	}
+
+	if len(targetDeps) > 0 {
+		slog.Info(gotext.Get("Installing target packages"))
+		err = i.installerExecutor.InstallLocal(ctx, GetBuiltPaths(targetDeps), &manager.Opts{
+			NoConfirm: !input.BuildOpts().Interactive,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// Отслеживание установки
+		for _, dep := range targetDeps {
+			if stats.ShouldTrackPackage(dep.Name) {
+				stats.TrackInstallation(ctx, dep.Name, "install")
+			}
+		}
+	}
+
+	// Шаг 7: Один финальный промпт на удаление всех build зависимостей
+	installedBuildDeps = removeDuplicates(installedBuildDeps)
+	if len(installedBuildDeps) > 0 {
+		remove, err := cliutils.YesNoPrompt(ctx, gotext.Get("Would you like to remove all build dependencies?"), input.BuildOpts().Interactive, false)
+		if err != nil {
+			return nil, err
+		}
+
+		if remove {
+			err = i.installerExecutor.Remove(ctx, installedBuildDeps, &manager.Opts{
+				NoConfirm: !input.BuildOpts().Interactive,
+			})
+			if err != nil {
+				slog.Warn("Failed to remove build dependencies", "error", err)
+			}
+		}
+	}
+
+	return allBuiltDeps, nil
 }
+
