@@ -82,7 +82,7 @@ jobs:
 
       - name: Create Release via GitVerse API
         env:
-          GITVERSE_TOKEN: ${{ secrets.GITVERSE_TOKEN }}
+          GITVERSE_TOKEN: ${{ secrets.ALR_TOKEN }}
         run: |
           TAG_NAME=${GITHUB_REF##*/}
           RELEASE_NAME="ALR ${{ env.VERSION }}"
@@ -90,7 +90,7 @@ jobs:
 
           # Создаём релиз через GitVerse API
           RELEASE_RESPONSE=$(curl -s -X POST \
-            "https://gitverse.ru/api/v1/repos/${{ gitverse.repository_owner }}/${{ gitverse.repository }}/releases" \
+            "https://gitverse.ru/api/v1/repos/alr/ALR/releases" \
             -H "Authorization: token ${GITVERSE_TOKEN}" \
             -H "Content-Type: application/json" \
             -d "{
@@ -107,10 +107,10 @@ jobs:
 
       - name: Upload tar.gz asset
         env:
-          GITVERSE_TOKEN: ${{ secrets.GITVERSE_TOKEN }}
+          GITVERSE_TOKEN: ${{ secrets.ALR_TOKEN }}
         run: |
           curl -s -X POST \
-            "https://gitverse.ru/api/v1/repos/${{ gitverse.repository_owner }}/${{ gitverse.repository }}/releases/${{ env.RELEASE_ID }}/assets?name=alr-${{ env.VERSION }}-linux-x86_64.tar.gz" \
+            "https://gitverse.ru/api/v1/repos/alr/ALR/releases/${{ env.RELEASE_ID }}/assets?name=alr-${{ env.VERSION }}-linux-x86_64.tar.gz" \
             -H "Authorization: token ${GITVERSE_TOKEN}" \
             -H "Content-Type: application/octet-stream" \
             --data-binary "@alr-${{ env.VERSION }}-linux-x86_64.tar.gz"
@@ -118,8 +118,8 @@ jobs:
       - name: Checkout alr-default repository
         uses: actions/checkout@v4
         with:
-          repository: ${{ gitverse.repository_owner }}/alr-default
-          token: ${{ secrets.GITVERSE_PUBLIC_TOKEN }}
+          repository: alr/alr-default
+          token: ${{ secrets.ALR_TOKEN }}
           path: alr-default
 
       - name: Calculate checksum
@@ -170,14 +170,14 @@ jobs:
 
       - name: Upload package assets
         env:
-          GITVERSE_TOKEN: ${{ secrets.GITVERSE_TOKEN }}
+          GITVERSE_TOKEN: ${{ secrets.ALR_TOKEN }}
         run: |
           # Загружаем все собранные пакеты
           for file in alr-bin*.deb alr-bin*.rpm alr-bin*.pkg.tar.zst; do
             if [ -f "$file" ]; then
               echo "Uploading $file..."
               curl -s -X POST \
-                "https://gitverse.ru/api/v1/repos/${{ gitverse.repository_owner }}/${{ gitverse.repository }}/releases/${{ env.RELEASE_ID }}/assets?name=${file}" \
+                "https://gitverse.ru/api/v1/repos/alr/ALR/releases/${{ env.RELEASE_ID }}/assets?name=${file}" \
                 -H "Authorization: token ${GITVERSE_TOKEN}" \
                 -H "Content-Type: application/octet-stream" \
                 --data-binary "@${file}"
