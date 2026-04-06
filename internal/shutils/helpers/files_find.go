@@ -314,7 +314,7 @@ func filesFindLibCmd(hc interp.HandlerContext, cmd string, args []string) error 
 		namePattern = args[0]
 	}
 
-	libPaths := []string{"./usr/lib/", "./usr/lib64/", "./usr/local/lib/", "./usr/local/lib64/"}
+	libPaths := []string{"./lib/", "./lib64/", "./usr/lib/", "./usr/lib64/", "./usr/local/lib/", "./usr/local/lib64/"}
 	var libFiles []string
 
 	for _, libPath := range libPaths {
@@ -601,4 +601,181 @@ func filesFindLicenseCmd(hc interp.HandlerContext, cmd string, args []string) er
 	}
 
 	return outputFiles(hc, licenseFiles)
+}
+
+func filesFindSbinCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*"
+	if len(args) > 0 {
+		namePattern = args[0]
+	}
+
+	sbinPaths := []string{"./sbin/", "./usr/sbin/"}
+	var sbinFiles []string
+
+	for _, sbinPath := range sbinPaths {
+		realPath := path.Join(hc.Dir, sbinPath)
+		if _, err := os.Stat(realPath); os.IsNotExist(err) {
+			continue
+		}
+
+		err := filepath.Walk(realPath, func(p string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if !info.IsDir() && matchNamePattern(info.Name(), namePattern) {
+				relPath, relErr := makeRelativePath(hc.Dir, p)
+				if relErr != nil {
+					return relErr
+				}
+				sbinFiles = append(sbinFiles, relPath)
+			}
+			return nil
+		})
+		if err != nil {
+			return fmt.Errorf("files-find-sbin: %w", err)
+		}
+	}
+
+	return outputFiles(hc, sbinFiles)
+}
+
+func filesFindIconsCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*"
+	if len(args) > 0 {
+		namePattern = args[0]
+	}
+
+	iconsPath := "./usr/share/icons/"
+	realPath := path.Join(hc.Dir, iconsPath)
+
+	if err := validateDir(realPath, "files-find-icons"); err != nil {
+		return err
+	}
+
+	var iconsFiles []string
+	err := filepath.Walk(realPath, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && matchNamePattern(info.Name(), namePattern) {
+			relPath, relErr := makeRelativePath(hc.Dir, p)
+			if relErr != nil {
+				return relErr
+			}
+			iconsFiles = append(iconsFiles, relPath)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("files-find-icons: %w", err)
+	}
+
+	return outputFiles(hc, iconsFiles)
+}
+
+func filesFindDesktopCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*"
+	if len(args) > 0 {
+		namePattern = args[0]
+	}
+
+	desktopPath := "./usr/share/applications/"
+	realPath := path.Join(hc.Dir, desktopPath)
+
+	if err := validateDir(realPath, "files-find-desktop"); err != nil {
+		return err
+	}
+
+	var desktopFiles []string
+	err := filepath.Walk(realPath, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && matchNamePattern(info.Name(), namePattern) {
+			relPath, relErr := makeRelativePath(hc.Dir, p)
+			if relErr != nil {
+				return relErr
+			}
+			desktopFiles = append(desktopFiles, relPath)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("files-find-desktop: %w", err)
+	}
+
+	return outputFiles(hc, desktopFiles)
+}
+
+func filesFindDbusCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*"
+	if len(args) > 0 {
+		namePattern = args[0]
+	}
+
+	dbusPath := "./usr/share/dbus-1/"
+	realPath := path.Join(hc.Dir, dbusPath)
+
+	if err := validateDir(realPath, "files-find-dbus"); err != nil {
+		return err
+	}
+
+	var dbusFiles []string
+	err := filepath.Walk(realPath, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && matchNamePattern(info.Name(), namePattern) {
+			relPath, relErr := makeRelativePath(hc.Dir, p)
+			if relErr != nil {
+				return relErr
+			}
+			dbusFiles = append(dbusFiles, relPath)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("files-find-dbus: %w", err)
+	}
+
+	return outputFiles(hc, dbusFiles)
+}
+
+func filesFindPolkitCmd(hc interp.HandlerContext, cmd string, args []string) error {
+	namePattern := "*"
+	if len(args) > 0 {
+		namePattern = args[0]
+	}
+
+	polkitPath := "./usr/share/polkit-1/"
+	realPath := path.Join(hc.Dir, polkitPath)
+
+	if err := validateDir(realPath, "files-find-polkit"); err != nil {
+		return err
+	}
+
+	var polkitFiles []string
+	err := filepath.Walk(realPath, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && matchNamePattern(info.Name(), namePattern) {
+			relPath, relErr := makeRelativePath(hc.Dir, p)
+			if relErr != nil {
+				return relErr
+			}
+			polkitFiles = append(polkitFiles, relPath)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("files-find-polkit: %w", err)
+	}
+
+	return outputFiles(hc, polkitFiles)
 }
