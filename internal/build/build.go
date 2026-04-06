@@ -964,6 +964,7 @@ func (i *Builder) InstallPkgs(
 	}
 
 	var allBuiltDeps []*BuiltDep
+	var targetDeps []*BuiltDep
 	var installedBuildDeps []string
 
 	// Шаг 2: Устанавливаем ВСЕ системные зависимости одним вызовом
@@ -1054,14 +1055,19 @@ func (i *Builder) InstallPkgs(
 
 		if allInCache {
 			slog.Info(gotext.Get("Using cached package"), "name", pkgName)
-			allBuiltDeps = append(allBuiltDeps, cachedDeps...)
-			// Устанавливаем кешированный пакет
-			if len(cachedDeps) > 0 && !node.IsTarget {
-				err = i.installerExecutor.InstallLocal(ctx, GetBuiltPaths(cachedDeps), &manager.Opts{
-					NoConfirm: userConfirmed, // true после подтверждения
-				})
-				if err != nil {
-					return nil, fmt.Errorf("failed to install cached %s: %w", pkgName, err)
+			// Целевые пакеты откладываем для финальной установки
+			if node.IsTarget {
+				targetDeps = append(targetDeps, cachedDeps...)
+			} else {
+				allBuiltDeps = append(allBuiltDeps, cachedDeps...)
+				// Устанавливаем кешированный пакет сразу
+				if len(cachedDeps) > 0 {
+					err = i.installerExecutor.InstallLocal(ctx, GetBuiltPaths(cachedDeps), &manager.Opts{
+						NoConfirm: userConfirmed, // true после подтверждения
+					})
+					if err != nil {
+						return nil, fmt.Errorf("failed to install cached %s: %w", pkgName, err)
+					}
 				}
 			}
 			continue
@@ -1092,7 +1098,13 @@ func (i *Builder) InstallPkgs(
 			return nil, fmt.Errorf("failed to build %s: %w", pkgName, err)
 		}
 
-		allBuiltDeps = append(allBuiltDeps, res...)
+		// Для целевых пакетов откладываем установку в финальный шаг,
+		// для зависимостей устанавливаем сразу
+		if node.IsTarget {
+			targetDeps = append(targetDeps, res...)
+		} else {
+			allBuiltDeps = append(allBuiltDeps, res...)
+		}
 
 		// Устанавливаем собранный пакет сразу, чтобы он был доступен для следующих
 		if len(res) > 0 && !node.IsTarget {
@@ -1111,13 +1123,6 @@ func (i *Builder) InstallPkgs(
 	}
 
 	// Шаг 6: Устанавливаем целевые пакеты
-	var targetDeps []*BuiltDep
-	for _, dep := range allBuiltDeps {
-		if targetSet[dep.Name] {
-			targetDeps = append(targetDeps, dep)
-		}
-	}
-
 	if len(targetDeps) > 0 {
 		slog.Info(gotext.Get("Installing target packages"))
 		err = i.installerExecutor.InstallLocal(ctx, GetBuiltPaths(targetDeps), &manager.Opts{
@@ -1153,6 +1158,7 @@ func (i *Builder) InstallPkgs(
 		}
 	}
 
-	return allBuiltDeps, nil
+	// Объединяем зависимости и целевые пакеты для возврата
+	return append(allBuiltDeps, targetDeps...), nil
 }
 
