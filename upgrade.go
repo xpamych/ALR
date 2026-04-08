@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -246,7 +247,11 @@ func checkForUpdates(
 				repoVer = fmt.Sprintf("%d:%s-%s", pkg.Epoch, pkg.Version, releaseStr)
 			}
 
-			c := vercmp.Compare(repoVer, installed[pkgName])
+			// Нормализуем версии перед сравнением (убираем dist суффиксы типа .red80, .el9, .fc41)
+			normalizedInstalled := normalizeVersion(installed[pkgName])
+			normalizedRepo := normalizeVersion(repoVer)
+			
+			c := vercmp.Compare(normalizedRepo, normalizedInstalled)
 
 			if c == 1 {
 				out = append(out, UpdateInfo{
@@ -284,4 +289,24 @@ func checkForUpdates(
 	slog.Info(gotext.Get("Finished checking for updates"), "updates_available", len(out))
 
 	return out, nil
+}
+
+// distSuffixRegex находит dist суффиксы в версии (.red80, .el9, .fc41, .alt1 и т.д.)
+// Формат: [epoch:]version-release.dist
+// Примеры: "1:26.0.4-10.red80", "2024.4-4.red80", "15.1.0-3.fc41"
+var distSuffixRegex = regexp.MustCompile(`^(\d+:)?([\d\.]+-\d+)(\.[a-z]+\d*)$`)
+
+// normalizeVersion убирает dist суффикс из версии пакета
+// Например: "1:26.0.4-10.red80" → "1:26.0.4-10"
+//           "2024.4-4.red80" → "2024.4-4"
+//           "15.1.0-3.fc41" → "15.1.0-3"
+func normalizeVersion(version string) string {
+	// Пробуем найти и удалить dist суффикс
+	matches := distSuffixRegex.FindStringSubmatch(version)
+	if len(matches) >= 3 {
+		// matches[1] = epoch (может быть пустым)
+		// matches[2] = version-release
+		return matches[1] + matches[2]
+	}
+	return version
 }
