@@ -19,6 +19,7 @@ package build
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"log/slog"
 
 	"git.alr-pkg.ru/xpamych/vercmp"
@@ -153,7 +154,17 @@ func (i *Installer) FilterPackagesByVersion(ctx context.Context, packages []alrs
 			repoVer = fmt.Sprintf("%d:%s-%s", pkg.Epoch, pkg.Version, releaseStr)
 		}
 
-		cmp := vercmp.Compare(repoVer, installedVer)
+		// Нормализуем версии перед сравнением (убираем dist суффиксы)
+		normalizedRepo := normalizeVersion(repoVer)
+		normalizedInstalled := normalizeVersion(installedVer)
+		cmp := vercmp.Compare(normalizedRepo, normalizedInstalled)
+		slog.Debug("FilterPackagesByVersion: comparing versions",
+			"package", alrPkgName,
+			"installed", installedVer,
+			"installedNorm", normalizedInstalled,
+			"repo", repoVer,
+			"repoNorm", normalizedRepo,
+			"cmp", cmp)
 
 		if cmp > 0 {
 			slog.Info(gotext.Get("Package %s is installed with older version %s, will rebuild with version %s", alrPkgName, installedVer, repoVer))
@@ -166,4 +177,16 @@ func (i *Installer) FilterPackagesByVersion(ctx context.Context, packages []alrs
 	}
 
 	return filteredPackages, nil
+}
+
+// distSuffixRegex находит dist суффиксы в версии (.red80, .el9, .fc41, .alt1 и т.д.)
+var distSuffixRegex = regexp.MustCompile(`^((?:\d+:)?\d[\d\.]*-\d+)(\.[a-z]+\d*)$`)
+
+// normalizeVersion убирает dist суффикс из версии пакета
+func normalizeVersion(version string) string {
+	matches := distSuffixRegex.FindStringSubmatch(version)
+	if len(matches) >= 2 {
+		return matches[1]
+	}
+	return version
 }
