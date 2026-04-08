@@ -1131,3 +1131,9 @@ msgstr "Хотите удалить все зависимости сборки?"
 
 msgid "Failed to remove build dependencies: %v"
 msgstr "Не удалось удалить зависимости сборки: %v"
+
+msgid "Failed to clean build directory"
+msgstr "Не удалось очистить директорию сборки"
+
+msgid "Cleaned build directory for rebuild"
+msgstr "Очищена директория сборки для пересборки"

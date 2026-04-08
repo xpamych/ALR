@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
@@ -357,6 +358,21 @@ func (b *Builder) BuildPackage(
 
 		// Обновляем varsOfPackages только теми пакетами, которые нужно собрать
 		varsOfPackages = remainingVars
+
+		// Очищаем build-директории для пакетов, которые будем пересобирать
+		// (например, при изменении release в рамках той же версии)
+		for _, vars := range varsOfPackages {
+			pkgDirName := "pkg"
+			if vars.Name != "" && vars.Name != basePkg {
+				pkgDirName = "pkg_" + vars.Name
+			}
+			pkgDir := filepath.Join(getBaseDir(b.cfg, basePkg), pkgDirName)
+			if err := os.RemoveAll(pkgDir); err != nil {
+				slog.Warn(gotext.Get("Failed to clean build directory"), "dir", pkgDir, "error", err)
+			} else {
+				slog.Debug(gotext.Get("Cleaned build directory for rebuild"), "dir", pkgDir)
+			}
+		}
 	}
 
 	// Примечание: вывод "Building package" перенесен в InstallPkgs для единообразия
