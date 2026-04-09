@@ -57,23 +57,40 @@ installPkg() {
 }
 
 trackInstallation() {
-  # Отправить статистику установки (не критично если не получится)
+  # Отправить статистику установки ALR (не критично если не получится)
   if command -v curl &>/dev/null; then
-    # Генерируем уникальный отпечаток на основе hostname и даты
-    fingerprint=$(echo "$(hostname)_$(date +%Y-%m-%d)" | sha256sum 2>/dev/null | cut -d' ' -f1 || echo "$(hostname)_$(date +%Y-%m-%d)")
-    
-    # Пробуем разные домены/порты для отправки статистики
-    for api_url in "https://alr-pkg.ru/api/packages/track-install" "http://localhost:3001/api/packages/track-install"; do
+    # Генерируем стабильный уникальный отпечаток машины
+    # Используем machine-id если есть, иначе hostname + MAC
+    if [ -f /etc/machine-id ]; then
+      machine_id=$(cat /etc/machine-id)
+    elif [ -f /var/lib/dbus/machine-id ]; then
+      machine_id=$(cat /var/lib/dbus/machine-id)
+    else
+      # Fallback: hostname + первый MAC-адрес
+      mac=$(cat /sys/class/net/*/address 2>/dev/null | head -1 | tr -d ':')
+      machine_id="$(hostname)_${mac}"
+    fi
+
+    # Создаём fingerprint на основе machine_id (стабильный во времени)
+    fingerprint=$(echo "$machine_id" | sha256sum 2>/dev/null | cut -d' ' -f1 || echo "$machine_id")
+
+    # Определяем дистрибутив
+    distro=""
+    if [ -f /etc/os-release ]; then
+      distro=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
+    fi
+
+    # Отправляем статистику установки ALR
+    for api_url in "https://alr-pkg.ru/api/packages/track-alr-install" "http://localhost:3001/api/packages/track-alr-install"; do
       curl -s -m 5 -X POST "$api_url" \
         -H "Content-Type: application/json" \
         -H "User-Agent: ALR-InstallScript/1.0" \
         -d "{
-          \"packageName\": \"alr-bin\",
-          \"installType\": \"script\",
+          \"version\": \"\",
+          \"distro\": \"$distro\",
           \"userAgent\": \"ALR-InstallScript/1.0\",
           \"fingerprint\": \"$fingerprint\"
         }" >/dev/null 2>&1
-      # Если один запрос удался, не пробуем остальные
       if [ $? -eq 0 ]; then
         break
       fi
