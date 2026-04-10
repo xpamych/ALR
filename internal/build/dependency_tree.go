@@ -152,80 +152,157 @@ func (b *Builder) ResolveUnifiedDependencyTree(
 		for pkgName, pkgList := range found {
 			pkgCounter++
 			totalProcessed++
-			if visited[pkgName] {
-				continue
-			}
-			visited[pkgName] = true
-
-			if pkgCounter%5 == 0 || pkgCounter == 1 {
-				slog.Debug(fmt.Sprintf("[TIME: %s] Processing package", time.Now().Format("15:04:05.000")), "call", resolveCallCount, "pkg", pkgCounter, "name", pkgName, "total", totalProcessed)
-			}
 
 			if len(pkgList) == 0 {
 				continue
 			}
 
-			pkg := pkgList[0]
-			alrsh.ResolvePackage(&pkg, overrideNames)
+			// Проверяем, найден ли пакет по basepkg_name (мультипакет)
+			// В этом случае pkgName - это basepkg_name, а pkgList содержит все подпакеты
+			// Если найдено несколько пакетов - это метапакет
+			isMetaPackage := len(pkgList) > 1
 
-			baseName := pkg.BasePkgName
-			if baseName == "" {
-				baseName = pkg.Name
-			}
-
-			deps := pkg.Depends.Resolved()
-			buildDeps := pkg.BuildDepends.Resolved()
-			optDeps := pkg.OptDepends.Resolved()
-
-			// Добавляем узел
-			tree.Nodes[pkgName] = &DependencyNode{
-				Package:      &pkg,
-				BasePkgName:  baseName,
-				PkgName:      pkgName,
-				Dependencies: deps,
-				BuildDeps:    buildDeps,
-			}
-
-			// Собираем опциональные зависимости
-			for _, optDep := range optDeps {
-				if !optVisited[optDep] {
-					optVisited[optDep] = true
-					tree.AllOptDeps = append(tree.AllOptDeps, optDep)
-				}
-			}
-
-			// Отслеживаем build зависимости для удаления
-			slog.Debug(fmt.Sprintf("[TIME: %s] Checking build deps", time.Now().Format("15:04:05.000")), "pkg", pkgName, "count", len(buildDeps))
-			for i, bd := range buildDeps {
-				// Проверяем, есть ли в системе
-				if b.mgr != nil {
-					if i%5 == 0 {
-						slog.Debug(fmt.Sprintf("[TIME: %s] IsAvailable", time.Now().Format("15:04:05.000")), "pkg", pkgName, "dep", bd, "idx", i)
+			if isMetaPackage {
+				// Обрабатываем все подпакеты мультипакета
+				for _, pkg := range pkgList {
+					subPkgName := pkg.Name
+					if visited[subPkgName] {
+						continue
 					}
-					isAvail, _ := b.mgr.IsAvailable(bd)
-					if isAvail && !buildDepVisited[bd] {
-						buildDepVisited[bd] = true
-						tree.AllBuildDeps = append(tree.AllBuildDeps, bd)
+					visited[subPkgName] = true
+
+					if pkgCounter%5 == 0 || pkgCounter == 1 {
+						slog.Debug(fmt.Sprintf("[TIME: %s] Processing package", time.Now().Format("15:04:05.000")), "call", resolveCallCount, "pkg", pkgCounter, "name", subPkgName, "total", totalProcessed)
+					}
+
+					alrsh.ResolvePackage(&pkg, overrideNames)
+
+					baseName := pkg.BasePkgName
+					if baseName == "" {
+						baseName = pkg.Name
+					}
+
+					deps := pkg.Depends.Resolved()
+					buildDeps := pkg.BuildDepends.Resolved()
+					optDeps := pkg.OptDepends.Resolved()
+
+					// Добавляем узел с реальным именем подпакета
+					tree.Nodes[subPkgName] = &DependencyNode{
+						Package:      &pkg,
+						BasePkgName:  baseName,
+						PkgName:      subPkgName,
+						Dependencies: deps,
+						BuildDeps:    buildDeps,
+					}
+
+					// Собираем опциональные зависимости
+					for _, optDep := range optDeps {
+						if !optVisited[optDep] {
+							optVisited[optDep] = true
+							tree.AllOptDeps = append(tree.AllOptDeps, optDep)
+						}
+					}
+
+					// Отслеживаем build зависимости для удаления
+					slog.Debug(fmt.Sprintf("[TIME: %s] Checking build deps", time.Now().Format("15:04:05.000")), "pkg", subPkgName, "count", len(buildDeps))
+					for i, bd := range buildDeps {
+						if b.mgr != nil {
+							if i%5 == 0 {
+								slog.Debug(fmt.Sprintf("[TIME: %s] IsAvailable", time.Now().Format("15:04:05.000")), "pkg", subPkgName, "dep", bd, "idx", i)
+							}
+							isAvail, _ := b.mgr.IsAvailable(bd)
+							if isAvail && !buildDepVisited[bd] {
+								buildDepVisited[bd] = true
+								tree.AllBuildDeps = append(tree.AllBuildDeps, bd)
+							}
+						}
+					}
+
+					// Рекурсивно обрабатываем зависимости
+					if len(buildDeps) > 0 {
+						if err := resolve(buildDeps, true, subPkgName); err != nil {
+							return err
+						}
+					}
+					if len(deps) > 0 {
+						if err := resolve(deps, false, subPkgName); err != nil {
+							return err
+						}
+					}
+
+					// Добавляем пакет в порядок
+					order = append(order, subPkgName)
+				}
+			} else {
+				// Обычный пакет (не мультипакет)
+				if visited[pkgName] {
+					continue
+				}
+				visited[pkgName] = true
+
+				if pkgCounter%5 == 0 || pkgCounter == 1 {
+					slog.Debug(fmt.Sprintf("[TIME: %s] Processing package", time.Now().Format("15:04:05.000")), "call", resolveCallCount, "pkg", pkgCounter, "name", pkgName, "total", totalProcessed)
+				}
+
+				pkg := pkgList[0]
+				alrsh.ResolvePackage(&pkg, overrideNames)
+
+				baseName := pkg.BasePkgName
+				if baseName == "" {
+					baseName = pkg.Name
+				}
+
+				deps := pkg.Depends.Resolved()
+				buildDeps := pkg.BuildDepends.Resolved()
+				optDeps := pkg.OptDepends.Resolved()
+
+				// Добавляем узел
+				tree.Nodes[pkgName] = &DependencyNode{
+					Package:      &pkg,
+					BasePkgName:  baseName,
+					PkgName:      pkgName,
+					Dependencies: deps,
+					BuildDeps:    buildDeps,
+				}
+
+				// Собираем опциональные зависимости
+				for _, optDep := range optDeps {
+					if !optVisited[optDep] {
+						optVisited[optDep] = true
+						tree.AllOptDeps = append(tree.AllOptDeps, optDep)
 					}
 				}
-			}
 
-			// Сначала добавляем в порядок (зависимости будут добавлены перед родителем)
-			// Рекурсивно обрабатываем ВСЕ зависимости сначала
-			// Сначала build (они глубже), затем runtime
-			if len(buildDeps) > 0 {
-				if err := resolve(buildDeps, true, pkgName); err != nil {
-					return err
+				// Отслеживаем build зависимости для удаления
+				slog.Debug(fmt.Sprintf("[TIME: %s] Checking build deps", time.Now().Format("15:04:05.000")), "pkg", pkgName, "count", len(buildDeps))
+				for i, bd := range buildDeps {
+					if b.mgr != nil {
+						if i%5 == 0 {
+							slog.Debug(fmt.Sprintf("[TIME: %s] IsAvailable", time.Now().Format("15:04:05.000")), "pkg", pkgName, "dep", bd, "idx", i)
+						}
+						isAvail, _ := b.mgr.IsAvailable(bd)
+						if isAvail && !buildDepVisited[bd] {
+							buildDepVisited[bd] = true
+							tree.AllBuildDeps = append(tree.AllBuildDeps, bd)
+						}
+					}
 				}
-			}
-			if len(deps) > 0 {
-				if err := resolve(deps, false, pkgName); err != nil {
-					return err
-				}
-			}
 
-			// Добавляем пакет ПОСЛЕ зависимостей (от листьев к корню)
-			order = append(order, pkgName)
+				// Рекурсивно обрабатываем зависимости
+				if len(buildDeps) > 0 {
+					if err := resolve(buildDeps, true, pkgName); err != nil {
+						return err
+					}
+				}
+				if len(deps) > 0 {
+					if err := resolve(deps, false, pkgName); err != nil {
+						return err
+					}
+				}
+
+				// Добавляем пакет в порядок
+				order = append(order, pkgName)
+			}
 		}
 
 		return nil
