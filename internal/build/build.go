@@ -768,6 +768,7 @@ func (i *Builder) installOptDeps(
 
 // printDependencyTree рекурсивно выводит дерево зависимостей
 // path используется для отслеживания текущего пути (для обнаружения циклов)
+// printed используется для отслеживания уже выведенных пакетов (дедупликация)
 func (i *Builder) printDependencyTree(
 	w *os.File,
 	node *DependencyNode,
@@ -775,6 +776,7 @@ func (i *Builder) printDependencyTree(
 	prefix string,
 	isLast bool,
 	path map[string]bool,
+	printed map[string]bool,
 	redColor, yellowColor, blueColor, grayColor lipgloss.Color,
 	versionStyle, repoStyle lipgloss.Style,
 ) {
@@ -792,6 +794,24 @@ func (i *Builder) printDependencyTree(
 		fmt.Fprintf(w, "%s%s%s\n", prefix, connectorStyle.Render(connector), circularStyle.Render(node.PkgName+" [circular]"))
 		return
 	}
+	
+	// Проверяем, выводился ли уже этот пакет (дедупликация)
+	if printed[node.PkgName] {
+		// Пакет уже выводился, показываем только имя без зависимостей
+		connectorStyle := lipgloss.NewStyle().Foreground(grayColor)
+		dupStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
+		var connector string
+		if isLast {
+			connector = "└── "
+		} else {
+			connector = "├── "
+		}
+		fmt.Fprintf(w, "%s%s%s\n", prefix, connectorStyle.Render(connector), dupStyle.Render(node.PkgName+" [already listed]"))
+		return
+	}
+	
+	// Отмечаем пакет как выведенный
+	printed[node.PkgName] = true
 	
 	// Добавляем текущий узел в путь
 	path[node.PkgName] = true
@@ -844,8 +864,21 @@ func (i *Builder) printDependencyTree(
 	for idx, childName := range children {
 		if childNode, ok := tree.Nodes[childName]; ok {
 			isLastChild := idx == len(children)-1 && len(sysDeps) == 0
-			i.printDependencyTree(w, childNode, tree, childPrefix, isLastChild, path,
+			i.printDependencyTree(w, childNode, tree, childPrefix, isLastChild, path, printed,
 				redColor, yellowColor, blueColor, grayColor, versionStyle, repoStyle)
+		} else {
+			// Проверяем, является ли зависимость метапакетом
+			var subpkgs []*DependencyNode
+			for _, node := range tree.Nodes {
+				if node.BasePkgName == childName {
+					subpkgs = append(subpkgs, node)
+				}
+			}
+			if len(subpkgs) > 0 {
+				isLastChild := idx == len(children)-1 && len(sysDeps) == 0
+				i.printMetaPackageTree(w, childName, subpkgs, tree, childPrefix, isLastChild, printed,
+					redColor, yellowColor, blueColor, grayColor, versionStyle, repoStyle)
+			}
 		}
 	}
 	
@@ -862,6 +895,49 @@ func (i *Builder) printDependencyTree(
 			}
 			fmt.Fprintf(w, "%s%s%s\n", childPrefix, connectorStyle.Render(sysConnector), sysStyle.Render(sysPkg))
 		}
+	}
+}
+
+// printMetaPackageTree выводит метапакет и его подпакеты
+func (i *Builder) printMetaPackageTree(
+	w *os.File,
+	metaPkgName string,
+	subpkgs []*DependencyNode,
+	tree *UnifiedDependencyTree,
+	prefix string,
+	isLast bool,
+	printed map[string]bool,
+	redColor, yellowColor, blueColor, grayColor lipgloss.Color,
+	versionStyle, repoStyle lipgloss.Style,
+) {
+	// Определяем символы для дерева
+	var connector string
+	if isLast {
+		connector = "└── "
+	} else {
+		connector = "├── "
+	}
+	
+	connectorStyle := lipgloss.NewStyle().Foreground(grayColor)
+	metaStyle := lipgloss.NewStyle().Foreground(redColor).Bold(true)
+	
+	// Выводим имя метапакета
+	fmt.Fprintf(w, "%s%s%s\n", prefix, connectorStyle.Render(connector), metaStyle.Render(metaPkgName))
+	
+	// Префикс для дочерних элементов
+	var childPrefix string
+	if isLast {
+		childPrefix = prefix + "    "
+	} else {
+		childPrefix = prefix + "│   "
+	}
+	
+	// Выводим подпакеты
+	for idx, subpkg := range subpkgs {
+		isLastSub := idx == len(subpkgs)-1
+		path := make(map[string]bool)
+		i.printDependencyTree(w, subpkg, tree, childPrefix, isLastSub, path, printed,
+			redColor, yellowColor, blueColor, grayColor, versionStyle, repoStyle)
 	}
 }
 
@@ -911,6 +987,14 @@ func (i *Builder) InstallPkgs(
 		targetSet[pkgName] = true
 		if node, ok := tree.Nodes[pkgName]; ok {
 			node.IsTarget = true
+		} else {
+			// Пакет не найден напрямую, возможно это basepkg_name мультипакета
+			// Ищем все подпакеты с этим basepkg_name и помечаем их как целевые
+			for _, node := range tree.Nodes {
+				if node.BasePkgName == pkgName {
+					node.IsTarget = true
+				}
+			}
 		}
 	}
 
@@ -956,11 +1040,26 @@ func (i *Builder) InstallPkgs(
 		fmt.Fprintln(os.Stderr, titleStyle.Render("📦 "+gotext.Get("Installation summary")))
 		
 		// Рисуем дерево зависимостей (path отслеживает текущий путь для обнаружения циклов)
+		// printed отслеживает уже выведенные пакеты для дедупликации
+		printed := make(map[string]bool)
 		for _, pkgName := range pkgs {
 			if node, ok := tree.Nodes[pkgName]; ok {
 				path := make(map[string]bool)
-				i.printDependencyTree(os.Stderr, node, tree, "", true, path,
+				i.printDependencyTree(os.Stderr, node, tree, "", true, path, printed,
 					redColor, yellowColor, blueColor, grayColor, versionStyle, repoStyle)
+			} else {
+				// Проверяем, является ли пакет метапакетом (есть подпакеты с таким BasePkgName)
+				var subpkgs []*DependencyNode
+				for _, node := range tree.Nodes {
+					if node.BasePkgName == pkgName {
+						subpkgs = append(subpkgs, node)
+					}
+				}
+				if len(subpkgs) > 0 {
+					// Выводим метапакет и его подпакеты
+					i.printMetaPackageTree(os.Stderr, pkgName, subpkgs, tree, "", true, printed,
+						redColor, yellowColor, blueColor, grayColor, versionStyle, repoStyle)
+				}
 			}
 		}
 		
