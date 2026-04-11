@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"math"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -566,7 +567,7 @@ func (rs *Repos) processRepoFull(ctx context.Context, repo types.Repo, repoDir s
 			}
 		}
 		
-		fmt.Fprintf(os.Stderr, "\r%s %3.0f%% (%d/%d)", bar.String(), progress*100, processed, len(matches))
+		fmt.Fprintf(os.Stderr, "\r%s %3.0f%% (%d/%d)", bar.String(), math.Floor(progress*100), processed, len(matches))
 
 		runner, err := rs.processRepoChangesRunner(repoDir, filepath.Dir(match))
 		if err != nil {
